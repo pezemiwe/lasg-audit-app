@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import s from "../../styles/regulations.module.css";
 import ps from "../../styles/pages.module.css";
 // Icons from Lucide (using what's available or similar)
@@ -107,6 +107,11 @@ const regulationsData = [
 const Regulations: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isPublicRoute = location.pathname.includes("public-regulations");
+  const showDashboardView = user && !isPublicRoute;
+
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [jurisdictionFilter, setJurisdictionFilter] = useState("all");
@@ -155,7 +160,7 @@ const Regulations: React.FC = () => {
   return (
     <>
       <div id="main">
-        {!user && (
+        {!showDashboardView && (
           /* Hero Section */
           <section className={s.hero} aria-labelledby="hero-h">
             <div className={s.hero_inner}>
@@ -228,7 +233,7 @@ const Regulations: React.FC = () => {
         )}
 
         {/* Filters Bar */}
-        <div className={s.filters_bar}>
+        <div className={s.filters_bar} data-dashboard={showDashboardView}>
           <div className={s.filters_inner}>
             <div className={s.filters_row}>
               <div className={s.search_wrap}>
@@ -295,7 +300,7 @@ const Regulations: React.FC = () => {
         </div>
 
         {/* Logged-in Header & Stats */}
-        {user && (
+        {showDashboardView && (
           <div style={{ marginBottom: "2rem" }}>
             <div className={ps.pageHeader}>
               <div>
@@ -366,7 +371,7 @@ const Regulations: React.FC = () => {
           </div>
         )}
 
-        <div className={s.main_content}>
+        <div className={s.main_content} style={{ minHeight: "60vh" }}>
           <div className={s.reg_grid}>
             {filtered.map((r, i) => (
               <article

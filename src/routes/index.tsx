@@ -36,8 +36,9 @@ const PageLoader = () => (
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      minHeight: "200px",
+      minHeight: "calc(100vh - 200px)", // Ensure it takes up mostly full height
       color: "#064e3b",
+      width: "100%",
     }}
   >
     <div

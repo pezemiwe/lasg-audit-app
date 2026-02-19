@@ -23,7 +23,9 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
   const addToast = useAuditStore((st) => st.addToast);
 
   const canEdit =
-    user?.role === "TEAM_AUDITOR" || user?.role === "HEAD_OF_LOCAL_GOVERNMENT";
+    user?.role === "TEAM_AUDITOR" ||
+    user?.role === "AUDIT_LEAD" ||
+    user?.role === "HEAD_OF_LOCAL_GOVERNMENT";
 
   const [selectedAuditId, setSelectedAuditId] = useState<string>(
     auditId || audits[0]?.id || "",

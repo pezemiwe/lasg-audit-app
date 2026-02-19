@@ -152,7 +152,7 @@ const DashboardLayout: React.FC = () => {
       <Link
         key={item.to}
         to={item.to}
-        title={collapsed ? item.label : undefined}
+        title={item.label}
         className={isActive(item.to) ? s.navLinkActive : s.navLink}
         onClick={() => setSidebarOpen(false)}
       >
@@ -192,7 +192,7 @@ const DashboardLayout: React.FC = () => {
           </div>
         </div>
 
-        <div className={s.userCard}>
+        <div className={s.userCard} title={`${user.name} (${roleName})`}>
           <div className={s.userAvatar}>{initials}</div>
           <div className={s.userInfo}>
             <div className={s.userName}>{user.name}</div>
@@ -224,7 +224,7 @@ const DashboardLayout: React.FC = () => {
             <div className={s.navGroupLabel}>Reference</div>
             <Link
               to="/regulations"
-              title={collapsed ? "Regulations" : undefined}
+              title="Regulations"
               className={isActive("/regulations") ? s.navLinkActive : s.navLink}
               onClick={() => setSidebarOpen(false)}
             >

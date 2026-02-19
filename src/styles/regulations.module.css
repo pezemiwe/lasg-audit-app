@@ -220,7 +220,8 @@
 /* Filters Bar */
 .filters_bar {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1; /* Hardcoded Slate-300 fallback */
+  border-color: var(--border-strong);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin: 0 auto 2.5rem;
@@ -229,6 +230,11 @@
   transition: all var(--t);
   position: relative;
   z-index: 10;
+}
+
+.filters_bar[data-dashboard="true"] {
+  border: 1px solid #cbd5e1 !important; /* Force visible border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .filters_inner {
@@ -259,7 +265,7 @@
 .search_input {
   width: 100%;
   background: var(--bg-subtle);
-  border: 1.5px solid var(--border);
+  border: 1px solid #cbd5e1; /* Stronger default border */
   border-radius: var(--radius);
   padding: 0.75rem 1rem 0.75rem 2.75rem;
   font-size: 0.875rem;
@@ -280,7 +286,7 @@
 
 .filter_select {
   background: var(--bg-subtle);
-  border: 1.5px solid var(--border);
+  border: 1px solid #cbd5e1; /* Stronger default border */
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
@@ -304,7 +310,7 @@
   display: flex;
   gap: 0.25rem;
   background: var(--bg-subtle);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius);
   padding: 0.25rem;
 }
@@ -421,13 +427,20 @@
 
 .reg_card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1; /* Hardcoded to ensure visibility */
+  /* border-color: var(--border-strong);  -- Removed to force visibility */
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   transition: all var(--t);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Ensure subtle lift */
+}
+
+/* Ensure border is visible even without hover */
+.reg_card:not(:hover) {
+  border-color: #cbd5e1; /* Slate-300 explicit default */
 }
 
 .reg_card::before {
@@ -547,7 +560,7 @@
   font-weight: 500;
   padding: 0.2rem 0.625rem;
   background: var(--bg-subtle);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1; /* Hardcoded visibility */
   border-radius: 100px;
   color: var(--text-3);
   transition: all var(--t);
@@ -584,7 +597,8 @@
 .reg_btn_view {
   background: transparent;
   color: var(--text-2);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1; /* Hardcoded visibility */
+  border-radius: var(--radius);
   flex: 1;
   justify-content: center;
 }
@@ -602,7 +616,8 @@
 .reg_btn_dl {
   background: var(--bg-subtle);
   color: var(--text-2);
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1; /* Hardcoded visibility */
+  border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
 }
 
@@ -617,7 +632,7 @@
   text-align: center;
   padding: 4rem 2rem;
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-xl);
 }
 

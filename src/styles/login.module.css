@@ -463,16 +463,32 @@
   color: #f5a800;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
+@media (max-width: 1024px) {
+  .brand {
+    display: none; /* Hide brand panel on tablets and below */
   }
-  to {
-    transform: rotate(360deg);
+  .page {
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); /* Maintain theme background */
+  }
+  .formPanel {
+    width: 100%;
+    max-width: 480px;
+    margin: 2rem auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   }
 }
 
-.spin {
-  animation: spin 1s linear infinite;
-  transform-origin: center;
+@media (max-width: 480px) {
+  .formPanel {
+    margin: 0;
+    padding: 1.5rem;
+    border-radius: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 }

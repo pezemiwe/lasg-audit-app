@@ -140,6 +140,11 @@ interface AuditStore {
   createAudit: (audit: Omit<Audit, "id">) => void;
   updateAuditStatus: (auditId: string, status: string) => void;
   updateAuditProgress: (auditId: string, progress: number) => void;
+  updateAuditEntryMeeting: (
+    auditId: string,
+    date: string,
+    notes: string,
+  ) => void;
 
   createTask: (task: Omit<Task, "id">) => void;
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
@@ -184,6 +189,9 @@ interface AuditStore {
   getMandateLetters: (mandateId: string) => NotificationLetter[];
   getAuditRiskMatrices: (auditId: string) => RiskMatrix[];
   getAuditMateriality: (auditId: string) => MaterialityThreshold | undefined;
+  setAuditMateriality: (
+    data: Omit<MaterialityThreshold, "id" | "createdAt">,
+  ) => void;
   getAuditControlTests: (auditId: string) => InternalControlTest[];
   getAuditSubstantiveTests: (auditId: string) => SubstantiveTest[];
   getAuditFraudFlags: (auditId: string) => FraudFlag[];
@@ -487,6 +495,15 @@ export const useAuditStore = create(
           ),
         })),
 
+      updateAuditEntryMeeting: (auditId, date, notes) =>
+        set((s) => ({
+          audits: s.audits.map((a) =>
+            a.id === auditId
+              ? { ...a, entryMeetingDate: date, entryMeetingNotes: notes }
+              : a,
+          ),
+        })),
+
       createTask: (task) => {
         const newTask: Task = { ...task, id: `task-${uid()}` };
         set((s) => ({ tasks: [...s.tasks, newTask] }));
@@ -681,6 +698,31 @@ export const useAuditStore = create(
 
       getAuditMateriality: (auditId) =>
         get().materiality.find((m) => m.auditId === auditId),
+
+      setAuditMateriality: (data) => {
+        set((s) => {
+          const existing = s.materiality.find(
+            (m) => m.auditId === data.auditId,
+          );
+          const newItem: MaterialityThreshold = {
+            ...data,
+            id: existing ? existing.id : `mat-${uid()}`,
+            createdAt: existing ? existing.createdAt : new Date().toISOString(),
+          };
+          return {
+            materiality: existing
+              ? s.materiality.map((m) =>
+                  m.auditId === data.auditId ? newItem : m,
+                )
+              : [...s.materiality, newItem],
+          };
+        });
+        get().addToast({
+          type: "success",
+          title: "Materiality Saved",
+          message: "Materiality thresholds have been updated.",
+        });
+      },
 
       getAuditControlTests: (auditId) =>
         get().controlTests.filter((c) => c.auditId === auditId),

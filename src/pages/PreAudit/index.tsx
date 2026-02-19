@@ -72,10 +72,23 @@ const PreAudit: React.FC<{ auditId?: string; embedded?: boolean }> = ({
   embedded,
 }) => {
   const { user } = useAuth();
-  const { audits, lgas, letters } = useAuditStore();
+  const {
+    audits,
+    lgas,
+    letters,
+    sendLetter,
+    updateLetterStatus,
+    updateAuditEntryMeeting,
+  } = useAuditStore();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "meetings" | "checklist" | "team"
+    "overview" | "letters" | "meetings" | "checklist" | "team"
   >("overview");
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [meetingForm, setMeetingForm] = useState({
+    auditId: "",
+    date: "",
+    notes: "",
+  });
 
   if (!user) return null;
 
@@ -177,6 +190,7 @@ const PreAudit: React.FC<{ auditId?: string; embedded?: boolean }> = ({
 
   const tabs = [
     { id: "overview", label: "Overview" },
+    { id: "letters", label: "Notification Letters" },
     { id: "meetings", label: "Entry Meetings" },
     { id: "checklist", label: "Document Checklist" },
     { id: "team", label: "Team Status" },
@@ -510,6 +524,146 @@ const PreAudit: React.FC<{ auditId?: string; embedded?: boolean }> = ({
         </div>
       )}
 
+      {activeTab === "letters" && (
+        <div style={{ display: "grid", gap: "1.5rem" }}>
+          <Card
+            title="Notification Letters"
+            subtitle="Manage and send audit notification letters to LGAs"
+          >
+            {letters.filter((l) => myAudits.some((a) => a.lgaId === l.lgaId))
+              .length === 0 ? (
+              <div
+                style={{
+                  padding: "3rem",
+                  textAlign: "center",
+                  color: "var(--text-3)",
+                }}
+              >
+                No letters have been generated for your assigned audits yet.
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: "1rem" }}>
+                {letters
+                  .filter((l) => myAudits.some((a) => a.lgaId === l.lgaId))
+                  .map((letter) => {
+                    const lgaName = getLGAName(letter.lgaId);
+                    const canSend =
+                      user.role === "AUDIT_LEAD" && letter.status === "Draft";
+
+                    return (
+                      <div
+                        key={letter.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "1.25rem",
+                          border: "1px solid var(--border)",
+                          borderRadius: "6px",
+                          background: "var(--bg-card)",
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "1rem",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            Notification Letter - {lgaName}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "0.85rem",
+                              color: "var(--text-2)",
+                              display: "flex",
+                              gap: "1rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <span>Ref: {letter.id}</span>
+                            <span>•</span>
+                            <Badge status={letter.status} />
+                            {letter.sentAt && (
+                              <>
+                                <span>•</span>
+                                <span>
+                                  Sent:{" "}
+                                  {new Date(letter.sentAt).toLocaleDateString()}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: "0.75rem" }}>
+                          <button
+                            style={{
+                              padding: "0.5rem 1rem",
+                              background: "none",
+                              border: "1px solid var(--border)",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontSize: "0.85rem",
+                              color: "var(--text)",
+                            }}
+                          >
+                            Preview
+                          </button>
+                          {canSend && (
+                            <button
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    `Are you sure you want to send this letter to ${lgaName}?`,
+                                  )
+                                ) {
+                                  sendLetter(letter.id);
+                                }
+                              }}
+                              style={{
+                                padding: "0.5rem 1rem",
+                                background: "var(--primary)",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "0.85rem",
+                                fontWeight: 600,
+                              }}
+                            >
+                              Send Letter
+                            </button>
+                          )}
+                          {letter.status === "Sent" &&
+                            user.role === "AUDIT_SUPERVISOR" && (
+                              <button
+                                onClick={() =>
+                                  updateLetterStatus(letter.id, "Acknowledged")
+                                }
+                                style={{
+                                  padding: "0.5rem 1rem",
+                                  background: "var(--bg-card)",
+                                  color: "var(--primary)",
+                                  border: "1px solid var(--primary)",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                Mark Acknowledged
+                              </button>
+                            )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
+
       {activeTab === "meetings" && (
         <div
           style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
@@ -526,6 +680,16 @@ const PreAudit: React.FC<{ auditId?: string; embedded?: boolean }> = ({
                 No entry meetings scheduled or recorded.
                 <br />
                 <button
+                  onClick={() => {
+                    if (myAudits.length > 0) {
+                      setMeetingForm({
+                        auditId: myAudits[0].id,
+                        date: "",
+                        notes: "",
+                      });
+                      setShowMeetingModal(true);
+                    }
+                  }}
                   style={{
                     marginTop: "1rem",
                     padding: "0.5rem 1rem",
@@ -1139,6 +1303,161 @@ const PreAudit: React.FC<{ auditId?: string; embedded?: boolean }> = ({
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {showMeetingModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--bg-card)",
+              padding: "2rem",
+              borderRadius: "8px",
+              minWidth: "400px",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <h3 style={{ marginBottom: "1.5rem" }}>Schedule Entry Meeting</h3>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+            >
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.85rem",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Audit / LGA
+                </label>
+                <select
+                  value={meetingForm.auditId}
+                  onChange={(e) =>
+                    setMeetingForm({ ...meetingForm, auditId: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {myAudits.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {getLGAName(a.lgaId)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.85rem",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={meetingForm.date}
+                  onChange={(e) =>
+                    setMeetingForm({ ...meetingForm, date: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.85rem",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Notes / Agenda
+                </label>
+                <textarea
+                  value={meetingForm.notes}
+                  rows={4}
+                  onChange={(e) =>
+                    setMeetingForm({ ...meetingForm, notes: e.target.value })
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "1rem",
+                  marginTop: "1rem",
+                }}
+              >
+                <button
+                  onClick={() => setShowMeetingModal(false)}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    updateAuditEntryMeeting(
+                      meetingForm.auditId,
+                      meetingForm.date,
+                      meetingForm.notes,
+                    );
+                    setShowMeetingModal(false);
+                  }}
+                  disabled={!meetingForm.date}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    background: "var(--primary)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    opacity: !meetingForm.date ? 0.5 : 1,
+                  }}
+                >
+                  Save Meeting
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

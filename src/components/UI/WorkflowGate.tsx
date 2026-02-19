@@ -20,7 +20,7 @@ const PHASE_ORDER: AuditPhase[] = [
 ];
 
 const PHASE_LABELS: Record<AuditPhase, string> = {
-  "pre-audit": "Pre-Audit Survey",
+  "pre-audit": "Pre-Audit",
   planning: "Audit Planning",
   fieldwork: "Fieldwork",
   reporting: "Reporting",

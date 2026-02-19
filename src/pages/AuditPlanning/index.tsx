@@ -129,6 +129,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
     materiality,
     controlTests,
     zones,
+    setAuditMateriality,
   } = useAuditStore();
   const addRiskMatrix = useAuditStore((st) => st.addRiskMatrix);
   const addToast = useAuditStore((st) => st.addToast);
@@ -136,6 +137,13 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
     "risk" | "materiality" | "entity" | "programme"
   >("entity");
   const [showRiskForm, setShowRiskForm] = useState(false);
+  const [showMaterialityForm, setShowMaterialityForm] = useState(false);
+  const [materialityForm, setMaterialityForm] = useState({
+    basis: "Total Revenue",
+    basisAmount: 0,
+    percentage: 1,
+    performancePercentage: 75,
+  });
   const [riskForm, setRiskForm] = useState({
     area: "",
     inherentRisk: "Medium" as RiskLevel,
@@ -1083,15 +1091,44 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1.5fr",
             gap: "1.5rem",
+            gridTemplateColumns:
+              auditMat && !showMaterialityForm ? "1fr 1.5fr" : "1fr",
           }}
         >
-          {auditMat ? (
+          {auditMat && !showMaterialityForm ? (
             <>
               <Card
                 title="Materiality Thresholds"
                 subtitle={`${lgaName} LGA · FY 2024/2025`}
+                action={
+                  user.role === "AUDIT_LEAD" && (
+                    <button
+                      onClick={() => {
+                        setMaterialityForm({
+                          basis: auditMat.basis,
+                          basisAmount: auditMat.basisAmount,
+                          percentage: auditMat.percentage,
+                          performancePercentage:
+                            (auditMat.performanceMateriality /
+                              auditMat.overallMateriality) *
+                            100,
+                        });
+                        setShowMaterialityForm(true);
+                      }}
+                      style={{
+                        padding: "0.4rem 0.8rem",
+                        fontSize: "0.75rem",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Edit Thresholds
+                    </button>
+                  )
+                }
               >
                 <div
                   style={{
@@ -1255,6 +1292,249 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
                 </div>
               </Card>
             </>
+          ) : user.role === "AUDIT_LEAD" ? (
+            <div style={{ maxWidth: "600px", margin: "0 auto", width: "100%" }}>
+              <Card
+                title={
+                  showMaterialityForm
+                    ? "Update Materiality Thresholds"
+                    : "Set Materiality Thresholds"
+                }
+                subtitle="Determine quantitative materiality for the audit"
+              >
+                <div
+                  style={{
+                    padding: "2rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1.5rem",
+                  }}
+                >
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "0.8rem",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      Benchmark Basis
+                    </label>
+                    <select
+                      value={materialityForm.basis}
+                      onChange={(e) =>
+                        setMaterialityForm({
+                          ...materialityForm,
+                          basis: e.target.value,
+                        })
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem",
+                        border: "1px solid var(--border)",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <option value="Total Revenue">Total Revenue</option>
+                      <option value="Total Expenditure">
+                        Total Expenditure
+                      </option>
+                      <option value="Total Assets">Total Assets</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "0.8rem",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      Basis Amount (NGN)
+                    </label>
+                    <input
+                      type="number"
+                      value={materialityForm.basisAmount}
+                      onChange={(e) =>
+                        setMaterialityForm({
+                          ...materialityForm,
+                          basisAmount: Number(e.target.value),
+                        })
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem",
+                        border: "1px solid var(--border)",
+                        borderRadius: "4px",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "1rem",
+                    }}
+                  >
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "0.8rem",
+                          fontWeight: 600,
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        Percentage (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={materialityForm.percentage}
+                        onChange={(e) =>
+                          setMaterialityForm({
+                            ...materialityForm,
+                            percentage: Number(e.target.value),
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "0.8rem",
+                          fontWeight: 600,
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        Performance Materiality (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        value={materialityForm.performancePercentage}
+                        onChange={(e) =>
+                          setMaterialityForm({
+                            ...materialityForm,
+                            performancePercentage: Number(e.target.value),
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "0.75rem",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: "1rem",
+                      background: "var(--bg)",
+                      borderRadius: "6px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      <span>Overall Materiality:</span>
+                      <span style={{ fontWeight: 700 }}>
+                        {formatCurrency(
+                          materialityForm.basisAmount *
+                            (materialityForm.percentage / 100),
+                        )}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      <span>Performance Materiality:</span>
+                      <span style={{ fontWeight: 700 }}>
+                        {formatCurrency(
+                          materialityForm.basisAmount *
+                            (materialityForm.percentage / 100) *
+                            (materialityForm.performancePercentage / 100),
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <button
+                      onClick={() => {
+                        const overall =
+                          materialityForm.basisAmount *
+                          (materialityForm.percentage / 100);
+                        const performance =
+                          overall *
+                          (materialityForm.performancePercentage / 100);
+                        const trivial = overall * 0.05; // 5% default
+
+                        setAuditMateriality({
+                          auditId: derivedAuditId,
+                          basis: materialityForm.basis,
+                          basisAmount: materialityForm.basisAmount,
+                          percentage: materialityForm.percentage,
+                          overallMateriality: overall,
+                          performanceMateriality: performance,
+                          clearlyTrivialThreshold: trivial,
+                          preparedBy: user.name,
+                        });
+                        setShowMaterialityForm(false);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "0.75rem",
+                        background: "var(--primary)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Save Thresholds
+                    </button>
+                    {showMaterialityForm && (
+                      <button
+                        onClick={() => setShowMaterialityForm(false)}
+                        style={{
+                          padding: "0.75rem 1.5rem",
+                          background: "transparent",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </div>
           ) : (
             <div style={{ gridColumn: "1/-1" }}>
               <Card title="Materiality">

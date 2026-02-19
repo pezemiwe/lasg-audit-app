@@ -138,7 +138,7 @@ const AIAssistant: React.FC = () => {
                 fontSize: "0.9rem",
                 cursor: "pointer",
               }}
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/regulations")}
             >
               <ChevronLeft size={18} />
               Back to Dashboard

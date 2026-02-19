@@ -356,74 +356,73 @@ const TeamManagementPage: React.FC = () => {
                                 setAssigningLga(isAssigning ? null : lga.id)
                               }
                             >
-                              <UserPlus size={12} /> Assign
+                              Assign Lead
                             </button>
                           )}
                         </td>
                       </tr>
                       {isAssigning && (
-                        <tr>
-                          <td
-                            colSpan={5}
-                            style={{ background: "#f8fafc", padding: "1rem" }}
-                          >
+                        <tr style={{ background: "#f8fafc" }}>
+                          <td colSpan={5} style={{ padding: "1rem" }}>
                             <div
                               style={{
-                                fontSize: "0.82rem",
-                                fontWeight: 600,
-                                marginBottom: "0.75rem",
-                                color: "#334155",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "1rem",
                               }}
                             >
-                              Select an Audit Lead for {lga.name}
-                            </div>
-                            {leads
-                              .filter((l) => !assignedLeadIds.has(l.id))
-                              .map((l) => (
-                                <div key={l.id} className={s.poolCard}>
-                                  <div className={s.poolInfo}>
-                                    <div className={s.poolName}>{l.name}</div>
-                                    <div className={s.poolMeta}>
-                                      {l.email} · Workload: {l.workload || 0}
-                                      {l.experience?.length
-                                        ? ` · Prev: ${l.experience.map((e) => lgas.find((lg) => lg.id === e)?.name || e).join(", ")}`
-                                        : ""}
-                                    </div>
-                                    <div
-                                      className={s.poolTags}
-                                      style={{ marginTop: "0.2rem" }}
-                                    >
-                                      {l.specialisations?.map((sp) => (
-                                        <span key={sp} className={s.poolTag}>
-                                          {sp}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                  <button
-                                    className={`${s.btnPrimary} ${s.btnSmall}`}
-                                    onClick={() =>
-                                      handleAssignLead(lga.id, l.id)
-                                    }
-                                  >
-                                    <Send size={12} /> Assign
-                                  </button>
-                                </div>
-                              ))}
-                            {leads.filter((l) => !assignedLeadIds.has(l.id))
-                              .length === 0 && (
-                              <div
-                                className={s.emptyState}
-                                style={{ padding: "1rem" }}
+                              <span
+                                style={{
+                                  fontSize: "0.875rem",
+                                  fontWeight: 500,
+                                }}
                               >
-                                <div className={s.emptyTitle}>
-                                  No available leads
-                                </div>
-                                <div className={s.emptyDesc}>
-                                  All leads have been assigned to LGAs.
-                                </div>
-                              </div>
-                            )}
+                                Select Audit Lead:
+                              </span>
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    handleAssignLead(lga.id, e.target.value);
+                                  }
+                                }}
+                                defaultValue=""
+                                style={{
+                                  flex: 1,
+                                  padding: "0.5rem",
+                                  border: "1px solid var(--border)",
+                                  borderRadius: "4px",
+                                  background: "white",
+                                }}
+                              >
+                                <option value="" disabled>
+                                  Choose a lead...
+                                </option>
+                                {leads.map((lead) => (
+                                  <option
+                                    key={lead.id}
+                                    value={lead.id}
+                                    disabled={assignedLeadIds.has(lead.id)}
+                                  >
+                                    {lead.name} ({lead.email}){" "}
+                                    {assignedLeadIds.has(lead.id)
+                                      ? "(Assigned)"
+                                      : ""}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                style={{
+                                  background: "transparent",
+                                  border: "1px solid var(--border)",
+                                  padding: "0.5rem 1rem",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => setAssigningLga(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )}

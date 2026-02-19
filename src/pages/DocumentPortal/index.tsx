@@ -485,25 +485,22 @@ const DocumentPortalPage: React.FC<{
                 ))}
               </select>
             )}
-            {(
-              [
-                "All",
-                "Not Uploaded",
-                "Uploaded",
-                "Approved",
-                "Rejected",
-              ] as const
-            ).map((f) => (
-              <button
-                key={f}
-                className={
-                  statusFilter === f ? s.filterChipActive : s.filterChip
-                }
-                onClick={() => setStatusFilter(f)}
-              >
-                {f}
-              </button>
-            ))}
+            <select
+              className={s.formSelect}
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as DocumentUploadStatus | "All")
+              }
+              style={{ width: "160px" }}
+            >
+              {["All", "Not Uploaded", "Uploaded", "Approved", "Rejected"].map(
+                (f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ),
+              )}
+            </select>
           </div>
           <div className={s.searchContainer}>
             <Search size={14} className={s.searchIcon} />
