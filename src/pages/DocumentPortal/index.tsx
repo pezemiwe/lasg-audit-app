@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from "react";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -14,7 +15,10 @@ import {
   Search,
   FolderOpen,
   AlertTriangle,
+  RotateCw,
+  Trash2,
 } from "lucide-react";
+import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
 import s from "../../styles/pages.module.css";
 
 const docStatusVariant = (status: DocumentUploadStatus) => {
@@ -42,10 +46,13 @@ const DocumentPortalPage: React.FC<{
   const reviewDocument = useAuditStore((st) => st.reviewDocument);
   const addToast = useAuditStore((st) => st.addToast);
   const openModal = useAuditStore((st) => st.openModal);
+  const ensureDocumentsExist = useAuditStore((st) => st.ensureDocumentsExist);
 
   // If embedded, try to match the audit's mandate or LGA
   const parentAudit = auditId ? audits.find((a) => a.id === auditId) : null;
   const parentLgaId = parentAudit?.lgaId;
+
+  const [previewDoc, setPreviewDoc] = useState<any | null>(null);
 
   const [selectedMandateId, setSelectedMandateId] = useState<string>(
     mandates.find((m) => m.status === "Published" || m.status === "Active")
@@ -74,6 +81,15 @@ const DocumentPortalPage: React.FC<{
     user?.role === "AUDIT_LEAD" || user?.role === "AUDIT_SUPERVISOR";
 
   const isLGA = user?.role === "HEAD_OF_LOCAL_GOVERNMENT";
+
+  // Auto-generate documents if missing for current user context
+  React.useEffect(() => {
+    if (isLGA && user?.lgaId && selectedMandateId) {
+      ensureDocumentsExist(selectedMandateId, user.lgaId);
+    }
+    // Force re-check when entering document portal
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMandateId, user?.lgaId]);
 
   const filteredDocs = useMemo(() => {
     let docs = documentUploads.filter((d) => d.mandateId === selectedMandateId);
@@ -125,18 +141,36 @@ const DocumentPortalPage: React.FC<{
 
   const detailDoc = documentUploads.find((d) => d.id === detailDocId);
 
-  const handleSimUpload = (docId: string, docName: string) => {
+  const handleFileChange = (
+    docId: string,
+    event: React.ChangeEvent<HTMLInputElement>,
+    docName: string,
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Immediately perform upload logic
+      performUpload(docId, docName, file);
+    }
+    // Clear input value to allow re-upload of same file if needed
+    event.target.value = "";
+  };
+
+  const performUpload = (docId: string, docName: string, file: File) => {
     const store = useAuditStore.getState();
     store.reviewDocument(docId, "", false);
     const doc = store.documentUploads.find((d) => d.id === docId);
     if (doc) {
       const idx = store.documentUploads.indexOf(doc);
       const updated = [...store.documentUploads];
+
+      const finalFileName = file.name;
+      const finalFileSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+
       updated[idx] = {
         ...doc,
         status: "Uploaded",
-        fileName: `${docName.replace(/\s+/g, "_").toLowerCase()}_v${doc.version + 1}.pdf`,
-        fileSize: `${(doc.version * 1.2 + 0.8).toFixed(1)} MB`,
+        fileName: finalFileName,
+        fileSize: finalFileSize,
         uploadedBy: user?.id || "",
         uploadedAt: new Date().toISOString(),
         version: doc.version + 1,
@@ -154,6 +188,48 @@ const DocumentPortalPage: React.FC<{
       title: "Document Uploaded",
       message: notif.message,
     });
+  };
+
+  const triggerFileUpload = (docId: string) => {
+    const input = document.getElementById(`file-input-${docId}`);
+    if (input) input.click();
+  };
+
+  const handleDelete = (docId: string) => {
+    const store = useAuditStore.getState();
+    const doc = store.documentUploads.find((d) => d.id === docId);
+
+    if (doc) {
+      openModal({
+        title: "Delete Document",
+        message:
+          "Are you sure you want to delete this file? The document status will revert to 'Not Uploaded'.",
+        confirmText: "Delete",
+        variant: "danger",
+        onConfirm: () => {
+          const idx = store.documentUploads.indexOf(doc);
+          const updated = [...store.documentUploads];
+          // Revert to initial state
+          updated[idx] = {
+            ...doc,
+            status: "Not Uploaded",
+            fileName: undefined,
+            fileSize: undefined,
+            uploadedBy: undefined,
+            uploadedAt: undefined,
+            reviewedBy: undefined,
+            reviewedAt: undefined,
+            rejectionReason: undefined,
+          };
+          useAuditStore.setState({ documentUploads: updated });
+          addToast({
+            type: "info",
+            title: "Document Deleted",
+            message: "File removed. You can upload a new version.",
+          });
+        },
+      });
+    }
   };
 
   const handleReview = (docId: string, approved: boolean) => {
@@ -242,7 +318,28 @@ const DocumentPortalPage: React.FC<{
                 <>
                   <div className={s.detailRow}>
                     <span className={s.detailLabel}>File Name</span>
-                    <span className={s.detailValue}>{detailDoc.fileName}</span>
+                    <span className={s.detailValue}>
+                      <div className="flex items-center gap-2">
+                        {detailDoc.fileName}
+                        <button
+                          onClick={() =>
+                            setPreviewDoc({
+                              name: detailDoc.documentName,
+                              type: detailDoc.requiredFormat,
+                              uploadedBy: detailDoc.uploadedBy,
+                              uploadedAt:
+                                detailDoc.uploadedAt ||
+                                new Date().toISOString(),
+                              size: detailDoc.fileSize,
+                            })
+                          }
+                          className="p-1 hover:bg-gray-100 rounded text-blue-600 transition-colors flex items-center gap-1 text-xs border border-blue-200"
+                          title="Preview Document"
+                        >
+                          <Eye size={12} /> Preview
+                        </button>
+                      </div>
+                    </span>
                   </div>
                   <div className={s.detailRow}>
                     <span className={s.detailLabel}>File Size</span>
@@ -291,9 +388,7 @@ const DocumentPortalPage: React.FC<{
                     </p>
                     <button
                       className={s.btnPrimary}
-                      onClick={() =>
-                        handleSimUpload(detailDoc.id, detailDoc.documentName)
-                      }
+                      onClick={() => triggerFileUpload(detailDoc.id)}
                     >
                       <Upload size={14} />{" "}
                       {detailDoc.status === "Rejected"
@@ -304,17 +399,34 @@ const DocumentPortalPage: React.FC<{
                 )}
 
               {isLGA && detailDoc.status === "Uploaded" && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    color: "#0369a1",
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  <Clock size={16} /> Pending Review by Audit Team
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      color: "#0369a1",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    <Clock size={16} /> Pending Review by Audit Team
+                  </div>
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <button
+                      className={s.btnSecondary}
+                      onClick={() => triggerFileUpload(detailDoc.id)}
+                    >
+                      <RotateCw size={14} /> Re-Upload Document
+                    </button>
+                    <button
+                      className={s.btnDanger}
+                      onClick={() => handleDelete(detailDoc.id)}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -394,6 +506,12 @@ const DocumentPortalPage: React.FC<{
             </div>
           </div>
         </div>
+        {previewDoc && (
+          <DocumentPreviewModal
+            document={previewDoc}
+            onClose={() => setPreviewDoc(null)}
+          />
+        )}
       </div>
     );
   }
@@ -594,6 +712,17 @@ const DocumentPortalPage: React.FC<{
                         <td>v{doc.version}</td>
                         <td>
                           <div className={s.tableActions}>
+                            {/* Hidden file input */}
+                            <input
+                              type="file"
+                              id={`file-input-${doc.id}`}
+                              style={{ display: "none" }}
+                              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                              onChange={(e) =>
+                                handleFileChange(doc.id, e, doc.documentName)
+                              }
+                            />
+
                             <button
                               className={s.btnIcon}
                               title="View Details"
@@ -606,13 +735,37 @@ const DocumentPortalPage: React.FC<{
                                 doc.status === "Rejected") && (
                                 <button
                                   className={`${s.btnPrimary} ${s.btnSmall}`}
-                                  onClick={() =>
-                                    handleSimUpload(doc.id, doc.documentName)
-                                  }
+                                  // Trigger the hidden file input
+                                  onClick={() => triggerFileUpload(doc.id)}
                                 >
                                   <Upload size={12} /> Upload
                                 </button>
                               )}
+                            {isLGA && doc.status === "Uploaded" && (
+                              <>
+                                <button
+                                  className={`${s.btnSecondary} ${s.btnSmall}`}
+                                  title="Replace File"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    triggerFileUpload(doc.id);
+                                  }}
+                                  style={{ marginRight: "0.5rem" }}
+                                >
+                                  <RotateCw size={12} />
+                                </button>
+                                <button
+                                  className={`${s.btnDanger} ${s.btnSmall}`}
+                                  title="Delete"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(doc.id);
+                                  }}
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </>
+                            )}
                             {isAdmin &&
                               canApprove &&
                               doc.status === "Uploaded" && (

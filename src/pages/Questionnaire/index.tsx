@@ -2,7 +2,14 @@ import React, { useState, useMemo } from "react";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import StatusBadge from "../../components/UI/StatusBadge";
-import { ClipboardList, CheckCircle2, ChevronRight, Save } from "lucide-react";
+import ProfessionalTextarea from "../../components/UI/ProfessionalTextarea";
+import {
+  ClipboardList,
+  CheckCircle2,
+  Save,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import s from "../../styles/pages.module.css";
 
 interface QuestionnairePageProps {
@@ -20,6 +27,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
   const questions = useAuditStore((st) => st.questionnaireQuestions);
   const responses = useAuditStore((st) => st.questionnaireResponses);
   const saveResponse = useAuditStore((st) => st.saveQuestionnaireResponse);
+  const deleteResponse = useAuditStore((st) => st.deleteQuestionnaireResponse);
   const addToast = useAuditStore((st) => st.addToast);
 
   const canEdit =
@@ -39,6 +47,9 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
 
   const [activeSection, setActiveSection] = useState<string>("");
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
+  const [editingQuestions, setEditingQuestions] = useState<Set<string>>(
+    new Set(),
+  );
 
   const sections = useMemo(() => {
     return Array.from(new Set(questions.map((q) => q.section)));
@@ -85,6 +96,24 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
     return { answered, total: questions.length };
   }, [questions, auditResponses]);
 
+  const handleStartEdit = (questionId: string, existingAnswer: string) => {
+    setDraftAnswers((prev) => ({ ...prev, [questionId]: existingAnswer }));
+    setEditingQuestions((prev) => new Set(prev).add(questionId));
+  };
+
+  const handleDeleteResponse = (questionId: string) => {
+    deleteResponse(selectedAuditId, questionId);
+    const updated = { ...draftAnswers };
+    delete updated[questionId];
+    setDraftAnswers(updated);
+    setEditingQuestions((prev) => {
+      const next = new Set(prev);
+      next.delete(questionId);
+      return next;
+    });
+    addToast({ type: "info", title: "Response Removed" });
+  };
+
   const handleSave = (questionId: string) => {
     const answer = getCurrentAnswer(questionId);
     if (!answer.trim()) {
@@ -105,6 +134,11 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
     const updated = { ...draftAnswers };
     delete updated[questionId];
     setDraftAnswers(updated);
+    setEditingQuestions((prev) => {
+      const next = new Set(prev);
+      next.delete(questionId);
+      return next;
+    });
     addToast({ type: "success", title: "Response Saved" });
   };
 
@@ -209,7 +243,14 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
         </div>
       )}
 
-      <div className={s.kpiRow}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+          gap: "1rem",
+          marginBottom: "1.5rem",
+        }}
+      >
         {sections.map((section) => {
           const prog = sectionProgress(section);
           const pct =
@@ -218,45 +259,75 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
           return (
             <div
               key={section}
-              className={s.kpiCard}
               style={{
+                background: isActive ? "#ecfdf5" : "white",
+                border: isActive ? "1px solid #10b981" : "1px solid #e5e7eb",
+                borderRadius: "8px",
+                padding: "0.75rem",
                 cursor: "pointer",
-                borderColor: isActive ? "#064e3b" : undefined,
-                background: isActive ? "rgba(6, 78, 59, 0.03)" : undefined,
+                transition: "all 0.2s",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
               }}
               onClick={() => setActiveSection(section)}
             >
-              <div>
-                <div className={s.kpiLabel}>{section}</div>
-                <div className={s.kpiValue} style={{ fontSize: "1.25rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    color: isActive ? "#064e3b" : "#475569",
+                  }}
+                >
+                  {section}
+                </span>
+                {isActive && <CheckCircle2 size={14} color="#10b981" />}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "#1e293b",
+                  }}
+                >
                   {prog.answered}/{prog.total}
                 </div>
-                <div style={{ marginTop: "0.5rem" }}>
+                <div
+                  style={{
+                    width: "60px",
+                    height: "4px",
+                    background: "#e2e8f0",
+                    borderRadius: "2px",
+                    overflow: "hidden",
+                  }}
+                >
                   <div
                     style={{
-                      height: "4px",
-                      background: "var(--border)",
+                      height: "100%",
+                      width: `${pct}%`,
+                      background: pct === 100 ? "#16a34a" : "#059669",
                       borderRadius: "2px",
-                      overflow: "hidden",
-                      width: "100px",
+                      transition: "width 0.3s",
                     }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${pct}%`,
-                        background: pct === 100 ? "#16a34a" : "#064e3b",
-                        borderRadius: "2px",
-                        transition: "width 0.3s",
-                      }}
-                    />
-                  </div>
+                  />
                 </div>
               </div>
-              <ChevronRight
-                size={16}
-                style={{ color: isActive ? "#064e3b" : "var(--text-3)" }}
-              />
             </div>
           );
         })}
@@ -315,6 +386,9 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                     idx < sectionQuestions.length - 1
                       ? "1px solid var(--border)"
                       : "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "100%",
                 }}
               >
                 <div
@@ -323,6 +397,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                     alignItems: "flex-start",
                     justifyContent: "space-between",
                     marginBottom: "0.75rem",
+                    width: "100%",
                   }}
                 >
                   <div
@@ -330,6 +405,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                       display: "flex",
                       gap: "0.75rem",
                       alignItems: "flex-start",
+                      flex: 1,
                     }}
                   >
                     <span
@@ -382,6 +458,8 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
+                      flexShrink: 0,
+                      marginLeft: "1rem",
                     }}
                   >
                     {existing && !isDraft && (
@@ -494,51 +572,196 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <div style={{ marginLeft: "2.5rem" }}>
-                    <textarea
-                      className={s.formTextarea}
-                      value={answer}
-                      disabled={!canEdit}
-                      readOnly={!canEdit}
-                      onChange={(e) =>
-                        canEdit &&
-                        setDraftAnswers({
-                          ...draftAnswers,
-                          [q.id]: e.target.value,
-                        })
-                      }
-                      placeholder={
-                        canEdit
-                          ? "Enter your response..."
-                          : "No response provided"
-                      }
-                      style={{
-                        minHeight: "80px",
-                        opacity: !canEdit ? 0.7 : 1,
-                        cursor: !canEdit ? "not-allowed" : "text",
-                      }}
-                    />
-                    {q.minWords && (
+                  <div
+                    style={{
+                      marginLeft: "2.5rem",
+                      width: "calc(100% - 2.5rem)",
+                    }}
+                  >
+                    {/* Saved view — show if answer is saved and not currently editing */}
+                    {existing && !editingQuestions.has(q.id) ? (
                       <div
                         style={{
-                          fontSize: "0.72rem",
-                          color:
-                            answer.split(/\s+/).filter(Boolean).length >=
-                            (q.minWords || 0)
-                              ? "#16a34a"
-                              : "var(--text-3)",
-                          marginTop: "0.35rem",
-                          fontWeight: 600,
+                          borderRadius: "10px",
+                          border: "1.5px solid #d1fae5",
+                          background:
+                            "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)",
+                          overflow: "hidden",
                         }}
                       >
-                        {answer.split(/\s+/).filter(Boolean).length} /{" "}
-                        {q.minWords} words minimum
+                        {/* Green top accent */}
+                        <div
+                          style={{
+                            height: "3px",
+                            background:
+                              "linear-gradient(90deg, #16a34a, #10b981)",
+                          }}
+                        />
+                        <div style={{ padding: "0.875rem 1rem 0.5rem" }}>
+                          <p
+                            style={{
+                              fontSize: "0.875rem",
+                              lineHeight: "1.7",
+                              color: "var(--text, #1e293b)",
+                              margin: 0,
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            {existing.answer}
+                          </p>
+                        </div>
+                        {/* Actions bar */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "0.4rem 0.875rem",
+                            borderTop: "1px solid #bbf7d0",
+                            background: "rgba(16,185,129,0.04)",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "0.68rem",
+                              color: "#16a34a",
+                              fontWeight: 600,
+                            }}
+                          >
+                            ✓ Saved
+                            {existing.answeredAt
+                              ? ` · ${new Date(existing.answeredAt).toLocaleString()}`
+                              : ""}
+                          </span>
+                          {canEdit && (
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                              <button
+                                onClick={() =>
+                                  handleStartEdit(q.id, existing.answer)
+                                }
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.3rem",
+                                  fontSize: "0.72rem",
+                                  fontWeight: 600,
+                                  color: "#064e3b",
+                                  background: "white",
+                                  border: "1.5px solid #bbf7d0",
+                                  borderRadius: "6px",
+                                  padding: "0.25rem 0.625rem",
+                                  cursor: "pointer",
+                                  transition:
+                                    "background 0.15s, border-color 0.15s",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.background = "#f0fdf4")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.background = "white")
+                                }
+                              >
+                                <Pencil size={11} /> Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteResponse(q.id)}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.3rem",
+                                  fontSize: "0.72rem",
+                                  fontWeight: 600,
+                                  color: "#dc2626",
+                                  background: "white",
+                                  border: "1.5px solid #fecaca",
+                                  borderRadius: "6px",
+                                  padding: "0.25rem 0.625rem",
+                                  cursor: "pointer",
+                                  transition: "background 0.15s",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.background = "#fef2f2")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.background = "white")
+                                }
+                              >
+                                <Trash2 size={11} /> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        <ProfessionalTextarea
+                          value={answer}
+                          disabled={!canEdit}
+                          onChange={(e) =>
+                            canEdit &&
+                            setDraftAnswers({
+                              ...draftAnswers,
+                              [q.id]: e.target.value,
+                            })
+                          }
+                          placeholder={
+                            canEdit
+                              ? "Enter your response…"
+                              : "No response provided"
+                          }
+                          minWords={q.minWords}
+                          maxWords={q.maxWords}
+                          showWordCount={!!(q.minWords || q.maxWords)}
+                        />
+                        {isDraft && canEdit && (
+                          <div
+                            style={{
+                              marginTop: "0.625rem",
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <button
+                              className={`${s.btnPrimary} ${s.btnSmall}`}
+                              onClick={() => handleSave(q.id)}
+                            >
+                              <Save size={12} /> Save Response
+                            </button>
+                            <button
+                              className={s.btnSmall}
+                              style={{
+                                fontSize: "0.75rem",
+                                padding: "0.3rem 0.75rem",
+                                border: "1.5px solid var(--border)",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                background: "var(--surface)",
+                                color: "var(--text-2)",
+                                fontWeight: 600,
+                              }}
+                              onClick={() => {
+                                setEditingQuestions((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(q.id);
+                                  return next;
+                                });
+                                const updated = { ...draftAnswers };
+                                delete updated[q.id];
+                                setDraftAnswers(updated);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
 
-                {isDraft && canEdit && (
+                {isDraft && canEdit && q.type !== "open-ended" && (
                   <div style={{ marginLeft: "2.5rem", marginTop: "0.75rem" }}>
                     <button
                       className={`${s.btnPrimary} ${s.btnSmall}`}
@@ -549,7 +772,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                   </div>
                 )}
 
-                {existing && (
+                {existing && q.type !== "open-ended" && (
                   <div
                     style={{
                       marginLeft: "2.5rem",

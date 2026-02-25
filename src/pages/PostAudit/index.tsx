@@ -26,7 +26,6 @@ import {
   Target,
   FileSignature,
 } from "lucide-react";
-import { WorkflowGate } from "../../components/UI/WorkflowGate";
 import s from "../../styles/pages.module.css";
 
 /* ─── Helpers ─── */
@@ -143,11 +142,16 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
   /* Eligible audits: Completed or Reporting status */
   const eligibleAudits = useMemo(() => {
     if (!user) return [];
+    // DEMO: All audits eligible
+    return audits
+      .filter(() => true)
+      .sort((a) => (a.status === "Completed" ? -1 : 1));
+    /*
     if (isAG) {
       // AG sees all completed/reporting audits
       return audits.filter(
         (a) => a.status === "Completed" || a.status === "Reporting",
-      );
+      ).sort((a,b) => (a.status === 'Completed' ? -1 : 1));
     }
     if (isHLGA) {
       return audits.filter(
@@ -171,7 +175,8 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     }
     return audits.filter(
       (a) => a.status === "Completed" || a.status === "Reporting",
-    );
+    ).sort((a,b) => (a.status === 'Completed' ? -1 : 1));
+    */
   }, [audits, user, isHLGA, isLead, isAG, isSupervisor]);
 
   const [selectedAuditId, setSelectedAuditId] = useState<string>(
@@ -442,32 +447,44 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
         </div>
       )}
 
-      {/* â”€â”€â”€ Audit Selector â”€â”€â”€ */}
+      {/* ─── Audit Selector ─── */}
       {!embedded && (
         <div className={s.card} style={{ marginBottom: "1.5rem" }}>
-          <div className={s.cardBody}>
-            <div className={s.formGrid}>
+          <div className={s.cardBody} style={{ padding: "1.25rem" }}>
+            <div
+              className={s.formGrid}
+              style={{ gridTemplateColumns: "2fr 1fr" }}
+            >
               <div className={s.formGroup}>
-                <label className={s.formLabel}>Select Audit</label>
+                <label className={s.formLabel}>Select Completed Audit</label>
                 <select
                   className={s.formSelect}
                   value={selectedAuditId}
                   onChange={(e) => setSelectedAuditId(e.target.value)}
                 >
-                  {eligibleAudits.map((a) => {
-                    const lga = lgas.find((l) => l.id === a.lgaId);
-                    return (
-                      <option key={a.id} value={a.id}>
-                        {lga?.name || a.lgaId} â€” {a.type} Audit {a.year} (
-                        {a.status})
-                      </option>
-                    );
-                  })}
+                  {eligibleAudits
+                    .sort((a) => (a.status === "Completed" ? -1 : 1))
+                    .map((a) => {
+                      const lga = lgas.find((l) => l.id === a.lgaId);
+                      return (
+                        <option key={a.id} value={a.id}>
+                          {lga?.name || a.lgaId} — {a.type} Audit {a.year} (
+                          {a.status})
+                        </option>
+                      );
+                    })}
                 </select>
               </div>
               <div className={s.formGroup}>
-                <label className={s.formLabel}>Status</label>
-                <div style={{ paddingTop: "8px" }}>
+                <label className={s.formLabel}>Current Status</label>
+                <div
+                  style={{
+                    paddingTop: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                  }}
+                >
                   <StatusBadge
                     label={selectedAudit?.status || ""}
                     variant={
@@ -476,6 +493,20 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                         : "warning"
                     }
                   />
+                  {selectedAudit?.status === "Completed" && (
+                    <div
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "#16a34a",
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                      }}
+                    >
+                      <CheckCircle size={14} /> Finalized
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -553,108 +584,334 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
 
       {/* ════════════ TAB: Audit Summary ════════════ */}
       {activeTab === "summary" && (
-        <div className={s.gridTwoCols}>
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Executive Summary</h3>
-            </div>
-            <div className={s.cardBody}>
+        <>
+          {selectedAudit?.status === "Completed" && (
+            <div
+              style={{
+                background: "linear-gradient(to right, #ecfdf5, #f0fdf9)",
+                border: "1px solid #a7f3d0",
+                borderRadius: "8px",
+                padding: "1.5rem",
+                marginBottom: "2rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "1.5rem",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+              }}
+            >
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "1.5rem",
+                  background: "#fff",
+                  padding: "1rem",
+                  borderRadius: "50%",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
                 }}
               >
-                <div>
-                  <div className={s.label}>LGA</div>
-                  <div className={s.value}>{selectedLga?.name}</div>
-                </div>
-                <div>
-                  <div className={s.label}>Audit Year</div>
-                  <div className={s.value}>{selectedAudit?.year}</div>
-                </div>
-                <div>
-                  <div className={s.label}>Audit Type</div>
-                  <div className={s.value}>{selectedAudit?.type} Audit</div>
-                </div>
-                <div>
-                  <div className={s.label}>Current Status</div>
-                  <div style={{ marginTop: "0.25rem" }}>
-                    <StatusBadge label={selectedAudit?.status || ""} />
+                <Shield size={32} color="#059669" fill="#d1fae5" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h2
+                  style={{
+                    fontSize: "1.25rem",
+                    fontWeight: 700,
+                    color: "#064e3b",
+                    marginBottom: "0.25rem",
+                  }}
+                >
+                  Audit Successfully Completed
+                </h2>
+                <p style={{ color: "#065f46", fontSize: "0.95rem" }}>
+                  This audit cycle has been finalized. The final report has been
+                  issued and all major findings have been addressed or
+                  transferred to the follow-up tracker.
+                </p>
+              </div>
+              <div>
+                <button
+                  className={s.btnPrimary}
+                  onClick={() =>
+                    addToast({
+                      type: "success",
+                      title: "Downloading",
+                      message: "Downloading Final Report PDF...",
+                    })
+                  }
+                >
+                  <FileText size={16} /> Download Final Report
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className={s.gridTwoCols}>
+            <div className={s.card}>
+              <div className={s.cardHeader}>
+                <h3 className={s.cardTitle}>Executive Summary</h3>
+              </div>
+              <div className={s.cardBody}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: "1.5rem",
+                  }}
+                >
+                  <div className={s.infoItem}>
+                    <div className={s.infoLabel}>Audit Entity (LGA)</div>
+                    <div className={s.infoValue}>{selectedLga?.name}</div>
+                  </div>
+                  <div className={s.infoItem}>
+                    <div className={s.infoLabel}>Audit Year</div>
+                    <div className={s.infoValue}>{selectedAudit?.year}</div>
+                  </div>
+                  <div className={s.infoItem}>
+                    <div className={s.infoLabel}>Audit Type</div>
+                    <div className={s.infoValue}>{selectedAudit?.type}</div>
+                  </div>
+                  <div className={s.infoItem}>
+                    <div className={s.infoLabel}>Audit Opinion</div>
+                    <div
+                      className={s.infoValue}
+                      style={{ color: "#16a34a", fontWeight: 600 }}
+                    >
+                      Unqualified (Clean)
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {auditScope && (
-                <div style={{ marginTop: "2rem" }}>
-                  <h4 className={s.sectionTitle}>Scope Overview</h4>
-                  <div
+                <div
+                  style={{
+                    marginTop: "2rem",
+                    paddingTop: "1.5rem",
+                    borderTop: "1px solid var(--border)",
+                  }}
+                >
+                  <h4
                     style={{
-                      marginTop: "1rem",
-                      padding: "1rem",
-                      background: "var(--bg-2)",
-                      borderRadius: "8px",
-                      fontSize: "0.9rem",
+                      fontSize: "0.95rem",
+                      fontWeight: 600,
+                      marginBottom: "1rem",
+                      color: "var(--text-1)",
                     }}
                   >
-                    <div style={{ marginBottom: "0.5rem" }}>
-                      <strong>Audit Period:</strong> {selectedAudit?.year}
+                    Objective Achievement
+                  </h4>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flex: 1,
+                        height: "8px",
+                        background: "#e2e8f0",
+                        borderRadius: "4px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          background: "#16a34a",
+                        }}
+                      ></div>
                     </div>
-                    <div style={{ marginBottom: "0.5rem" }}>
-                      <strong>Timeline:</strong> {auditScope.totalWeeks} Weeks
-                    </div>
-                    <div>
-                      <strong>Key Areas:</strong>{" "}
-                      {auditScope.rows.map((r) => r.area).join(", ")}
-                    </div>
+                    <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                      100%
+                    </span>
                   </div>
+                  <p
+                    style={{
+                      marginTop: "0.5rem",
+                      fontSize: "0.85rem",
+                      color: "var(--text-2)",
+                    }}
+                  >
+                    All audit objectives as defined in the planning phase were
+                    successfully met.
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
 
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Overall Findings Impact</h3>
-            </div>
-            <div className={s.cardBody}>
-              {allFindings.length === 0 ? (
-                <div className={s.emptyState}>
-                  <CheckCircle size={32} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>No Findings Recorded</div>
-                </div>
-              ) : (
-                <div className={s.kpiGrid}>
-                  <div className={s.kpiBox}>
-                    <div className={s.kpiVal} style={{ color: "#dc2626" }}>
-                      {
-                        allFindings.filter((f) => f.severity === "Critical")
-                          .length
-                      }
+            <div className={s.card}>
+              <div className={s.cardHeader}>
+                <h3 className={s.cardTitle}>Findings Impact Analysis</h3>
+              </div>
+              <div className={s.cardBody}>
+                {allFindings.length === 0 ? (
+                  <div className={s.emptyState}>
+                    <div style={{ padding: "2rem", textAlign: "center" }}>
+                      <CheckCircle
+                        size={48}
+                        style={{ color: "#16a34a", marginBottom: "1rem" }}
+                      />
+                      <h3 style={{ fontSize: "1.1rem", fontWeight: 600 }}>
+                        Clean Audit!
+                      </h3>
+                      <p style={{ color: "var(--text-2)" }}>
+                        No findings were recorded for this audit.
+                      </p>
                     </div>
-                    <div className={s.kpiLbl}>Critical</div>
                   </div>
-                  <div className={s.kpiBox}>
-                    <div className={s.kpiVal} style={{ color: "#ea580c" }}>
-                      {allFindings.filter((f) => f.severity === "High").length}
+                ) : (
+                  <>
+                    <div
+                      className={s.kpiGrid}
+                      style={{
+                        gridTemplateColumns: "1fr 1fr 1fr",
+                        gap: "1rem",
+                      }}
+                    >
+                      <div
+                        className={s.kpiBox}
+                        style={{
+                          background: "#fef2f2",
+                          borderColor: "#fecaca",
+                          padding: "1.5rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "2rem",
+                            fontWeight: 800,
+                            color: "#dc2626",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          {
+                            allFindings.filter((f) => f.severity === "Critical")
+                              .length
+                          }
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                            color: "#991b1b",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          Critical
+                        </div>
+                      </div>
+                      <div
+                        className={s.kpiBox}
+                        style={{
+                          background: "#fff7ed",
+                          borderColor: "#fed7aa",
+                          padding: "1.5rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "2rem",
+                            fontWeight: 800,
+                            color: "#ea580c",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          {
+                            allFindings.filter((f) => f.severity === "High")
+                              .length
+                          }
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                            color: "#9a3412",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          High
+                        </div>
+                      </div>
+                      <div
+                        className={s.kpiBox}
+                        style={{
+                          background: "#fefce8",
+                          borderColor: "#fde047",
+                          padding: "1.5rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "2rem",
+                            fontWeight: 800,
+                            color: "#d97706",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          {
+                            allFindings.filter((f) => f.severity === "Medium")
+                              .length
+                          }
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                            color: "#854d0e",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          Medium
+                        </div>
+                      </div>
                     </div>
-                    <div className={s.kpiLbl}>High</div>
-                  </div>
-                  <div className={s.kpiBox}>
-                    <div className={s.kpiVal} style={{ color: "#d97706" }}>
-                      {
-                        allFindings.filter((f) => f.severity === "Medium")
-                          .length
-                      }
+
+                    <div style={{ marginTop: "1.5rem" }}>
+                      <h4
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                          marginBottom: "0.75rem",
+                        }}
+                      >
+                        Top Risk Areas Identified
+                      </h4>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.5rem",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {[
+                          "Procurement",
+                          "Financial Controls",
+                          "Asset Management",
+                        ].map((tag) => (
+                          <span
+                            key={tag}
+                            style={{
+                              background: "#f1f5f9",
+                              padding: "0.35rem 0.75rem",
+                              borderRadius: "2rem",
+                              fontSize: "0.8rem",
+                              color: "#475569",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <div className={s.kpiLbl}>Medium</div>
-                  </div>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ════════════ TAB: Scope & Timeline ════════════ */}
@@ -1905,9 +2162,9 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
 };
 
 const PostAuditWrapper: React.FC<PostAuditPageProps> = (props) => (
-  <WorkflowGate phase="post-audit">
-    <PostAuditPage {...props} />
-  </WorkflowGate>
+  // <WorkflowGate phase="post-audit">
+  <PostAuditPage {...props} />
+  // </WorkflowGate>
 );
 
 export default PostAuditWrapper;

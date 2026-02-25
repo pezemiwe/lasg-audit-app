@@ -23,9 +23,15 @@ const AuditPage: React.FC = () => {
   const audits = useAuditStore((state) => state.audits);
   const lgas = useAuditStore((state) => state.lgas);
   const zones = useAuditStore((state) => state.zones);
+  const users = useAuditStore((state) => state.users);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AuditStatus | "All">("All");
+  const [supervisorFilter, setSupervisorFilter] = useState<string>("All");
+
+  const supervisors = useMemo(() => {
+    return users.filter((u) => u.role === "AUDIT_SUPERVISOR");
+  }, [users]);
 
   const getLgaName = useCallback(
     (lgaId: string) => {
@@ -53,7 +59,7 @@ const AuditPage: React.FC = () => {
         // Find zones where user is supervisor
         if (!zones) return [];
         const myZoneIds = zones
-          .filter((z) => z.supervisorId === user.id)
+          .filter((z) => z.supervisorIds?.includes(user.id))
           .map((z) => z.id);
 
         if (!lgas) return [];
@@ -78,9 +84,30 @@ const AuditPage: React.FC = () => {
       const title = getAuditTitle(a);
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === "All" || a.status === statusFilter;
-      return matchesSearch && matchesStatus;
+
+      let matchesSupervisor = true;
+      if (supervisorFilter !== "All" && lgas && zones) {
+        const lga = lgas.find((l) => l.id === a.lgaId);
+        if (lga) {
+          const zone = zones.find((z) => z.id === lga.zoneId);
+          if (zone && zone.supervisorIds) {
+            matchesSupervisor = zone.supervisorIds.includes(supervisorFilter);
+          } else {
+            matchesSupervisor = false;
+          }
+        }
+      }
+      return matchesSearch && matchesStatus && matchesSupervisor;
     });
-  }, [myAudits, search, statusFilter, getAuditTitle]);
+  }, [
+    myAudits,
+    search,
+    statusFilter,
+    getAuditTitle,
+    supervisorFilter,
+    lgas,
+    zones,
+  ]);
 
   return (
     <div className={s.container}>
@@ -113,6 +140,31 @@ const AuditPage: React.FC = () => {
                   {st}
                 </button>
               ))}
+
+              {user?.role === "STATE_AUDITOR_GENERAL" && (
+                <select
+                  value={supervisorFilter}
+                  onChange={(e) => setSupervisorFilter(e.target.value)}
+                  style={{
+                    marginLeft: "0.5rem",
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "20px",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "0.875rem",
+                    color: "#64748b",
+                    outline: "none",
+                    cursor: "pointer",
+                    backgroundColor: "white",
+                  }}
+                >
+                  <option value="All">All Supervisors</option>
+                  {supervisors.map((sup) => (
+                    <option key={sup.id} value={sup.id}>
+                      {sup.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className={s.searchContainer} style={{ marginLeft: "auto" }}>

@@ -4,11 +4,9 @@ import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import type { AuditType, MandateStatus } from "../../types";
 import StatusBadge from "../../components/UI/StatusBadge";
-import { MOCK_USERS } from "../../mock/data";
 import {
   Plus,
   FileText,
-  Send,
   Eye,
   ChevronLeft,
   Calendar,
@@ -16,13 +14,16 @@ import {
   Clock,
   Shield,
   CheckCircle,
-  Mail,
-  Users,
+  X,
+  Upload,
+  Send,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
+import MandateLetter from "../../components/Content/MandateLetter";
+import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
 
 type View = "list" | "create" | "detail";
-type DetailTab = "overview" | "assignments" | "letters";
+type DetailTab = "overview" | "compliance";
 
 const statusVariant = (st: MandateStatus) => {
   switch (st) {
@@ -44,33 +45,35 @@ const MandatesPage: React.FC = () => {
   const createMandate = useAuditStore((s) => s.createMandate);
   const publishMandate = useAuditStore((s) => s.publishMandate);
   const updateMandateStatus = useAuditStore((s) => s.updateMandateStatus);
+  const acceptMandate = useAuditStore((s) => s.acceptMandate);
   const openModal = useAuditStore((s) => s.openModal);
-  const addToast = useAuditStore((s) => s.addToast);
+  const documentUploads = useAuditStore((s) => s.documentUploads);
 
   // New Store Actions for Assignments & Letters
   const lgas = useAuditStore((s) => s.lgas);
-  const letters = useAuditStore((s) => s.letters);
   const zones = useAuditStore((s) => s.zones);
-  const assignLead = useAuditStore((s) => s.assignLead);
-  const generateLetters = useAuditStore((s) => s.generateLetters);
-  const sendLetter = useAuditStore((s) => s.sendLetter);
-  const sendAllLetters = useAuditStore((s) => s.sendAllLetters);
 
   const [view, setView] = useState<View>("list");
   const [activeTab, setActiveTab] = useState<DetailTab>("overview");
+  const [selectedComplianceLgaId, setSelectedComplianceLgaId] = useState<
+    string | null
+  >(null);
+  const [previewDoc, setPreviewDoc] = useState<any>(null);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<MandateStatus | "All">("All");
 
-  // Assignment State
-  const [assigningLgaId, setAssigningLgaId] = useState<string | null>(null);
-  const [selectedLeadId, setSelectedLeadId] = useState("");
+  const [showEngagementLetter, setShowEngagementLetter] = useState(false);
 
   const [formTitle, setFormTitle] = useState("");
   const [formYear, setFormYear] = useState(new Date().getFullYear());
   const [formScope, setFormScope] = useState("");
   const [formObjectives, setFormObjectives] = useState("");
   const [formTimelines, setFormTimelines] = useState("");
+  const [formStartDate, setFormStartDate] = useState("");
+  const [formEndDate, setFormEndDate] = useState("");
   const [formTypes, setFormTypes] = useState<AuditType[]>([]);
+  const [formSignature, setFormSignature] = useState<string>("");
 
   const filtered = useMemo(() => {
     if (filter === "All") return mandates;
@@ -88,7 +91,10 @@ const MandatesPage: React.FC = () => {
     setFormScope("");
     setFormObjectives("");
     setFormTimelines("");
+    setFormStartDate("");
+    setFormEndDate("");
     setFormTypes([]);
+    setFormSignature("");
   };
 
   const handleCreate = () => {
@@ -99,7 +105,10 @@ const MandatesPage: React.FC = () => {
       scope: formScope.trim(),
       objectives: formObjectives.trim(),
       timelines: formTimelines.trim(),
+      startDate: formStartDate,
+      endDate: formEndDate,
       auditTypes: formTypes.length > 0 ? formTypes : ["Financial"],
+      auditorGeneralSignature: formSignature,
       createdBy: user.id,
     });
     resetForm();
@@ -121,80 +130,60 @@ const MandatesPage: React.FC = () => {
     openModal({
       title: "Accept Audit Mandate",
       message:
-        "By accepting this mandate, you acknowledge the terms and commence the audit process for your LGA. The status will change to Active.",
+        "By accepting this mandate, you acknowledge the terms and commence the audit process for your LGA.",
       confirmText: "Accept & Commence",
       variant: "info",
       onConfirm: () => {
-        updateMandateStatus(id, "Active");
-        addToast({
-          type: "success",
-          title: "Mandate Accepted",
-          message: "You have successfully acknowledged the mandate.",
-        });
+        if (user?.lgaId) {
+          acceptMandate(id, user.lgaId);
+        } else {
+          // Fallback if no LGA ID (shouldn't happen for valid HoLGA)
+          updateMandateStatus(id, "Active");
+        }
       },
     });
   };
 
   const toggleType = (t: AuditType) => {
-    setFormTypes((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
-    );
-  };
+    setFormTypes((prev) => {
+      // If clicking "Combined"
+      if (t === "Combined") {
+        const isCombinedAlready = prev.includes("Combined");
+        if (isCombinedAlready) {
+          // Deselect ALL
+          return [];
+        } else {
+          // Select ALL
+          return ["Financial", "Performance", "Compliance", "Combined"];
+        }
+      }
 
-  const leads = useMemo(
-    () => MOCK_USERS.filter((u) => u.role === "AUDIT_LEAD"),
-    [],
-  );
+      // If clicking individual types (Financial, Performance, Compliance)
+      const isSelected = prev.includes(t);
+      let nextState: AuditType[] = [];
 
-  const mandateLetters = useMemo(() => {
-    if (!selectedId) return [];
-    return letters.filter((l) => l.mandateId === selectedId);
-  }, [letters, selectedId]);
+      if (isSelected) {
+        // Removing one of the basic ones
+        nextState = prev.filter((x) => x !== t);
+        // If we remove one, then "Combined" is definitely no longer true
+        nextState = nextState.filter((x) => x !== "Combined");
+      } else {
+        // Adding one
+        nextState = [...prev, t];
+        // Check if we now have all 3 basic types
+        const hasFinancial = nextState.includes("Financial");
+        const hasPerformance = nextState.includes("Performance");
+        const hasCompliance = nextState.includes("Compliance");
 
-  const handleGenerateLetters = () => {
-    if (!selectedId) return;
-    openModal({
-      title: "Generate Notification Letters",
-      message:
-        "This will generate draft notification letters for all LGAs in this mandate. You can review them before sending.",
-      confirmText: "Generate Drafts",
-      variant: "info",
-      onConfirm: () => generateLetters(selectedId),
+        if (hasFinancial && hasPerformance && hasCompliance) {
+          if (!nextState.includes("Combined")) {
+            nextState.push("Combined");
+          }
+        }
+      }
+
+      return nextState;
     });
-  };
-
-  const handleSendLetters = () => {
-    if (!selectedId) return;
-    openModal({
-      title: "Dispatch Letters",
-      message:
-        "Are you sure you want to send all draft letters? This will notify the LGA contacts.",
-      confirmText: "Dispatch All",
-      variant: "info",
-      onConfirm: () => sendAllLetters(selectedId),
-    });
-  };
-
-  const handleAssign = (lgaId: string) => {
-    if (!selectedId || !selectedLeadId) return;
-    // We need a dummy audit ID since the store expects one, or we update the store to strictly link Lga->Lead
-    // For now, we'll try to find an existing audit or pass a placeholder if the store allows
-    // The store `assignLead` updates `lgas` and `audits`.
-    // We'll pass the mandate ID as audit ID temporarily if an audit doesn't exist yet,
-    // but ideally, we should find the audit for this mandate/LGA.
-    // In this demo flow, let's assume one audit per LGA per Mandate.
-
-    // Simplification: We just update the LGA lead for now.
-    // Note: Store `assignLead` expects (lgaId, leadId, auditId, mandateId)
-    // We'll pass a generated audit ID or existing one.
-    assignLead(lgaId, selectedLeadId, `audit-${lgaId}`, selectedId);
-    setAssigningLgaId(null);
-    setSelectedLeadId("");
-
-    // If supervisor, navigate to Team Management to view the new assignment
-    if (user?.role === "AUDIT_SUPERVISOR") {
-      navigate("/team");
-    }
   };
 
   if (view === "detail" && selected) {
@@ -202,11 +191,6 @@ const MandatesPage: React.FC = () => {
       user?.role === "STATE_AUDITOR_GENERAL" ||
       user?.role === "AUDITOR_GENERAL_FEDERATION";
     const isSupervisor = user?.role === "AUDIT_SUPERVISOR";
-
-    // Filter LGAs for Supervisor
-    const relevantLgas = isSupervisor
-      ? lgas.filter((l) => l.zoneId === user.zoneId)
-      : lgas;
 
     return (
       <div>
@@ -240,8 +224,34 @@ const MandatesPage: React.FC = () => {
               variant={statusVariant(selected.status)}
               size="md"
             />
+            {(isAG || user?.role === "SYSTEM_ADMIN") &&
+              selected.status !== "Draft" && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    background: "#f0f9ff",
+                    color: "#0369a1",
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "99px",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    border: "1px solid #bae6fd",
+                  }}
+                  title="Number of LGAs that have accepted this mandate"
+                >
+                  <CheckCircle size={14} />
+                  <span>
+                    Accepted: {selected.acceptedByLgas?.length || 0} /{" "}
+                    {lgas.length}
+                  </span>
+                </div>
+              )}
             {user?.role === "HEAD_OF_LOCAL_GOVERNMENT" &&
-              selected.status === "Published" && (
+              selected.status === "Published" &&
+              (!user.lgaId ||
+                !selected.acceptedByLgas?.includes(user.lgaId)) && (
                 <button
                   className={s.btnPrimary}
                   onClick={() => handleAccept(selected.id)}
@@ -254,19 +264,128 @@ const MandatesPage: React.FC = () => {
                   <CheckCircle size={16} /> Accept Mandate
                 </button>
               )}
-            {selected.status === "Draft" && isAG && (
-              <button
-                className={s.btnPrimary}
-                onClick={() => handlePublish(selected.id)}
-              >
-                <Send size={14} /> Publish
-              </button>
-            )}
+            {user?.role === "HEAD_OF_LOCAL_GOVERNMENT" &&
+              user.lgaId &&
+              selected.acceptedByLgas?.includes(user.lgaId) && (
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => navigate("/document-portal")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    backgroundColor: "#10b981", // Green color for action
+                    borderColor: "#10b981",
+                  }}
+                >
+                  <Upload size={16} /> Upload Documents
+                </button>
+              )}
+            <button
+              className={s.btnSecondary}
+              onClick={() => setShowEngagementLetter(true)}
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            >
+              <FileText size={16} /> Engagement Letter
+            </button>
+            {selected.status === "Draft" &&
+              (isAG || user?.role === "SYSTEM_ADMIN") && (
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => handlePublish(selected.id)}
+                >
+                  <Send size={14} /> Publish
+                </button>
+              )}
           </div>
         </div>
 
+        {showEngagementLetter && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+            }}
+            onClick={() => setShowEngagementLetter(false)}
+          >
+            <div
+              className={s.card}
+              style={{
+                width: "100%",
+                maxWidth: "850px",
+                maxHeight: "90vh",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0",
+                backgroundColor: "#fff",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={s.cardHeader}
+                style={{
+                  justifyContent: "space-between",
+                  borderBottom: "1px solid #e2e8f0",
+                  padding: "1rem 1.5rem",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                  }}
+                >
+                  <h3 className={s.cardTitle}>Letter of Engagement</h3>
+                </div>
+                <button
+                  onClick={() => setShowEngagementLetter(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#64748b",
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div style={{ overflowY: "auto", padding: "1.5rem" }}>
+                <MandateLetter mandateId={selected.id} />
+              </div>
+              <div
+                style={{
+                  padding: "1rem 1.5rem",
+                  borderTop: "1px solid #e2e8f0",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "0.75rem",
+                  backgroundColor: "#f8fafc",
+                }}
+              >
+                <button
+                  className={s.btnSecondary}
+                  onClick={() => setShowEngagementLetter(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
-        {(isAG || isSupervisor) && (
+        {/* Tabs */}
+        {(isAG || isSupervisor || user?.role === "SYSTEM_ADMIN") && (
           <div className={s.tabsHeader}>
             <button
               className={`${s.tabBtn} ${activeTab === "overview" ? s.active : ""}`}
@@ -275,19 +394,11 @@ const MandatesPage: React.FC = () => {
               <FileText size={16} /> Overview
             </button>
             <button
-              className={`${s.tabBtn} ${activeTab === "assignments" ? s.active : ""}`}
-              onClick={() => setActiveTab("assignments")}
+              className={`${s.tabBtn} ${activeTab === "compliance" ? s.active : ""}`}
+              onClick={() => setActiveTab("compliance")}
             >
-              <Users size={16} /> Team & Assignments
+              <CheckCircle size={16} /> LGA Compliance
             </button>
-            {isAG && (
-              <button
-                className={`${s.tabBtn} ${activeTab === "letters" ? s.active : ""}`}
-                onClick={() => setActiveTab("letters")}
-              >
-                <Mail size={16} /> Notifications
-              </button>
-            )}
           </div>
         )}
 
@@ -343,29 +454,116 @@ const MandatesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tab Content: Assignments */}
-        {activeTab === "assignments" && (
+        {/* Tab Content: Compliance */}
+        {activeTab === "compliance" && (
           <div className={s.card}>
             <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Lead Auditor Assignments</h3>
+              <h3 className={s.cardTitle}>LGA Compliance Tracker</h3>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <StatusBadge
+                  label={`Accepted: ${
+                    selected.acceptedByLgas?.length || 0
+                  } of ${lgas.length}`}
+                  variant="info"
+                />
+              </div>
             </div>
             <div className={s.cardBody}>
               <div className={s.tableWrap}>
                 <table className={s.table}>
                   <thead>
-                    <tr>
-                      <th>LGA Name</th>
-                      <th>Zone</th>
-                      <th>Assigned Lead</th>
-                      {(isSupervisor || user?.role === "SYSTEM_ADMIN") && (
+                    {user?.role === "STATE_AUDITOR_GENERAL" ||
+                    user?.role === "AUDITOR_GENERAL_FEDERATION" ? (
+                      <tr>
+                        <th>LGA Name</th>
+                        <th>Zone</th>
+                        <th>Mandate Status</th>
                         <th>Action</th>
-                      )}
-                    </tr>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <th>LGA Name</th>
+                        <th>Zone</th>
+                        <th>Mandate Status</th>
+                        <th>Documents Uploaded</th>
+                        <th>Progress</th>
+                        <th>Last Activity</th>
+                        <th>Action</th>
+                      </tr>
+                    )}
                   </thead>
                   <tbody>
-                    {relevantLgas.map((lga) => {
-                      const lead = leads.find((u) => u.id === lga.auditLeadId);
+                    {lgas.map((lga) => {
+                      const isAccepted = selected.acceptedByLgas?.includes(
+                        lga.id,
+                      );
                       const zone = zones.find((z) => z.id === lga.zoneId);
+
+                      // Get documents for this LGA for this mandate
+                      const lgaDocs = documentUploads.filter(
+                        (d) =>
+                          d.mandateId === selected.id && d.lgaId === lga.id,
+                      );
+
+                      // Count uploaded
+                      const uploadedCount = lgaDocs.filter(
+                        (d) =>
+                          d.status === "Uploaded" || d.status === "Approved",
+                      ).length;
+
+                      // Filtering Logic based on User Role
+                      let isVisible = false;
+
+                      if (
+                        user?.role === "STATE_AUDITOR_GENERAL" ||
+                        user?.role === "AUDITOR_GENERAL_FEDERATION"
+                      ) {
+                        // AG sees all LGAs to monitor compliance status (Accepted vs Pending)
+                        isVisible = true;
+                      } else if (user?.role === "SYSTEM_ADMIN") {
+                        // Admin sees accepted + uploaded
+                        if (isAccepted && uploadedCount > 0) isVisible = true;
+                      } else if (user?.role === "AUDIT_SUPERVISOR") {
+                        // Supervisor: "list of zones who have accepted and lGAs that have upoaded their documents"
+                        if (isAccepted || uploadedCount > 0) isVisible = true;
+                      } else if (
+                        user?.role === "AUDIT_LEAD" ||
+                        user?.role === "TEAM_AUDITOR"
+                      ) {
+                        // Lead/Auditor: Only see LGAs that have uploaded documents
+                        if (uploadedCount > 0) isVisible = true;
+                      } else {
+                        // Others: Show accepted mandates
+                        if (isAccepted) isVisible = true;
+                      }
+
+                      // Override for LGA user to see themselves
+                      if (
+                        user?.role === "HEAD_OF_LOCAL_GOVERNMENT" &&
+                        user.lgaId === lga.id
+                      ) {
+                        isVisible = true;
+                      }
+
+                      if (!isVisible) return null;
+
+                      const totalDocs =
+                        lgaDocs.length > 0 ? lgaDocs.length : 10; // Default to 10 if none generated yet
+                      const percentage = Math.round(
+                        (uploadedCount / totalDocs) * 100,
+                      );
+
+                      const lastUpload = lgaDocs
+                        .filter((d) => d.uploadedAt)
+                        .sort(
+                          (a, b) =>
+                            new Date(b.uploadedAt!).getTime() -
+                            new Date(a.uploadedAt!).getTime(),
+                        )[0];
+
+                      const isAG =
+                        user?.role === "STATE_AUDITOR_GENERAL" ||
+                        user?.role === "AUDITOR_GENERAL_FEDERATION";
 
                       return (
                         <tr key={lga.id}>
@@ -374,60 +572,92 @@ const MandatesPage: React.FC = () => {
                             {zone?.name}
                           </td>
                           <td>
-                            {lead ? (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.5rem",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: "24px",
-                                    height: "24px",
-                                    borderRadius: "50%",
-                                    background: "#e0f2fe",
-                                    color: "#0369a1",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontSize: "0.75rem",
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {lead.name.charAt(0)}
-                                </div>
-                                {lead.name}
-                              </div>
+                            {isAccepted ? (
+                              <StatusBadge label="Accepted" variant="success" />
                             ) : (
-                              <span
-                                style={{
-                                  color: "#94a3b8",
-                                  fontStyle: "italic",
-                                }}
-                              >
-                                Unassigned
-                              </span>
+                              <StatusBadge label="Pending" variant="warning" />
                             )}
                           </td>
-                          {(isSupervisor || user?.role === "SYSTEM_ADMIN") && (
-                            <td>
-                              <button
-                                className={s.btnSecondary}
+                          {/* Columns Hhidden for AG */}
+                          {!isAG && (
+                            <>
+                              <td>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  <span>
+                                    {uploadedCount} / {totalDocs}
+                                  </span>
+                                </div>
+                              </td>
+                              <td style={{ width: "20%" }}>
+                                <div
+                                  style={{
+                                    width: "100%",
+                                    height: "6px",
+                                    background: "#e2e8f0",
+                                    borderRadius: "3px",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: `${percentage}%`,
+                                      height: "100%",
+                                      background:
+                                        percentage === 100
+                                          ? "#10b981"
+                                          : percentage > 50
+                                            ? "#3b82f6"
+                                            : "#cbd5e1",
+                                    }}
+                                  />
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    color: "var(--text-3)",
+                                    marginTop: "0.25rem",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  {percentage}%
+                                </div>
+                              </td>
+                              <td
                                 style={{
-                                  padding: "0.4rem 0.8rem",
-                                  fontSize: "0.8rem",
-                                }}
-                                onClick={() => {
-                                  setAssigningLgaId(lga.id);
-                                  setSelectedLeadId(lga.auditLeadId || "");
+                                  fontSize: "0.85rem",
+                                  color: "var(--text-2)",
                                 }}
                               >
-                                {lead ? "Reassign" : "Assign Lead"}
-                              </button>
-                            </td>
+                                {lastUpload?.uploadedAt
+                                  ? new Date(
+                                      lastUpload.uploadedAt,
+                                    ).toLocaleDateString()
+                                  : "-"}
+                              </td>
+                            </>
                           )}
+                          <td>
+                            <button
+                              className={s.btnSecondary}
+                              style={{
+                                padding: "0.4rem 0.8rem",
+                                fontSize: "0.75rem",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                              }}
+                              onClick={() => setSelectedComplianceLgaId(lga.id)}
+                            >
+                              <Eye size={14} /> View
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}
@@ -438,114 +668,8 @@ const MandatesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tab Content: Letters */}
-        {activeTab === "letters" && (
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%",
-                }}
-              >
-                <h3 className={s.cardTitle}>Engagement Letters</h3>
-                <div style={{ display: "flex", gap: "1rem" }}>
-                  {mandateLetters.length === 0 ? (
-                    <button
-                      className={s.btnPrimary}
-                      onClick={handleGenerateLetters}
-                    >
-                      <FileText size={16} /> Generate Drafts
-                    </button>
-                  ) : (
-                    <button
-                      className={s.btnPrimary}
-                      onClick={handleSendLetters}
-                      disabled={mandateLetters.every(
-                        (l) => l.status !== "Draft",
-                      )}
-                    >
-                      <Send size={16} /> Dispatch All
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className={s.cardBody}>
-              {mandateLetters.length === 0 ? (
-                <div className={s.emptyState}>
-                  <Mail size={40} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>No letters generated</div>
-                  <div className={s.emptyDesc}>
-                    Generate standard engagement letters for all LGA contacts.
-                  </div>
-                </div>
-              ) : (
-                <div className={s.tableWrap}>
-                  <table className={s.table}>
-                    <thead>
-                      <tr>
-                        <th>LGA</th>
-                        <th>Recipient</th>
-                        <th>Status</th>
-                        <th>Last Updated</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mandateLetters.map((letter) => {
-                        const lga = lgas.find((l) => l.id === letter.lgaId);
-                        return (
-                          <tr key={letter.id}>
-                            <td style={{ fontWeight: 600 }}>{lga?.name}</td>
-                            <td>{lga?.contactName}</td>
-                            <td>
-                              <StatusBadge label={letter.status} />
-                            </td>
-                            <td
-                              style={{
-                                fontSize: "0.85rem",
-                                color: "var(--text-3)",
-                              }}
-                            >
-                              {new Date().toLocaleDateString()}
-                            </td>
-                            <td>
-                              <button
-                                className={s.btnSecondary}
-                                style={{
-                                  padding: "0.4rem 0.8rem",
-                                  fontSize: "0.8rem",
-                                }}
-                                disabled={letter.status !== "Draft"}
-                                onClick={() => {
-                                  if (letter.status === "Draft") {
-                                    sendLetter(letter.id);
-                                    addToast({
-                                      type: "success",
-                                      title: "Letter Sent",
-                                      message: `Notification dispatched to ${lga?.name}`,
-                                    });
-                                  }
-                                }}
-                              >
-                                {letter.status === "Sent" ? "Sent" : "Dispatch"}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {assigningLgaId && (
+        {/* Detailed LGA Compliance Checklist Modal/Drawer */}
+        {selectedComplianceLgaId && (
           <div
             style={{
               position: "fixed",
@@ -560,99 +684,312 @@ const MandatesPage: React.FC = () => {
               zIndex: 1000,
               backdropFilter: "blur(4px)",
             }}
+            onClick={() => setSelectedComplianceLgaId(null)}
           >
             <div
+              className={s.card}
               style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
                 width: "90%",
-                maxWidth: "500px",
-                padding: "1.5rem",
-                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+                maxWidth: "800px",
+                maxHeight: "85vh",
+                overflow: "hidden",
+                margin: "0",
+                display: "flex",
+                flexDirection: "column",
+                animation: "scaleIn 0.2s ease-out",
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <h3
+              <div
+                className={s.cardHeader}
                 style={{
-                  fontSize: "1.25rem",
-                  fontWeight: 700,
-                  marginBottom: "1rem",
-                  color: "var(--text)",
+                  justifyContent: "space-between",
+                  padding: "1.25rem 1.5rem",
+                  borderBottom: "1px solid #e2e8f0",
                 }}
               >
-                Assign Audit Lead
-              </h3>
-
-              <div style={{ marginBottom: "1.5rem" }}>
-                <p
+                <div>
+                  <h3 className={s.cardTitle}>
+                    {lgas.find((l) => l.id === selectedComplianceLgaId)?.name}{" "}
+                    LGA
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "var(--text-3)",
+                      margin: 0,
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    Compliance Checklist • {selected.title}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedComplianceLgaId(null)}
                   style={{
-                    fontSize: "0.9rem",
-                    color: "var(--text-2)",
-                    marginBottom: "1rem",
-                    lineHeight: 1.5,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#64748b",
+                    padding: "0.5rem",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
+                  className={s.iconBtn}
                 >
-                  Assignment for{" "}
-                  <strong>
-                    {lgas.find((l) => l.id === assigningLgaId)?.name} LGA
-                  </strong>
-                  . <br />
-                  This will designate the selected auditor as the Lead for this
-                  engagement.
-                </p>
-
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    marginBottom: "0.5rem",
-                    color: "var(--text-2)",
-                  }}
-                >
-                  Select Audit Lead
-                </label>
-                <select
-                  className={s.formInput}
-                  autoFocus
-                  value={selectedLeadId}
-                  onChange={(e) => setSelectedLeadId(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.6rem",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  <option value="">Select Auditor...</option>
-                  {leads.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.experience?.length}yrs exp)
-                    </option>
-                  ))}
-                </select>
+                  <X size={20} />
+                </button>
               </div>
 
               <div
+                className={s.cardBody}
                 style={{
+                  padding: "0",
+                  overflowY: "auto",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div className={s.tableWrap} style={{ flex: 1 }}>
+                  <table className={s.table}>
+                    <thead
+                      style={{
+                        position: "sticky",
+                        top: 0,
+                        backgroundColor: "#f8fafc",
+                        zIndex: 10,
+                        boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+                      }}
+                    >
+                      <tr>
+                        <th style={{ width: "35%" }}>Required Document</th>
+                        <th>Format</th>
+                        <th>Status</th>
+                        <th>File Information</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const lgaDocs = documentUploads.filter(
+                          (d) =>
+                            d.mandateId === selected.id &&
+                            d.lgaId === selectedComplianceLgaId,
+                        );
+
+                        if (lgaDocs.length === 0) {
+                          return (
+                            <tr>
+                              <td
+                                colSpan={5}
+                                style={{
+                                  textAlign: "center",
+                                  padding: "3rem",
+                                  color: "var(--text-3)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    gap: "1rem",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: "48px",
+                                      height: "48px",
+                                      borderRadius: "50%",
+                                      backgroundColor: "#f1f5f9",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    <FileText size={24} />
+                                  </div>
+                                  <div>
+                                    <p style={{ fontWeight: 500, margin: 0 }}>
+                                      No checklist available yet
+                                    </p>
+                                    <p
+                                      style={{
+                                        fontSize: "0.85rem",
+                                        marginTop: "0.25rem",
+                                      }}
+                                    >
+                                      The LGA has not accepted this mandate so
+                                      the document checklist has not been
+                                      generated.
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return lgaDocs.map((doc) => (
+                          <tr key={doc.id}>
+                            <td>
+                              <div
+                                style={{
+                                  fontWeight: 500,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.75rem",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    padding: "0.4rem",
+                                    borderRadius: "6px",
+                                    backgroundColor:
+                                      doc.status === "Approved"
+                                        ? "#dcfce7"
+                                        : doc.status === "Uploaded"
+                                          ? "#e0f2fe"
+                                          : "#f1f5f9",
+                                    color:
+                                      doc.status === "Approved"
+                                        ? "#166534"
+                                        : doc.status === "Uploaded"
+                                          ? "#0369a1"
+                                          : "#64748b",
+                                  }}
+                                >
+                                  <FileText size={16} />
+                                </div>
+                                {doc.documentName}
+                              </div>
+                            </td>
+                            <td
+                              style={{
+                                fontSize: "0.8rem",
+                                color: "var(--text-2)",
+                                fontFamily: "monospace",
+                                background: "#f8fafc",
+                                padding: "0.2rem 0.4rem",
+                                borderRadius: "4px",
+                                width: "fit-content",
+                              }}
+                            >
+                              {doc.requiredFormat}
+                            </td>
+                            <td>
+                              <StatusBadge
+                                label={doc.status}
+                                variant={
+                                  doc.status === "Approved"
+                                    ? "success"
+                                    : doc.status === "Uploaded"
+                                      ? "info"
+                                      : doc.status === "Rejected"
+                                        ? "error"
+                                        : "default"
+                                }
+                                size="sm"
+                              />
+                            </td>
+                            <td>
+                              {doc.status === "Uploaded" ||
+                              doc.status === "Approved" ? (
+                                <div
+                                  style={{
+                                    fontSize: "0.8rem",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.1rem",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontWeight: 500,
+                                      color: "var(--primary)",
+                                    }}
+                                  >
+                                    Version {doc.version}
+                                  </div>
+                                  <div
+                                    style={{
+                                      color: "var(--text-3)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "0.25rem",
+                                    }}
+                                  >
+                                    <Clock size={10} />
+                                    {new Date(
+                                      doc.uploadedAt!,
+                                    ).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span
+                                  style={{
+                                    fontSize: "0.8rem",
+                                    color: "var(--text-3)",
+                                    fontStyle: "italic",
+                                  }}
+                                >
+                                  Pending Upload
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              {(doc.status === "Uploaded" ||
+                                doc.status === "Approved") && (
+                                <button
+                                  className={s.btnSecondary}
+                                  style={{
+                                    padding: "0.3rem 0.6rem",
+                                    fontSize: "0.75rem",
+                                  }}
+                                  onClick={() => setPreviewDoc(doc)}
+                                >
+                                  <Eye
+                                    size={12}
+                                    style={{ marginRight: "4px" }}
+                                  />{" "}
+                                  Open
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ));
+                      })()}
+                    </tbody>
+                  </table>
+                  {previewDoc && (
+                    <DocumentPreviewModal
+                      document={previewDoc}
+                      onClose={() => setPreviewDoc(null)}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div
+                className={s.cardFooter}
+                style={{
+                  padding: "1rem 1.5rem",
+                  borderTop: "1px solid #e2e8f0",
                   display: "flex",
                   justifyContent: "flex-end",
+                  backgroundColor: "#f8fafc",
                   gap: "0.75rem",
                 }}
               >
                 <button
                   className={s.btnSecondary}
-                  onClick={() => {
-                    setAssigningLgaId(null);
-                    setSelectedLeadId("");
-                  }}
+                  onClick={() => setSelectedComplianceLgaId(null)}
                 >
-                  Cancel
-                </button>
-                <button
-                  className={s.btnPrimary}
-                  disabled={!selectedLeadId}
-                  onClick={() => handleAssign(assigningLgaId)}
-                >
-                  Confirm Assignment
+                  Close Checklist
                 </button>
               </div>
             </div>
@@ -719,14 +1056,38 @@ const MandatesPage: React.FC = () => {
               </div>
               <div className={s.formGroup}>
                 <label className={s.formLabel} htmlFor="m-timelines">
-                  Timelines
+                  Timeline Description
                 </label>
                 <input
                   id="m-timelines"
                   className={s.formInput}
                   value={formTimelines}
                   onChange={(e) => setFormTimelines(e.target.value)}
-                  placeholder="e.g., March 2026 – September 2026"
+                  placeholder="e.g., Q1 - Q3"
+                />
+              </div>
+              <div className={s.formGroup}>
+                <label className={s.formLabel} htmlFor="m-startDate">
+                  Start Date
+                </label>
+                <input
+                  id="m-startDate"
+                  type="date"
+                  className={s.formInput}
+                  value={formStartDate}
+                  onChange={(e) => setFormStartDate(e.target.value)}
+                />
+              </div>
+              <div className={s.formGroup}>
+                <label className={s.formLabel} htmlFor="m-endDate">
+                  End Date
+                </label>
+                <input
+                  id="m-endDate"
+                  type="date"
+                  className={s.formInput}
+                  value={formEndDate}
+                  onChange={(e) => setFormEndDate(e.target.value)}
                 />
               </div>
               <div className={s.formGroupFull}>
@@ -775,6 +1136,86 @@ const MandatesPage: React.FC = () => {
                       {t}
                     </label>
                   ))}
+                </div>
+              </div>
+
+              <div className={s.formGroupFull}>
+                <label className={s.formLabel}>Auditor General Signature</label>
+                <div
+                  style={{
+                    border: "2px dashed #e2e8f0",
+                    padding: "1rem",
+                    borderRadius: "0.5rem",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    backgroundColor: "#f8fafc",
+                  }}
+                >
+                  <label
+                    htmlFor="signature-upload"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <input
+                      id="signature-upload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setFormSignature(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {formSignature ? (
+                      <div>
+                        <img
+                          src={formSignature}
+                          alt="Signature Preview"
+                          style={{
+                            maxHeight: "80px",
+                            marginBottom: "0.5rem",
+                            border: "1px solid #ccc",
+                          }}
+                        />
+                        <p
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "#64748b",
+                            margin: 0,
+                          }}
+                        >
+                          Click to change signature
+                        </p>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Plus
+                          size={24}
+                          style={{ color: "#94a3b8", marginBottom: "0.5rem" }}
+                        />
+                        <p
+                          style={{
+                            fontSize: "0.875rem",
+                            color: "#64748b",
+                            margin: 0,
+                          }}
+                        >
+                          Click to upload signature
+                        </p>
+                      </div>
+                    )}
+                  </label>
                 </div>
               </div>
             </div>
@@ -966,14 +1407,17 @@ const MandatesPage: React.FC = () => {
                         >
                           <Eye size={14} />
                         </button>
-                        {m.status === "Draft" && (
-                          <button
-                            className={`${s.btnPrimary} ${s.btnSmall}`}
-                            onClick={() => handlePublish(m.id)}
-                          >
-                            <Send size={12} /> Publish
-                          </button>
-                        )}
+                        {m.status === "Draft" &&
+                          (user?.role === "SYSTEM_ADMIN" ||
+                            user?.role === "STATE_AUDITOR_GENERAL" ||
+                            user?.role === "AUDITOR_GENERAL_FEDERATION") && (
+                            <button
+                              className={`${s.btnPrimary} ${s.btnSmall}`}
+                              onClick={() => handlePublish(m.id)}
+                            >
+                              <Send size={12} /> Publish
+                            </button>
+                          )}
                       </div>
                     </td>
                   </tr>

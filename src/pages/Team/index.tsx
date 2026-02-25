@@ -51,7 +51,7 @@ const TeamManagementPage: React.FC = () => {
   );
 
   if (user?.role === "AUDIT_SUPERVISOR") {
-    const myZone = zones.find((z) => z.supervisorId === user.id);
+    const myZone = zones.find((z) => z.supervisorIds?.includes(user.id));
     const myLgas = lgas.filter((l) => myZone?.lgas.includes(l.id));
     const assignedLeadIds = new Set(
       myLgas.filter((l) => l.auditLeadId).map((l) => l.auditLeadId!),

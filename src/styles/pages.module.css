@@ -614,7 +614,7 @@
   .auditRowStatus {
     align-self: flex-start;
   }
-  
+
   /* Filter bar stacking */
   .filterBar {
     width: 100%;
@@ -626,7 +626,7 @@
     margin-top: 1rem;
     margin-left: 0 !important; /* Override inline style */
   }
-  
+
   /* Tabs scrolling */
   .tabsHeader {
     padding-bottom: 0.5rem;

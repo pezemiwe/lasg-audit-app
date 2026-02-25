@@ -27,7 +27,7 @@ export const ZONES: Zone[] = [
   {
     id: "zone-1",
     name: "Ikeja",
-    supervisorId: "user-sup-ikeja",
+    supervisorIds: ["user-sup-ikeja", "user-sup-6"],
     lgas: [
       "lga-1",
       "lga-2",
@@ -42,25 +42,25 @@ export const ZONES: Zone[] = [
   {
     id: "zone-4",
     name: "Badagry",
-    supervisorId: "user-sup-badagry",
+    supervisorIds: ["user-sup-badagry"],
     lgas: ["lga-9", "lga-10", "lga-11", "lga-12"],
   },
   {
     id: "zone-3",
     name: "Ikorodu",
-    supervisorId: "user-sup-ikorodu",
+    supervisorIds: ["user-sup-ikorodu", "user-sup-8"],
     lgas: ["lga-13"],
   },
   {
     id: "zone-2",
     name: "Lagos Island",
-    supervisorId: "user-sup-lagos",
+    supervisorIds: ["user-sup-lagos", "user-sup-7"],
     lgas: ["lga-14", "lga-15", "lga-16", "lga-17", "lga-18"],
   },
   {
     id: "zone-5",
     name: "Epe",
-    supervisorId: "user-sup-epe",
+    supervisorIds: ["user-sup-epe"],
     lgas: ["lga-19", "lga-20"],
   },
 ];
@@ -232,7 +232,10 @@ export const LGAS: LGA[] = [
   },
 ];
 
+import { ADDITIONAL_SUPERVISORS } from "./moreUsers";
+
 export const MOCK_USERS: User[] = [
+  ...ADDITIONAL_SUPERVISORS,
   {
     id: "user-sysadmin",
     name: "Engr. Babatunde Fashola",
@@ -291,6 +294,33 @@ export const MOCK_USERS: User[] = [
     zoneId: "zone-5",
     specialisations: ["Performance", "Compliance"],
     phone: "+234 803 400 0005",
+  },
+  {
+    id: "user-sup-6",
+    name: "Mrs. Biola Adebayo",
+    email: "sup.adebayo@lasg.gov.ng",
+    role: "AUDIT_SUPERVISOR",
+    zoneId: "zone-1",
+    specialisations: ["Financial"],
+    phone: "+234 803 400 0006",
+  },
+  {
+    id: "user-sup-7",
+    name: "Mr. Tunde Bakare",
+    email: "sup.bakare@lasg.gov.ng",
+    role: "AUDIT_SUPERVISOR",
+    zoneId: "zone-2",
+    specialisations: ["Compliance", "Financial"],
+    phone: "+234 803 400 0007",
+  },
+  {
+    id: "user-sup-8",
+    name: "Dr. Chioma Okonkwo",
+    email: "sup.okonkwo@lasg.gov.ng",
+    role: "AUDIT_SUPERVISOR",
+    zoneId: "zone-3",
+    specialisations: ["Performance"],
+    phone: "+234 803 400 0008",
   },
   {
     id: "user-lead-1",
@@ -569,10 +599,145 @@ export const SEED_MANDATES: Mandate[] = [
     objectives:
       "To provide independent assurance on the accuracy of financial statements, compliance with applicable laws and regulations, and the economy, efficiency and effectiveness of LGA operations",
     timelines: "March 2026 – September 2026",
+    startDate: "2026-03-01",
+    endDate: "2026-09-30",
     auditTypes: ["Financial", "Compliance"],
     status: "Published",
     createdAt: "2026-01-15T09:00:00Z",
     publishedAt: "2026-01-20T14:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-2",
+    title: "Special Audit of Procurement Practices — FY 2025",
+    auditYear: 2025,
+    scope:
+      "Targeted review of procurement activities and contract awards across high-risk LGAs to ensure adherence to Public Procurement Law.",
+    objectives:
+      "Evaluate compliance with due process, assess value for money in contract execution, and identify potential irregularities.",
+    timelines: "April 2026 – July 2026",
+    startDate: "2026-04-01",
+    endDate: "2026-07-31",
+    auditTypes: ["Compliance", "Performance"],
+    status: "Draft",
+    createdAt: "2026-02-10T11:30:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-3",
+    title: "Performance Audit of Primary Healthcare Delivery — FY 2024",
+    auditYear: 2024,
+    scope:
+      "Assessment of healthcare service delivery, infrastructure, and resource utilization in Primary Healthcare Centers (PHCs).",
+    objectives:
+      "Determine the efficiency and effectiveness of PHC operations and patient care outcomes.",
+    timelines: "January 2025 – June 2025",
+    startDate: "2025-01-01",
+    endDate: "2025-06-30",
+    auditTypes: ["Performance"],
+    status: "Active",
+    createdAt: "2025-01-05T09:00:00Z",
+    publishedAt: "2025-01-15T10:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-4",
+    title: "Financial Audit of IGR Collection Systems — FY 2023",
+    auditYear: 2023,
+    scope:
+      "Audit of Internally Generated Revenue (IGR) collection, remittance, and accounting systems.",
+    objectives:
+      "Verify the completeness and accuracy of reported revenue and assess control weaknesses in collection processes.",
+    timelines: "August 2024 – December 2024",
+    startDate: "2024-08-01",
+    endDate: "2024-12-31",
+    auditTypes: ["Financial"],
+    status: "Completed",
+    createdAt: "2024-07-20T08:45:00Z",
+    publishedAt: "2024-08-01T09:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-5",
+    title: "Compliance Audit of Pension & Gratuity Payments — FY 2024",
+    auditYear: 2024,
+    scope:
+      "Review of pension administration and gratuity disbursements to retirees.",
+    objectives:
+      "Ensure timely and accurate payments to eligible beneficiaries and compliance with pension laws.",
+    timelines: "September 2024 - November 2024",
+    startDate: "2024-09-01",
+    endDate: "2024-11-30",
+    auditTypes: ["Compliance"],
+    status: "Completed",
+    createdAt: "2024-08-15T14:20:00Z",
+    publishedAt: "2024-09-01T10:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-6",
+    title: "Routine Audit of Local Government Education Authorities — FY 2025",
+    auditYear: 2025,
+    scope:
+      "Examination of financial records and administrative processes of LGEAs.",
+    objectives:
+      "Assess financial management and administrative efficiency in education authorities.",
+    timelines: "May 2026 - August 2026",
+    startDate: "2026-05-01",
+    endDate: "2026-08-31",
+    auditTypes: ["Financial", "Compliance"],
+    status: "Draft",
+    createdAt: "2026-02-18T16:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-7",
+    title: "Financial Sustainability Review of Market Boards — FY 2025",
+    auditYear: 2025,
+    scope: "Review of revenue generation and expenditure of market boards.",
+    objectives:
+      "Assess financial sustainability and identify opportunities for revenue enhancement.",
+    timelines: "June 2026 - September 2026",
+    startDate: "2026-06-01",
+    endDate: "2026-09-30",
+    auditTypes: ["Financial", "Performance"],
+    status: "Published",
+    createdAt: "2026-01-25T11:00:00Z",
+    publishedAt: "2026-02-01T09:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-8",
+    title: "Environmental Impact Assessment of LGA Projects — FY 2024",
+    auditYear: 2024,
+    scope:
+      "Audit of environmental compliance for major infrastructure projects undertaken by LGAs.",
+    objectives:
+      "Ensure projects meet environmental standards and assess impact on local communities.",
+    timelines: "February 2025 - August 2025",
+    startDate: "2025-02-01",
+    endDate: "2025-08-31",
+    auditTypes: ["Compliance", "Performance"],
+    status: "Active",
+    createdAt: "2025-01-10T14:00:00Z",
+    publishedAt: "2025-01-20T10:00:00Z",
+    createdBy: "user-ag",
+  },
+  {
+    id: "mandate-9",
+    title: "Forensic Audit of Payroll Systems — FY 2022",
+    auditYear: 2022,
+    scope:
+      "Detailed forensic examination of payroll data to identify ghost workers and irregularities.",
+    objectives:
+      "Eliminate payroll fraud and improve personnel cost management.",
+    timelines: "September 2023 - December 2023",
+    startDate: "2023-09-01",
+    endDate: "2023-12-31",
+    auditTypes: ["Financial", "Compliance"],
+    status: "Completed",
+    createdAt: "2023-08-01T09:00:00Z",
+    publishedAt: "2023-08-15T12:00:00Z",
     createdBy: "user-ag",
   },
 ];
@@ -588,6 +753,15 @@ export const SEED_AUDITS: Audit[] = [
     leadId: "user-lead-1",
     teamIds: ["user-auditor-1", "user-auditor-2"],
     startDate: "2026-03-01",
+    endDate: "2026-09-30",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-03-01", endDate: "2026-03-15" },
+      Planning: { startDate: "2026-03-16", endDate: "2026-03-31" },
+      Fieldwork: { startDate: "2026-04-01", endDate: "2026-06-30" },
+      Review: { startDate: "2026-07-01", endDate: "2026-07-31" },
+      Reporting: { startDate: "2026-08-01", endDate: "2026-09-15" },
+      "Post-Audit": { startDate: "2026-09-16", endDate: "2026-09-30" },
+    },
     progress: 45,
     entryMeetingDate: "2026-03-01",
     entryMeetingNotes:
@@ -602,6 +776,12 @@ export const SEED_AUDITS: Audit[] = [
     mandateId: "mandate-1",
     leadId: "user-lead-2",
     teamIds: ["user-auditor-5"],
+    startDate: "2026-03-01",
+    endDate: "2026-09-30",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-03-01", endDate: "2026-03-15" },
+      Planning: { startDate: "2026-03-16", endDate: "2026-03-31" },
+    },
     progress: 15,
   },
   {
@@ -614,6 +794,13 @@ export const SEED_AUDITS: Audit[] = [
     leadId: "user-lead-4",
     teamIds: ["user-auditor-4"],
     startDate: "2026-03-10",
+    endDate: "2026-09-30",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-03-10", endDate: "2026-03-20" },
+      Planning: { startDate: "2026-03-21", endDate: "2026-04-05" },
+      Fieldwork: { startDate: "2026-04-06", endDate: "2026-06-30" },
+      Review: { startDate: "2026-07-01", endDate: "2026-07-31" },
+    },
     progress: 80,
     entryMeetingDate: "2026-03-10",
     entryMeetingNotes:
@@ -630,6 +817,14 @@ export const SEED_AUDITS: Audit[] = [
     teamIds: ["user-auditor-3"],
     startDate: "2026-03-05",
     endDate: "2026-06-20",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-03-05", endDate: "2026-03-15" },
+      Planning: { startDate: "2026-03-16", endDate: "2026-03-31" },
+      Fieldwork: { startDate: "2026-04-01", endDate: "2026-05-31" },
+      Review: { startDate: "2026-06-01", endDate: "2026-06-15" },
+      Reporting: { startDate: "2026-06-16", endDate: "2026-06-20" },
+      "Post-Audit": { startDate: "2026-06-21", endDate: "2026-07-05" },
+    },
     progress: 100,
     entryMeetingDate: "2026-03-05",
     entryMeetingNotes:
@@ -644,6 +839,12 @@ export const SEED_AUDITS: Audit[] = [
     mandateId: "mandate-1",
     leadId: "user-lead-2",
     teamIds: ["user-auditor-9"],
+    startDate: "2026-03-01",
+    endDate: "2026-09-30",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-03-01", endDate: "2026-03-10" },
+      Planning: { startDate: "2026-03-11", endDate: "2026-04-10" },
+    },
     progress: 10,
   },
   {
@@ -656,10 +857,207 @@ export const SEED_AUDITS: Audit[] = [
     leadId: "user-lead-5",
     teamIds: ["user-auditor-8"],
     startDate: "2026-03-12",
+    endDate: "2026-06-30",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-03-12", endDate: "2026-03-22" },
+      Planning: { startDate: "2026-03-23", endDate: "2026-04-05" },
+      Fieldwork: { startDate: "2026-04-06", endDate: "2026-06-15" },
+    },
     progress: 35,
     entryMeetingDate: "2026-03-12",
     entryMeetingNotes:
       "Entry meeting with LG management. Procurement files and contract documents to be made available by 19 March 2026.",
+  },
+  {
+    id: "audit-7",
+    lgaId: "lga-19",
+    type: "Performance",
+    year: 2024,
+    status: "Fieldwork",
+    mandateId: "mandate-3",
+    leadId: "user-lead-4",
+    teamIds: ["user-auditor-4"],
+    startDate: "2024-09-01",
+    endDate: "2024-11-30",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2024-09-01", endDate: "2024-09-15" },
+      Planning: { startDate: "2024-09-16", endDate: "2024-09-30" },
+      Fieldwork: {
+        startDate: "2024-10-01",
+        // End date dynamically set to 2 days from now to test warning
+        endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
+      },
+    },
+    progress: 60,
+    entryMeetingDate: "2025-02-10",
+    entryMeetingNotes:
+      "Review of PHC infrastructure commenced. Initial site visits to 5 PHCs completed.",
+  },
+  {
+    id: "audit-8",
+    lgaId: "lga-20",
+    type: "Performance",
+    year: 2024,
+    status: "Reporting",
+    mandateId: "mandate-3",
+    leadId: "user-lead-5",
+    teamIds: ["user-auditor-9"],
+    startDate: "2024-08-01",
+    endDate: "2024-12-31",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2024-08-01", endDate: "2024-08-15" },
+      Planning: { startDate: "2024-08-16", endDate: "2024-08-31" },
+      Fieldwork: { startDate: "2024-09-01", endDate: "2024-09-30" },
+      Reporting: {
+        startDate: "2024-10-01",
+        // End date 5 days ago to force escalation
+        endDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
+      },
+    },
+    progress: 90,
+  },
+  {
+    id: "audit-9",
+    lgaId: "lga-4",
+    type: "Financial",
+    year: 2023,
+    status: "Completed",
+    mandateId: "mandate-4",
+    leadId: "user-lead-1",
+    teamIds: ["user-auditor-1", "user-auditor-2"],
+    startDate: "2024-08-01",
+    endDate: "2024-11-30",
+    progress: 100,
+    entryMeetingDate: "2024-08-10",
+    entryMeetingNotes:
+      "IGR systems audit initiated. Revenue officers interviewed.",
+  },
+  {
+    id: "audit-10",
+    lgaId: "lga-1",
+    type: "Financial",
+    year: 2023,
+    status: "Completed",
+    mandateId: "mandate-4",
+    leadId: "user-lead-2",
+    teamIds: ["user-auditor-5"],
+    startDate: "2024-08-05",
+    endDate: "2024-12-05",
+    progress: 100,
+  },
+  {
+    id: "audit-11",
+    lgaId: "lga-9",
+    type: "Performance",
+    year: 2024,
+    status: "Fieldwork",
+    mandateId: "mandate-8",
+    leadId: "user-lead-3",
+    teamIds: ["user-auditor-3"],
+    startDate: "2025-02-15",
+    progress: 55,
+    entryMeetingDate: "2025-02-18",
+    entryMeetingNotes:
+      "Site inspection of 3 LGA projects completed. EIA reports reviewed.",
+  },
+  {
+    id: "audit-12",
+    lgaId: "lga-19",
+    type: "Financial",
+    year: 2022,
+    status: "Completed",
+    mandateId: "mandate-9",
+    leadId: "user-lead-5",
+    teamIds: ["user-auditor-8"],
+    startDate: "2023-09-01",
+    endDate: "2023-11-30",
+    progress: 100,
+    entryMeetingDate: "2023-09-05",
+    entryMeetingNotes: "Payroll officer grilled on ghost worker allegations.",
+  },
+  {
+    id: "audit-13",
+    lgaId: "lga-13",
+    type: "Compliance",
+    year: 2022,
+    status: "Completed",
+    mandateId: "mandate-9",
+    leadId: "user-lead-3",
+    teamIds: ["user-auditor-3"],
+    startDate: "2023-09-10",
+    endDate: "2023-12-10",
+    progress: 100,
+    entryMeetingDate: "2023-09-12",
+    entryMeetingNotes:
+      "Head of Personnel attended. Verification exercise planned.",
+  },
+  // Additional Sample Audits for Professional Roadmap Data
+  {
+    id: "audit-past-1",
+    lgaId: "lga-5", // Kosofe
+    type: "Financial",
+    year: 2023,
+    status: "Completed",
+    mandateId: "mandate-4", // IGR 2023
+    leadId: "user-lead-3",
+    teamIds: ["user-auditor-6"],
+    startDate: "2023-08-01",
+    endDate: "2023-12-15",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2023-08-01", endDate: "2023-08-15" },
+      Planning: { startDate: "2023-08-16", endDate: "2023-08-31" },
+      Fieldwork: { startDate: "2023-09-01", endDate: "2023-11-15" },
+      Review: { startDate: "2023-11-16", endDate: "2023-11-30" },
+      Reporting: { startDate: "2023-12-01", endDate: "2023-12-15" },
+      "Post-Audit": { startDate: "2023-12-16", endDate: "2023-12-31" },
+    },
+    progress: 100,
+  },
+  {
+    id: "audit-past-2",
+    lgaId: "lga-1", // Ikeja
+    type: "Compliance",
+    year: 2022,
+    status: "Completed",
+    mandateId: "mandate-9", // Payroll 2022
+    leadId: "user-lead-1",
+    teamIds: ["user-auditor-1"],
+    startDate: "2023-09-01",
+    endDate: "2023-12-20",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2023-09-01", endDate: "2023-09-10" },
+      Planning: { startDate: "2023-09-11", endDate: "2023-09-25" },
+      Fieldwork: { startDate: "2023-09-26", endDate: "2023-11-10" },
+      Review: { startDate: "2023-11-11", endDate: "2023-11-30" },
+      Reporting: { startDate: "2023-12-01", endDate: "2023-12-20" },
+      "Post-Audit": { startDate: "2023-12-21", endDate: "2024-01-10" },
+    },
+    progress: 100,
+  },
+  {
+    id: "audit-late",
+    lgaId: "lga-19",
+    type: "Financial",
+    year: 2024,
+    status: "Fieldwork",
+    mandateId: "mandate-2",
+    leadId: "user-lead-1",
+    teamIds: ["user-auditor-1"],
+    startDate: "2026-01-10",
+    endDate: "2026-02-20",
+    phaseTimelines: {
+      "Pre-Audit": { startDate: "2026-01-10", endDate: "2026-01-20" },
+      Planning: { startDate: "2026-01-21", endDate: "2026-01-31" },
+      Fieldwork: { startDate: "2026-02-01", endDate: "2026-02-20" },
+    },
+    progress: 35,
+    entryMeetingDate: "2026-01-15",
+    entryMeetingNotes:
+      "Audit delayed due to uncooperative staff. Escalation required.",
   },
 ];
 
@@ -739,7 +1137,20 @@ export const SEED_INVITATIONS: Invitation[] = [
   },
 ];
 
-export const SEED_LETTERS: NotificationLetter[] = [];
+export const SEED_LETTERS: NotificationLetter[] = [
+  {
+    id: "notif-Escalation",
+    lgaId: "lga-19",
+    mandateId: "mandate-1",
+    type: "Audit Notification",
+    date: "2026-02-21",
+    status: "Sent",
+    title: "URGENT: Audit Timeline Exceeded - Escalation Notice",
+    content:
+      "Notice of non-compliance with audit timeline. The fieldwork phase for 2024 Financial Audit was due for completion by 20 Feb 2026. Immediate explanation required.",
+    checklist: [],
+  },
+];
 
 export const SEED_WORKPAPERS: Workpaper[] = [
   {
@@ -1004,6 +1415,77 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     preparedBy: "user-lead-4",
     createdAt: "2026-03-08T09:00:00Z",
   },
+  // Expanded Professional Risk Matrix for other LGAs
+  {
+    id: "risk-7",
+    auditId: "audit-2", // Alimosho
+    area: "Environment & Waste Management",
+    inherentRisk: "High",
+    controlRisk: "High",
+    detectionRisk: "Medium",
+    overallRisk: "Critical",
+    mitigationPlan:
+      "Review waste management contracts and verify service delivery against payments. Inspect dumpsites.",
+    status: "Open",
+    preparedBy: "user-lead-2",
+    createdAt: "2026-03-05T10:00:00Z",
+  },
+  {
+    id: "risk-8",
+    auditId: "audit-4", // Badagry
+    area: "Tourism Revenue Leakage",
+    inherentRisk: "High",
+    controlRisk: "Medium",
+    detectionRisk: "High",
+    overallRisk: "Critical",
+    mitigationPlan:
+      "Reconcile tourist site ticketing records with bank lodgements. Verify physical ticket stock.",
+    status: "Open",
+    preparedBy: "user-lead-3",
+    createdAt: "2026-03-06T14:30:00Z",
+  },
+  {
+    id: "risk-9",
+    auditId: "audit-5", // Apapa
+    area: "Port Ancillary Revenue",
+    inherentRisk: "High",
+    controlRisk: "High",
+    detectionRisk: "Low",
+    overallRisk: "High",
+    mitigationPlan:
+      "Audit haulage and parking fees collection. Review engagement with third-party collectors.",
+    status: "Open",
+    preparedBy: "user-lead-2",
+    createdAt: "2026-03-07T09:15:00Z",
+  },
+  {
+    id: "risk-10",
+    auditId: "audit-6", // Eti-Osa
+    area: "Land Use Charge & Tenement Rates",
+    inherentRisk: "Medium",
+    controlRisk: "Medium",
+    detectionRisk: "Medium",
+    overallRisk: "Medium",
+    mitigationPlan:
+      "Sample check high-value properties for billing and payment accuracy. Review valuation database.",
+    status: "Open",
+    preparedBy: "user-lead-5",
+    createdAt: "2026-03-12T11:00:00Z",
+  },
+  {
+    id: "risk-11",
+    auditId: "audit-3", // Ajeromi-Ifelodun
+    area: "Market Stall Fees",
+    inherentRisk: "High",
+    controlRisk: "High",
+    detectionRisk: "High",
+    overallRisk: "Critical",
+    mitigationPlan:
+      "Census of market stalls vs revenue database. Surprise cash count at market offices.",
+    status: "Open",
+    preparedBy: "user-lead-4",
+    createdAt: "2026-03-15T13:45:00Z",
+  },
 ];
 
 export const SEED_MATERIALITY: MaterialityThreshold[] = [
@@ -1239,11 +1721,48 @@ export const SEED_FRAUD_FLAGS: FraudFlag[] = [
     indicator: "Fictitious Vendors",
     description:
       "3 vendors in the payment records have same phone numbers registered to different company names. Payments totalling N7.2M made.",
+
     area: "Procurement",
     raisedBy: "user-auditor-4",
     raisedAt: "2026-03-28T10:00:00Z",
     severity: "High",
     status: "Under Investigation",
+  },
+  {
+    id: "fraud-5",
+    auditId: "audit-1",
+    indicator: "Budget Overrun",
+    description:
+      "Expenditure on 'Office Maintenance' exceeded the approved budget by 150% (N12M vs N4.8M). No supplementary budget approval found.",
+    area: "Expenditure",
+    raisedBy: "user-auditor-1",
+    raisedAt: "2026-04-05T09:15:00Z",
+    severity: "High",
+    status: "Open",
+  },
+  {
+    id: "fraud-6",
+    auditId: "audit-2",
+    indicator: "Unremitted PAYE",
+    description:
+      "PAYE deductions for Jan-Mar 2026 totalling N8.5M have not been remitted to the State internal revenue service.",
+    area: "Revenue",
+    raisedBy: "user-auditor-3",
+    raisedAt: "2026-04-01T14:20:00Z",
+    severity: "Critical",
+    status: "Escalated",
+  },
+  {
+    id: "fraud-7",
+    auditId: "audit-4",
+    indicator: "Missing Revenue Receipts",
+    description:
+      "Market tolls collected for 3 weeks in February are unaccounted for. Receipt booklets #4501-#4600 are missing.",
+    area: "Revenue",
+    raisedBy: "user-auditor-2",
+    raisedAt: "2026-03-30T10:45:00Z",
+    severity: "High",
+    status: "Open",
   },
 ];
 
@@ -1575,6 +2094,499 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     minWords: 50,
     maxWords: 500,
   },
+  // Professional Additions
+  {
+    id: "q-17",
+    section: "Procurement Compliance",
+    question:
+      "List all capital projects awarded in the last 12 months, including contract sums and contractors.",
+    type: "dynamic-table",
+    required: true,
+  },
+  {
+    id: "q-18",
+    section: "Payroll Integrity",
+    question:
+      "Are there any staff members on the payroll who have not been captured biometrically? If yes, provide details.",
+    type: "open-ended",
+    required: true,
+  },
+  {
+    id: "q-19",
+    section: "Revenue Assurance",
+    question:
+      "Provide a breakdown of all revenue sources and the actual collections against budget for the last fiscal year.",
+    type: "dynamic-table",
+    required: true,
+  },
+  // Understanding the Entity — additional questions
+  {
+    id: "q-20",
+    section: "Understanding the Entity",
+    question:
+      "What are the LGA's statutory responsibilities under the Third Schedule of the 1999 Constitution as amended? Describe how these are currently being discharged.",
+    type: "open-ended",
+    required: true,
+    minWords: 80,
+    maxWords: 1500,
+  },
+  {
+    id: "q-21",
+    section: "Understanding the Entity",
+    question:
+      "Has the LGA undergone any significant structural or leadership changes in the last 24 months? If so, describe the nature and impact of such changes.",
+    type: "open-ended",
+    required: true,
+    minWords: 50,
+    maxWords: 1000,
+  },
+  {
+    id: "q-22",
+    section: "Understanding the Entity",
+    question:
+      "What is the LGA's approved budget for the current fiscal year and how does it compare to the previous year?",
+    type: "open-ended",
+    required: true,
+    minWords: 30,
+    maxWords: 600,
+  },
+  {
+    id: "q-23",
+    section: "Understanding the Entity",
+    question:
+      "Confirm that the LGA's enabling law/bye-laws are reviewed and up to date.",
+    type: "document-confirmation",
+    required: true,
+  },
+  {
+    id: "q-24",
+    section: "Understanding the Entity",
+    question:
+      "Describe the relationship between the LGA and the Joint Account Allocation Committee (JAAC). How are funds released and accounted for?",
+    type: "open-ended",
+    required: true,
+    minWords: 60,
+    maxWords: 800,
+  },
+  // Key Accounting Systems — additional questions
+  {
+    id: "q-25",
+    section: "Key Accounting Systems",
+    question:
+      "Describe the LGA's expenditure approval process from purchase request to payment. Who are the key approving officers?",
+    type: "open-ended",
+    required: true,
+    minWords: 50,
+    maxWords: 1000,
+  },
+  {
+    id: "q-26",
+    section: "Key Accounting Systems",
+    question:
+      "What accounting basis does the LGA adopt (cash, accrual, or modified cash)? Is this consistent with the IPSAS framework?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Cash Basis", value: "cash" },
+      { label: "Accrual Basis", value: "accrual" },
+      { label: "Modified Cash Basis", value: "modified_cash" },
+      { label: "Modified Accrual Basis", value: "modified_accrual" },
+    ],
+  },
+  {
+    id: "q-27",
+    section: "Key Accounting Systems",
+    question:
+      "Are bank reconciliation statements prepared regularly? Describe the frequency, preparer, and reviewer.",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 600,
+  },
+  {
+    id: "q-28",
+    section: "Key Accounting Systems",
+    question:
+      "How are petty cash advances controlled and retired? Are there imprest accounts and what are the limits?",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 600,
+  },
+  {
+    id: "q-29",
+    section: "Key Accounting Systems",
+    question:
+      "Confirm that audited accounts for the last three fiscal years are available.",
+    type: "document-confirmation",
+    required: true,
+  },
+  // Internal Control Environment — additional questions
+  {
+    id: "q-30",
+    section: "Internal Control Environment",
+    question:
+      "Is there a documented financial regulations manual or finance procedure manual in use? Confirm and comment on compliance.",
+    type: "document-confirmation",
+    required: true,
+  },
+  {
+    id: "q-31",
+    section: "Internal Control Environment",
+    question:
+      "How are fixed assets recorded and managed? Describe the asset register maintenance process and disposal procedures.",
+    type: "open-ended",
+    required: true,
+    minWords: 50,
+    maxWords: 800,
+  },
+  {
+    id: "q-32",
+    section: "Internal Control Environment",
+    question:
+      "Are there any unresolved audit queries from the previous audit cycle? If yes, describe the nature and current status.",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 800,
+  },
+  {
+    id: "q-33",
+    section: "Internal Control Environment",
+    question: "Rate the effectiveness of the IT general controls environment.",
+    type: "risk-scoring",
+    required: true,
+  },
+  {
+    id: "q-34",
+    section: "Internal Control Environment",
+    question:
+      "Describe the anti-corruption measures in place. Are staff subject to annual declaration of assets?",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 700,
+  },
+  // Risk Assessment — additional questions
+  {
+    id: "q-35",
+    section: "Risk Assessment",
+    question:
+      "Identify and describe any related-party transactions or relationships that may create conflicts of interest.",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 800,
+  },
+  {
+    id: "q-36",
+    section: "Risk Assessment",
+    question:
+      "Are there any ongoing litigation cases or contingent liabilities? Provide details and estimated financial exposure.",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 600,
+  },
+  {
+    id: "q-37",
+    section: "Risk Assessment",
+    question:
+      "Has the LGA been subject to any special investigations or forensic audits in the last five years?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Yes — Resulted in recoveries or sanctions",
+        value: "yes_sanctions",
+      },
+      { label: "Yes — Cleared without findings", value: "yes_cleared" },
+      { label: "No", value: "no" },
+      { label: "Not aware", value: "unknown" },
+    ],
+  },
+  {
+    id: "q-38",
+    section: "Risk Assessment",
+    question:
+      "What is the assessment of management integrity and the overall control consciousness at the LGA?",
+    type: "risk-scoring",
+    required: true,
+  },
+  // Materiality Determination — additional questions
+  {
+    id: "q-39",
+    section: "Materiality Determination",
+    question:
+      "State the quantitative materiality threshold (in Naira) determined for the audit and explain the calculation.",
+    type: "open-ended",
+    required: true,
+    minWords: 30,
+    maxWords: 500,
+  },
+  {
+    id: "q-40",
+    section: "Materiality Determination",
+    question:
+      "Identify any qualitative materiality factors that could influence the audit opinion regardless of monetary value.",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 600,
+  },
+  {
+    id: "q-41",
+    section: "Materiality Determination",
+    question:
+      "State the performance materiality level applied and the rationale for the percentage used relative to overall materiality.",
+    type: "open-ended",
+    required: true,
+    minWords: 30,
+    maxWords: 500,
+  },
+  {
+    id: "q-42",
+    section: "Materiality Determination",
+    question:
+      "Has the materiality threshold been discussed and agreed upon with the Audit Lead and documented in the audit planning memorandum?",
+    type: "document-confirmation",
+    required: true,
+  },
+  // Procurement Compliance — additional questions
+  {
+    id: "q-43",
+    section: "Procurement Compliance",
+    question:
+      "Does the LGA have a functional Due Process or Procurement Unit? Describe the procurement approval hierarchy and thresholds.",
+    type: "open-ended",
+    required: true,
+    minWords: 50,
+    maxWords: 800,
+  },
+  {
+    id: "q-44",
+    section: "Procurement Compliance",
+    question:
+      "Were competitive tenders advertised publicly for all contracts above the statutory threshold? Confirm compliance with the Public Procurement Act.",
+    type: "document-confirmation",
+    required: true,
+  },
+  {
+    id: "q-45",
+    section: "Procurement Compliance",
+    question:
+      "Identify any sole-source or emergency procurements conducted in the period under review. Provide justifications provided.",
+    type: "open-ended",
+    required: true,
+    minWords: 30,
+    maxWords: 600,
+  },
+  {
+    id: "q-46",
+    section: "Procurement Compliance",
+    question: "Rate the overall procurement compliance risk.",
+    type: "risk-scoring",
+    required: true,
+  },
+  {
+    id: "q-47",
+    section: "Procurement Compliance",
+    question:
+      "Provide details of any contract variations or addenda issued on major projects, including the basis and approvals obtained.",
+    type: "dynamic-table",
+    required: true,
+  },
+  // Payroll Integrity — additional questions
+  {
+    id: "q-48",
+    section: "Payroll Integrity",
+    question:
+      "Describe the process for adding new staff and removing separated staff from the payroll. Which department(s) are involved?",
+    type: "open-ended",
+    required: true,
+    minWords: 50,
+    maxWords: 800,
+  },
+  {
+    id: "q-49",
+    section: "Payroll Integrity",
+    question:
+      "Has a headcount reconciliation been performed between the nominal roll, payroll, and biometric data in the current period?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Yes — Full reconciliation performed, no discrepancies",
+        value: "yes_clean",
+      },
+      {
+        label: "Yes — Reconciliation performed, discrepancies found",
+        value: "yes_discrepancy",
+      },
+      {
+        label: "Partial — Not all staff categories reconciled",
+        value: "partial",
+      },
+      { label: "No — Not performed in this period", value: "no" },
+    ],
+  },
+  {
+    id: "q-50",
+    section: "Payroll Integrity",
+    question:
+      "Are there allowances or benefits paid outside the main payroll system? If yes, describe the types, amounts, and control mechanisms.",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 700,
+  },
+  {
+    id: "q-51",
+    section: "Payroll Integrity",
+    question:
+      "Rate the overall payroll integrity risk based on preliminary review.",
+    type: "risk-scoring",
+    required: true,
+  },
+  // Revenue Assurance — additional questions
+  {
+    id: "q-52",
+    section: "Revenue Assurance",
+    question:
+      "Describe the mechanism for identifying, assessing, and collecting internally generated revenue (IGR). Who are the revenue collection agents?",
+    type: "open-ended",
+    required: true,
+    minWords: 60,
+    maxWords: 900,
+  },
+  {
+    id: "q-53",
+    section: "Revenue Assurance",
+    question:
+      "Is there a revenue assurance unit or function? How is leakage and under-remittance identified and addressed?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Yes — Dedicated unit with active monitoring",
+        value: "yes_dedicated",
+      },
+      { label: "Yes — Informal monitoring only", value: "yes_informal" },
+      { label: "No — No specific unit or mechanism", value: "no" },
+    ],
+  },
+  {
+    id: "q-54",
+    section: "Revenue Assurance",
+    question:
+      "Describe the process for issuing, tracking, and accounting for revenue receipts. Are receipts pre-numbered and accounted for?",
+    type: "open-ended",
+    required: true,
+    minWords: 40,
+    maxWords: 700,
+  },
+  {
+    id: "q-55",
+    section: "Revenue Assurance",
+    question:
+      "Rate the overall revenue risk (risk of unrecorded or misappropriated revenue).",
+    type: "risk-scoring",
+    required: true,
+  },
+  {
+    id: "q-56",
+    section: "Revenue Assurance",
+    question:
+      "Confirm that all revenue collection points have been identified and mapped, and that daily remittance records are available.",
+    type: "document-confirmation",
+    required: true,
+  },
+  // Additional Sections based on Public Sector Audit Requirements
+  {
+    id: "q-57",
+    section: "Third-Party & Vendor Management",
+    question:
+      "Does the LGA maintain an approved vendor list? If yes, describe the process for vendor selection and pre-qualification.",
+    type: "open-ended",
+    required: true,
+    minWords: 50,
+  },
+  {
+    id: "q-58",
+    section: "Third-Party & Vendor Management",
+    question:
+      "Are there any significant outsourcing arrangements (e.g., waste management, market collection)? List major contracts and their value.",
+    type: "dynamic-table",
+    required: true,
+  },
+  {
+    id: "q-59",
+    section: "Environmental & Social Responsibility",
+    question:
+      "Has the LGA undertaken any environmental impact assessments for its major projects in the last fiscal year?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — All major projects", value: "yes_all" },
+      { label: "Yes — Some projects only", value: "yes_some" },
+      { label: "No — Not typically done", value: "no" },
+    ],
+  },
+  {
+    id: "q-60",
+    section: "Environmental & Social Responsibility",
+    question:
+      "Describe community engagement initiatives undertaken to ensure projects meet the needs of the local population.",
+    type: "open-ended",
+    required: false,
+    minWords: 30,
+    maxWords: 500,
+  },
+  {
+    id: "q-61",
+    section: "Information Security",
+    question:
+      "Rate the maturity of the LGA's cybersecurity measures (e.g., firewalls, antivirus, staff training).",
+    type: "risk-scoring",
+    required: true,
+  },
+  {
+    id: "q-62",
+    section: "Information Security",
+    question:
+      "Are there formal IT policies covering acceptable use, password management, and data protection?",
+    type: "document-confirmation",
+    required: true,
+  },
+  {
+    id: "q-63",
+    section: "Grant & Aid Management",
+    question:
+      "List all external grants or donor funds received in the audit period, including the donor name and purpose.",
+    type: "dynamic-table",
+    required: true,
+  },
+  {
+    id: "q-64",
+    section: "Grant & Aid Management",
+    question:
+      "Are grant funds kept in separate bank accounts? If so, provide details of the accounts.",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Separate accounts used", value: "yes" },
+      { label: "No — Commingled with general funds", value: "no" },
+    ],
+  },
+  {
+    id: "q-65",
+    section: "Audit Follow-Up",
+    question:
+      "Provide a status report on the implementation of the Public Accounts Committee (PAC) directives from the last 3 years.",
+    type: "open-ended",
+    required: true,
+    minWords: 100,
+  },
 ];
 
 export const SEED_QUESTIONNAIRE_RESPONSES: QuestionnaireResponse[] = [
@@ -1891,6 +2903,16 @@ export const SEED_STAGE_APPROVALS: StageApproval[] = [
   },
   {
     id: "sa-4",
+    auditId: "audit-2",
+    stage: "Pre-Audit",
+    status: "Approved",
+    submittedBy: "user-lead-2",
+    submittedAt: "2026-03-01T11:00:00Z",
+    reviewedBy: "user-sup-ikeja",
+    reviewedAt: "2026-03-02T09:30:00Z",
+  },
+  {
+    id: "sa-5",
     auditId: "audit-3",
     stage: "Pre-Audit",
     status: "Approved",
@@ -1901,7 +2923,7 @@ export const SEED_STAGE_APPROVALS: StageApproval[] = [
     comments: "Approved.",
   },
   {
-    id: "sa-5",
+    id: "sa-6",
     auditId: "audit-3",
     stage: "Planning",
     status: "Approved",
@@ -1911,7 +2933,7 @@ export const SEED_STAGE_APPROVALS: StageApproval[] = [
     reviewedAt: "2026-03-13T14:00:00Z",
   },
   {
-    id: "sa-6",
+    id: "sa-7",
     auditId: "audit-3",
     stage: "Fieldwork",
     status: "Approved",
@@ -1922,7 +2944,7 @@ export const SEED_STAGE_APPROVALS: StageApproval[] = [
     comments: "Fieldwork complete. Good documentation. Proceed to reporting.",
   },
   {
-    id: "sa-7",
+    id: "sa-8",
     auditId: "audit-2",
     stage: "Pre-Audit",
     status: "Changes Requested",
@@ -1932,5 +2954,84 @@ export const SEED_STAGE_APPROVALS: StageApproval[] = [
     reviewedAt: "2026-03-02T10:00:00Z",
     comments:
       "Entry meeting notes are incomplete. Please document the agreed document submission timeline and add the LGA's feedback on scope areas.",
+  },
+];
+
+import type { Notification } from "../types";
+
+export const SEED_NOTIFICATIONS: Notification[] = [
+  {
+    id: "notif-1",
+    userId: "user-ag",
+    title: "Document Approved",
+    message:
+      "Financial Statements for Ikeja LGA have been approved by the Supervisor.",
+    type: "success",
+    isRead: false,
+    timestamp: "2026-03-10T09:00:00Z",
+    link: "/audit/audit-1",
+    relatedEntityId: "doc-1",
+    relatedEntityType: "document",
+  },
+  {
+    id: "notif-2",
+    userId: "user-ag",
+    title: "New Mandate Published",
+    message:
+      "The Annual Audit of Local Government Accounts — FY 2025 is now active.",
+    type: "info",
+    isRead: true,
+    timestamp: "2026-01-20T14:05:00Z",
+    link: "/mandates",
+    relatedEntityId: "mandate-1",
+    relatedEntityType: "mandate",
+  },
+  {
+    id: "notif-3",
+    userId: "user-sup-ikeja",
+    title: "Pending Approval",
+    message: "Pre-Audit stage approval requested for Agege LGA Audit.",
+    type: "warning",
+    isRead: false,
+    timestamp: "2026-03-01T11:05:00Z",
+    link: "/audit/audit-2",
+    relatedEntityId: "audit-2",
+    relatedEntityType: "audit",
+  },
+  {
+    id: "notif-4",
+    userId: "user-lead-1",
+    title: "Audit Assigned",
+    message:
+      "You have been assigned as Lead Auditor for Ikeja LGA Financial Audit.",
+    type: "info",
+    isRead: false,
+    timestamp: "2026-02-15T10:00:00Z",
+    link: "/audit/audit-1",
+    relatedEntityId: "audit-1",
+    relatedEntityType: "audit",
+  },
+  {
+    id: "notif-5",
+    userId: "user-ag",
+    title: "Report Submitted",
+    message:
+      "Final Audit Report for Badagry LGA has been submitted for review.",
+    type: "warning",
+    isRead: false,
+    timestamp: "2026-03-15T16:30:00Z",
+    link: "/audit/audit-4",
+    relatedEntityId: "audit-4",
+    relatedEntityType: "report",
+  },
+  {
+    id: "notif-6",
+    userId: "user-ag",
+    title: "System Update",
+    message: "The platform will undergo maintenance on Saturday at 2 AM.",
+    type: "info",
+    isRead: false,
+    timestamp: "2026-03-18T08:00:00Z",
+    relatedEntityType: "system",
   },
 ];

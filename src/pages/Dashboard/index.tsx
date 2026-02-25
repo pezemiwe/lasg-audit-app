@@ -53,125 +53,400 @@ const Dashboard: React.FC = () => {
   const leads = MOCK_USERS.filter((u) => u.role === "AUDIT_LEAD");
 
   /* ─── State Auditor General ─── */
-  const renderStateAGDashboard = () => (
-    <div>
-      <div className={s.pageHeader}>
-        <div>
-          <h1 className={s.pageTitle}>State Overview</h1>
-          <p className={s.pageSubtitle}>
-            Comprehensive audit monitoring across all 5 zones and 20 LGAs
-          </p>
-        </div>
-        <span className={s.pageBadge}>
-          <Eye size={12} /> Auditor General
-        </span>
-      </div>
+  const renderStateAGDashboard = () => {
+    // Audit Stage Breakdown
+    const auditsByStage = {
+      Planning: audits.filter((a) => a.status === "Planning").length,
+      Fieldwork: audits.filter((a) => a.status === "Fieldwork").length,
+      Reporting: audits.filter(
+        (a) => a.status === "Reporting" || a.status === "Review",
+      ).length,
+      Completed: audits.filter(
+        (a) => a.status === "Completed" || a.status === "Post-Audit",
+      ).length,
+    };
 
-      <div className={s.kpiRow}>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconBlue}>
-            <MapPin size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Total LGAs</div>
-            <div className={s.kpiValue}>{LGAS.length}</div>
-            <div className={s.kpiMeta}>Across 5 zones</div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconGreen}>
-            <FileCheck size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Active Audits</div>
-            <div className={s.kpiValue}>
-              {audits.filter((a) => a.status !== "Completed").length}
-            </div>
-            <div className={s.kpiMeta}>
-              {audits.filter((a) => a.status === "Completed").length} completed
-            </div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconAmber}>
-            <Clock size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Pending Reviews</div>
-            <div className={s.kpiValue}>
-              {
-                reports.filter(
-                  (r) =>
-                    r.status === "Submitted" || r.status === "Under Review",
-                ).length
-              }
-            </div>
-            <div className={s.kpiMeta}>Awaiting approval</div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconPurple}>
-            <TrendingUp size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Compliance Rate</div>
-            <div className={s.kpiValue}>
-              {audits.length > 0
-                ? Math.round(
-                    audits.reduce((s, a) => s + a.progress, 0) / audits.length,
-                  )
-                : 0}
-              %
-            </div>
-            <div className={s.kpiMeta}>Avg. progress</div>
-          </div>
-        </div>
-      </div>
+    // Calculate total for percentages
+    const totalAudits = audits.length || 1;
 
-      <div className={s.card}>
-        <div className={s.cardHeader}>
-          <h3 className={s.cardTitle}>Zone Performance</h3>
-        </div>
-      </div>
+    // Risk Analysis
+    const criticalRisks = fraudFlags.filter(
+      (f) => f.severity === "Critical" && f.status !== "Resolved",
+    );
+    const highRisks = fraudFlags.filter(
+      (f) => f.severity === "High" && f.status !== "Resolved",
+    );
 
-      <div className={s.gridThreeCols}>
-        {ZONES.map((zone) => {
-          const zoneLgas = LGAS.filter((l) => zone.lgas.includes(l.id));
-          return (
-            <div key={zone.id} className={s.zoneCard}>
-              <div className={s.zoneHeader}>
-                <div>
-                  <div className={s.zoneName}>{zone.name} Zone</div>
-                  <div className={s.zoneLgaCount}>
-                    {zone.lgas.length} LGA{zone.lgas.length > 1 ? "s" : ""}
+    // Group Risks by LGA
+    const riskByLga = LGAS.map((lga) => {
+      const lgaAudits = audits
+        .filter((a) => a.lgaId === lga.id)
+        .map((a) => a.id);
+      const criticalCount = criticalRisks.filter((f) =>
+        lgaAudits.includes(f.auditId),
+      ).length;
+      const highCount = highRisks.filter((f) =>
+        lgaAudits.includes(f.auditId),
+      ).length;
+      return {
+        ...lga,
+        criticalCount,
+        highCount,
+        totalRisk: criticalCount * 2 + highCount,
+      };
+    })
+      .sort((a, b) => b.totalRisk - a.totalRisk)
+      .filter((l) => l.totalRisk > 0);
+
+    return (
+      <div>
+        <div className={s.pageHeader}>
+          <div>
+            <h1 className={s.pageTitle}>State Overview</h1>
+            <p className={s.pageSubtitle}>
+              High-level monitoring, risk assessment, and progress tracking
+              across Lagos State
+            </p>
+          </div>
+          <span className={s.pageBadge}>
+            <Eye size={12} /> Auditor General
+          </span>
+        </div>
+
+        {/* Primary KPI Row */}
+        <div className={s.kpiRow}>
+          <div className={s.kpiCard}>
+            <div className={s.kpiIconBlue}>
+              <MapPin size={20} />
+            </div>
+            <div>
+              <div className={s.kpiLabel}>Total Coverage</div>
+              <div className={s.kpiValue}>{LGAS.length} LGAs</div>
+              <div className={s.kpiMeta}>Across 5 administrative zones</div>
+            </div>
+          </div>
+          <div className={s.kpiCard}>
+            <div className={s.kpiIconGreen}>
+              <Activity size={20} />
+            </div>
+            <div>
+              <div className={s.kpiLabel}>Active Audits</div>
+              <div className={s.kpiValue}>
+                {audits.filter((a) => a.status !== "Completed").length}
+              </div>
+              <div className={s.kpiMeta}>
+                {Math.round(
+                  (audits.filter((a) => a.status !== "Completed").length /
+                    totalAudits) *
+                    100,
+                )}
+                % of total planned
+              </div>
+            </div>
+          </div>
+          <div className={s.kpiCard}>
+            <div className={s.kpiIconAmber}>
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <div className={s.kpiLabel}>Critical Risks</div>
+              <div className={s.kpiValue}>{criticalRisks.length}</div>
+              <div className={s.kpiMeta}>Requires immediate attention</div>
+            </div>
+          </div>
+          <div className={s.kpiCard}>
+            <div className={s.kpiIconPurple}>
+              <TrendingUp size={20} />
+            </div>
+            <div>
+              <div className={s.kpiLabel}>Avg. Completion</div>
+              <div className={s.kpiValue}>
+                {audits.length > 0
+                  ? Math.round(
+                      audits.reduce((s, a) => s + a.progress, 0) /
+                        audits.length,
+                    )
+                  : 0}
+                %
+              </div>
+              <div className={s.kpiMeta}>Overall audit progress</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Dashboard Grid */}
+        <div
+          className={s.gridTwoCols}
+          style={{ alignItems: "start", marginBottom: "1.5rem" }}
+        >
+          {/* High Risk Areas - Moved to Left Column now since audit lifecycle is removed */}
+          <div className={s.card} style={{ height: "100%" }}>
+            <div className={s.cardHeader}>
+              <h3 className={s.cardTitle}>Priority Attention Areas</h3>
+              <span style={{ fontSize: "0.8rem", color: "#666" }}>
+                LGA Risk Scorecard
+              </span>
+            </div>
+            <div className={s.cardBody}>
+              {riskByLga.length > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem",
+                  }}
+                >
+                  {riskByLga.map((lga) => (
+                    <div
+                      key={lga.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "0.75rem",
+                        background: "#fff1f2",
+                        borderRadius: "0.5rem",
+                        border: "1px solid #fecdd3",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, color: "#881337" }}>
+                          {lga.name} LGA
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "#9f1239" }}>
+                          {ZONES.find((z) => z.id === lga.zoneId)?.name} Zone
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "1.1rem",
+                            color: "#be123c",
+                          }}
+                        >
+                          {lga.criticalCount} Critical
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "#9f1239" }}>
+                          {lga.highCount} High Risks
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={s.emptyState}>
+                  <CheckCircle
+                    size={32}
+                    style={{ color: "#10b981", marginBottom: "0.5rem" }}
+                  />
+                  <p>No critical risk areas identified.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={s.card} style={{ height: "100%" }}>
+            <div className={s.cardHeader}>
+              <h3 className={s.cardTitle}>Audit Status Snapshot</h3>
+            </div>
+            <div className={s.cardBody}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#f8fafc",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#0f172a",
+                    }}
+                  >
+                    {auditsByStage.Fieldwork}
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                    Currently in Fieldwork
                   </div>
                 </div>
-                <MapPin size={18} className={s.zoneMapIcon} />
-              </div>
-              <div className={s.zoneBody}>
-                <div className={s.progressBar}>
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#fef2f2",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                  }}
+                >
                   <div
-                    className={s.progressFill}
-                    style={{ width: `${Math.floor(60 + Math.random() * 35)}%` }}
-                  />
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#ef4444",
+                    }}
+                  >
+                    {criticalRisks.length}
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#991b1b" }}>
+                    Open Critical Issues
+                  </div>
                 </div>
-                <ul className={s.lgaList}>
-                  {zoneLgas.map((lga) => (
-                    <li key={lga.id} className={s.lgaItem}>
-                      <span>{lga.name}</span>
-                      <span className={`${s.lgaStatus} ${s.statusActive}`}>
-                        In Progress
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#f0fdf4",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#16a34a",
+                    }}
+                  >
+                    {auditsByStage.Completed}
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#166534" }}>
+                    Completed Audits
+                  </div>
+                </div>
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#fffbeb",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                      color: "#d97706",
+                    }}
+                  >
+                    {auditsByStage.Reporting}
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "#92400e" }}>
+                    Under Review
+                  </div>
+                </div>
               </div>
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        <div className={s.card}>
+          <div className={s.cardHeader}>
+            <h3 className={s.cardTitle}>Zone Performance Overview</h3>
+          </div>
+        </div>
+
+        <div className={s.gridThreeCols}>
+          {ZONES.map((zone) => {
+            const zoneLgas = LGAS.filter((l) => zone.lgas.includes(l.id));
+            // Calculate real progress for zone
+            const zAudits = audits.filter((a) =>
+              zoneLgas.map((l) => l.id).includes(a.lgaId),
+            );
+            const avgProgress =
+              zAudits.length > 0
+                ? Math.round(
+                    zAudits.reduce((acc, curr) => acc + curr.progress, 0) /
+                      zAudits.length,
+                  )
+                : 0;
+
+            return (
+              <div key={zone.id} className={s.zoneCard}>
+                <div className={s.zoneHeader}>
+                  <div>
+                    <div className={s.zoneName}>{zone.name} Zone</div>
+                    <div className={s.zoneLgaCount}>
+                      {zone.lgas.length} LGA{zone.lgas.length > 1 ? "s" : ""}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div
+                      style={{
+                        fontSize: "1.2rem",
+                        fontWeight: 700,
+                        color: "#0f172a",
+                      }}
+                    >
+                      {avgProgress}%
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#64748b" }}>
+                      Avg. Progress
+                    </div>
+                  </div>
+                </div>
+                <div className={s.zoneBody}>
+                  <div className={s.progressBar}>
+                    <div
+                      className={s.progressFill}
+                      style={{
+                        width: `${avgProgress}%`,
+                        backgroundColor:
+                          avgProgress > 75
+                            ? "#10b981"
+                            : avgProgress > 40
+                              ? "#3b82f6"
+                              : "#f59e0b",
+                      }}
+                    />
+                  </div>
+                  <ul className={s.lgaList}>
+                    {zoneLgas.map((lga) => {
+                      const a = audits.find((au) => au.lgaId === lga.id);
+                      return (
+                        <li key={lga.id} className={s.lgaItem}>
+                          <span>{lga.name}</span>
+                          <span
+                            className={`${s.lgaStatus}`}
+                            style={{
+                              color:
+                                a?.status === "Completed"
+                                  ? "#166534"
+                                  : a?.status === "Planning"
+                                    ? "#854d0e"
+                                    : "#1e40af",
+                              background:
+                                a?.status === "Completed"
+                                  ? "#dcfce7"
+                                  : a?.status === "Planning"
+                                    ? "#fef9c3"
+                                    : "#dbeafe",
+                              padding: "0.1rem 0.4rem",
+                              borderRadius: "4px",
+                              fontSize: "0.7rem",
+                            }}
+                          >
+                            {a?.status || "Pending"}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   /* ─── Audit Supervisor ─── */
   const renderSupervisorDashboard = () => {
@@ -580,71 +855,207 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Professional Audit Roadmap */}
+        <div className={s.card} style={{ marginBottom: "1.5rem" }}>
+          <div className={s.cardHeader}>
+            <h3 className={s.cardTitle}>Audit Roadmap</h3>
+          </div>
+          <div
+            className={s.cardBody}
+            style={{
+              padding: "2rem",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              position: "relative",
+            }}
+          >
+            {/* Connecting line */}
+            <div
+              style={{
+                position: "absolute",
+                top: "3rem",
+                left: "3.5rem",
+                right: "3.5rem",
+                height: "2px",
+                backgroundColor: "#e2e8f0",
+                zIndex: 0,
+              }}
+            />
+
+            {[
+              {
+                phase: "Pre-Audit",
+                stage: "Pre-Audit",
+                desc: "Engagement setup & entry",
+              },
+              {
+                phase: "Planning",
+                stage: "Planning",
+                desc: "Risk assessment & strategy",
+              },
+              {
+                phase: "Fieldwork",
+                stage: "Fieldwork",
+                desc: "Testing & evidence gathering",
+              },
+              {
+                phase: "Reporting",
+                stage: "Reporting",
+                desc: "Drafting & finalization",
+              },
+              {
+                phase: "Post-Audit",
+                stage: "Post-Audit",
+                desc: "Follow-up & closure",
+              },
+            ].map((item, index) => {
+              const approval = auditId
+                ? stageApprovals.find(
+                    (sa) => sa.auditId === auditId && sa.stage === item.stage,
+                  )
+                : undefined;
+              const isApproved = approval?.status === "Approved";
+              const phaseStatuses = [
+                "Pending",
+                "Planning",
+                "Fieldwork",
+                "Reporting",
+                "Post-Audit",
+                "Completed",
+              ];
+              const auditPhaseIdx = phaseStatuses.indexOf(
+                myAudit?.status || "Pending",
+              );
+              const mapStageToStatus =
+                item.stage === "Pre-Audit" ? "Pending" : item.stage;
+              const itemPhaseIdx = phaseStatuses.indexOf(mapStageToStatus);
+
+              // Determine status for styling
+              let status: "completed" | "current" | "upcoming" = "upcoming";
+              if (isApproved || auditPhaseIdx > itemPhaseIdx) {
+                status = "completed";
+              } else if (
+                auditPhaseIdx === itemPhaseIdx ||
+                (item.stage === "Pre-Audit" && auditPhaseIdx <= 0)
+              ) {
+                status = "current";
+              }
+
+              return (
+                <div
+                  key={item.phase}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    position: "relative",
+                    zIndex: 1,
+                    textAlign: "center",
+                    flex: 1,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "50%",
+                      backgroundColor:
+                        status === "completed"
+                          ? "#059669"
+                          : status === "current"
+                            ? "#2563eb"
+                            : "#f1f5f9",
+                      border:
+                        status === "current"
+                          ? "4px solid #bfdbfe"
+                          : status === "upcoming"
+                            ? "2px solid #cbd5e1"
+                            : "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color:
+                        status === "completed" || status === "current"
+                          ? "white"
+                          : "#94a3b8",
+                      marginBottom: "0.75rem",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      transition: "all 0.3s ease",
+                    }}
+                  >
+                    {status === "completed" ? (
+                      <CheckCircle size={16} />
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: status === "current" ? 700 : 600,
+                      color:
+                        status === "current"
+                          ? "#1e293b"
+                          : status === "completed"
+                            ? "#059669"
+                            : "#64748b",
+                      fontSize: "0.9rem",
+                      marginBottom: "0.25rem",
+                    }}
+                  >
+                    {item.phase}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#64748b",
+                      maxWidth: "120px",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {item.desc}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <div className={s.gridTwoCols}>
-          {/* Audit Roadmap — dynamic from store */}
+          {/* Recent Tasks */}
           <div className={s.card}>
             <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Audit Roadmap</h3>
+              <h3 className={s.cardTitle}>Active Tasks</h3>
             </div>
             <div className={s.cardBody}>
-              <div className={s.timeline}>
-                {[
-                  { phase: "Pre-Audit", stage: "Pre-Audit" as const },
-                  { phase: "Planning", stage: "Planning" as const },
-                  { phase: "Fieldwork", stage: "Fieldwork" as const },
-                  { phase: "Reporting", stage: "Reporting" as const },
-                  { phase: "Post-Audit", stage: "Post-Audit" as const },
-                ].map((item) => {
-                  const approval = auditId
-                    ? stageApprovals.find(
-                        (sa) =>
-                          sa.auditId === auditId && sa.stage === item.stage,
-                      )
-                    : undefined;
-                  const isApproved = approval?.status === "Approved";
-                  const isPending = approval?.status === "Pending";
-                  const phaseStatuses = [
-                    "Pending",
-                    "Planning",
-                    "Fieldwork",
-                    "Reporting",
-                    "Post-Audit",
-                    "Completed",
-                  ];
-                  const auditPhaseIdx = phaseStatuses.indexOf(
-                    myAudit?.status || "Pending",
-                  );
-                  const itemPhaseIdx = phaseStatuses.indexOf(
-                    item.stage === "Pre-Audit" ? "Pending" : item.stage,
-                  );
-                  const isCurrent =
-                    auditPhaseIdx === itemPhaseIdx ||
-                    (item.stage === "Pre-Audit" && auditPhaseIdx <= 0);
-                  const isDone = isApproved || auditPhaseIdx > itemPhaseIdx;
-
-                  return (
-                    <div key={item.phase} className={s.timelineItem}>
-                      <div
-                        className={`${s.timelineDot} ${isDone ? s.dotGreen : isCurrent ? s.dotBlue : s.dotGray}`}
-                      />
-                      <div className={s.timelineTitle}>
-                        {item.phase}
-                        {isDone && " ✓"}
-                        {isCurrent && !isDone && " (Current)"}
+              {myTasks.length > 0 ? (
+                <div className={s.listTable}>
+                  {myTasks.slice(0, 5).map((task) => (
+                    <div key={task.id} className={s.listRow}>
+                      <div>
+                        <div className={s.listRowName}>{task.title}</div>
+                        <div className={s.listRowSub}>Due: {task.dueDate}</div>
                       </div>
-                      <div className={s.timelineDate}>
-                        {isDone
-                          ? `Approved${approval?.reviewedAt ? " — " + new Date(approval.reviewedAt).toLocaleDateString() : ""}`
-                          : isPending
-                            ? "Submitted — awaiting review"
-                            : isCurrent
-                              ? "In progress"
-                              : "Not started"}
-                      </div>
+                      <span
+                        className={
+                          task.status === "Completed"
+                            ? s.statusActive
+                            : s.statusPending
+                        }
+                      >
+                        {task.status}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={s.emptyState}>
+                  <ClipboardList size={32} className={s.emptyIcon} />
+                  <div className={s.emptyTitle}>No Active Tasks</div>
+                  <div className={s.emptyDesc}>Work programme is empty.</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -707,6 +1118,79 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Past Engagements */}
+        {audits.filter((a) => a.leadId === user.id && a.status === "Completed")
+          .length > 0 && (
+          <div className={s.card} style={{ marginTop: "1.5rem" }}>
+            <div className={s.cardHeader}>
+              <h3 className={s.cardTitle}>Completed Engagements</h3>
+            </div>
+            <div className={s.listTable}>
+              {audits
+                .filter((a) => a.leadId === user.id && a.status === "Completed")
+                .map((a) => (
+                  <div key={a.id} className={s.listRow}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "1rem",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "4px",
+                          background: "#e2e8f0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#64748b",
+                        }}
+                      >
+                        <FolderOpen size={16} />
+                      </div>
+                      <div>
+                        {(() => {
+                          const m = mandates.find((m) => m.id === a.mandateId);
+                          return (
+                            <>
+                              <div className={s.listRowName}>
+                                {m?.title || `Audit ${a.year}`}
+                              </div>
+                              <div className={s.listRowSub}>
+                                {a.startDate
+                                  ? new Date(a.startDate).toLocaleDateString()
+                                  : ""}{" "}
+                                —{" "}
+                                {a.endDate
+                                  ? new Date(a.endDate).toLocaleDateString()
+                                  : ""}
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "1rem",
+                      }}
+                    >
+                      <button className={s.btnSmall}>View Report</button>
+                      <span className={`${s.lgaStatus} ${s.statusActive}`}>
+                        Completed
+                      </span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1151,8 +1635,8 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className={s.gridTwoCols}>
-            <div className={s.card}>
+          <div>
+            <div className={s.card} style={{ marginBottom: "2rem" }}>
               <div className={s.cardHeader}>
                 <h3 className={s.cardTitle}>Document Submission Progress</h3>
               </div>
@@ -1260,50 +1744,6 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-            <div className={s.card}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Quick Actions</h3>
-              </div>
-              <div className={s.cardBody}>
-                <div style={{ display: "grid", gap: "0.75rem" }}>
-                  <button
-                    className={s.btnPrimary}
-                    style={{ width: "100%" }}
-                    onClick={() => navigate("/document-portal")}
-                  >
-                    <Upload size={14} /> Upload Documents
-                  </button>
-                  <button
-                    className={s.btnOutline}
-                    style={{ width: "100%" }}
-                    onClick={() => navigate("/notifications")}
-                  >
-                    <Mail size={14} /> View Notifications
-                  </button>
-                  <button
-                    className={s.btnOutline}
-                    style={{ width: "100%" }}
-                    onClick={() => navigate("/reports")}
-                  >
-                    <FileText size={14} /> Audit Reports
-                  </button>
-                  <button
-                    className={s.btnOutline}
-                    style={{ width: "100%" }}
-                    onClick={() => navigate("/post-audit")}
-                  >
-                    <ClipboardList size={14} /> Post-Audit
-                  </button>
-                  <button
-                    className={s.btnOutline}
-                    style={{ width: "100%" }}
-                    onClick={() => navigate("/scope-agreement")}
-                  >
-                    <Shield size={14} /> Scope Agreement
-                  </button>
-                </div>
               </div>
             </div>
           </div>

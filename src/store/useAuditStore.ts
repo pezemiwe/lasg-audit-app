@@ -34,6 +34,7 @@ import type {
   QualityReview,
   ExitConference,
   User,
+  Notification,
 } from "../types";
 import {
   ZONES,
@@ -59,6 +60,7 @@ import {
   SEED_QUESTIONNAIRE_RESPONSES,
   SEED_DOCUMENT_UPLOADS,
   SEED_STAGE_APPROVALS,
+  SEED_NOTIFICATIONS,
 } from "../mock/data";
 
 interface ToastMessage {
@@ -79,6 +81,17 @@ interface ModalState {
 }
 
 interface AuditStore {
+  notifications: Notification[];
+  addNotification: (
+    notif: Omit<Notification, "id" | "isRead" | "timestamp">,
+  ) => void;
+  addNotifications: (
+    notifs: Omit<Notification, "id" | "isRead" | "timestamp">[],
+  ) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: (userId: string) => void;
+  clearNotifications: (userId: string) => void;
+
   users: User[];
   addUser: (user: Omit<User, "id">) => void;
   updateUser: (id: string, updates: Partial<User>) => void;
@@ -121,9 +134,11 @@ interface AuditStore {
   ) => void;
   publishMandate: (id: string) => void;
   updateMandateStatus: (id: string, status: MandateStatus) => void;
+  acceptMandate: (mandateId: string, lgaId: string) => void;
+  ensureDocumentsExist: (mandateId: string, lgaId: string) => void;
 
-  assignSupervisor: (zoneId: string, supervisorId: string) => void;
-  unassignSupervisor: (zoneId: string) => void;
+  addSupervisor: (zoneId: string, supervisorId: string) => void;
+  removeSupervisor: (zoneId: string, supervisorId: string) => void;
 
   assignLead: (
     lgaId: string,
@@ -144,6 +159,10 @@ interface AuditStore {
     auditId: string,
     date: string,
     notes: string,
+  ) => void;
+  updateAuditTimelines: (
+    auditId: string,
+    timelines: Record<string, { startDate: string; endDate: string }>,
   ) => void;
 
   createTask: (task: Omit<Task, "id">) => void;
@@ -210,6 +229,7 @@ interface AuditStore {
   saveQuestionnaireResponse: (
     response: Omit<QuestionnaireResponse, "id" | "answeredAt">,
   ) => void;
+  deleteQuestionnaireResponse: (auditId: string, questionId: string) => void;
   getAuditResponses: (auditId: string) => QuestionnaireResponse[];
 
   uploadDocument: (doc: Omit<DocumentUpload, "id">) => void;
@@ -265,6 +285,48 @@ const now = () => new Date().toISOString();
 export const useAuditStore = create(
   persist<AuditStore>(
     (set, get) => ({
+      notifications: [...SEED_NOTIFICATIONS],
+      addNotification: (data) =>
+        set((s) => ({
+          notifications: [
+            {
+              ...data,
+              id: `notif-${uid()}`,
+              isRead: false,
+              timestamp: now(),
+            },
+            ...s.notifications,
+          ],
+        })),
+      addNotifications: (notifs) =>
+        set((s) => ({
+          notifications: [
+            ...notifs.map((n, i) => ({
+              ...n,
+              id: `notif-${uid()}-${i}`,
+              isRead: false,
+              timestamp: now(),
+            })),
+            ...s.notifications,
+          ],
+        })),
+      markNotificationAsRead: (id) =>
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.id === id ? { ...n, isRead: true } : n,
+          ),
+        })),
+      markAllNotificationsAsRead: (userId) =>
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.userId === userId ? { ...n, isRead: true } : n,
+          ),
+        })),
+      clearNotifications: (userId) =>
+        set((s) => ({
+          notifications: s.notifications.filter((n) => n.userId !== userId),
+        })),
+
       users: [...MOCK_USERS],
       addUser: (user: Omit<User, "id">) =>
         set((s) => ({
@@ -365,24 +427,400 @@ export const useAuditStore = create(
           mandates: s.mandates.map((m) => (m.id === id ? { ...m, status } : m)),
         })),
 
-      assignSupervisor: (zoneId, supervisorId) => {
-        set((s) => ({
-          zones: s.zones.map((z) =>
-            z.id === zoneId ? { ...z, supervisorId } : z,
-          ),
-        }));
+      acceptMandate: (mandateId, lgaId) => {
+        set((s) => {
+          // Check if documents already exist for this mandate/LGA to avoid duplicates
+          const existingDocs = s.documentUploads.some(
+            (d) => d.mandateId === mandateId && d.lgaId === lgaId,
+          );
+
+          let newDocs = s.documentUploads;
+
+          if (!existingDocs) {
+            const mandate = s.mandates.find((m) => m.id === mandateId);
+            const dueDate = mandate?.endDate || new Date().toISOString();
+
+            const requiredDocs: DocumentUpload[] = [
+              {
+                id: `doc-${mandateId}-${lgaId}-1`,
+                lgaId,
+                mandateId,
+                documentName: "Annual Financial Statement",
+                description: "Audited financial statements for the fiscal year",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-2`,
+                lgaId,
+                mandateId,
+                documentName: "Appropriation Law / Approved Budget",
+                description: "Approved budget and appropriation bill",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-3`,
+                lgaId,
+                mandateId,
+                documentName: "Trial Balance",
+                description: "Consolidated trial balance",
+                requiredFormat: "Excel/PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-4`,
+                lgaId,
+                mandateId,
+                documentName: "Cash Books & Bank Reconciliation",
+                description:
+                  "All cash books and bank reconciliation statements",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-5`,
+                lgaId,
+                mandateId,
+                documentName: "Revenue Receipts & Payment Vouchers",
+                description: "Sample of revenue receipts and PVs",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-6`,
+                lgaId,
+                mandateId,
+                documentName: "Payroll Records",
+                description: "Staff payroll records for the audit period",
+                requiredFormat: "Excel/PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-7`,
+                lgaId,
+                mandateId,
+                documentName: "Contract Awards & Procurement Files",
+                description:
+                  "Details of contracts awarded and procurement processes",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-8`,
+                lgaId,
+                mandateId,
+                documentName: "Fixed Asset Register",
+                description: "Current register of fixed assets",
+                requiredFormat: "Excel",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-9`,
+                lgaId,
+                mandateId,
+                documentName: "Internal Audit Reports",
+                description: "Reports from internal audit unit",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-10`,
+                lgaId,
+                mandateId,
+                documentName: "Executive Committee Minutes",
+                description:
+                  "Minutes of meetings held by the Executive Committee",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-6`,
+                lgaId,
+                mandateId,
+                documentName: "Payroll Records",
+                description: "Staff payroll records for the audit period",
+                requiredFormat: "Excel/PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-7`,
+                lgaId,
+                mandateId,
+                documentName: "Contract Awards & Procurement Files",
+                description:
+                  "Details of contracts awarded and procurement processes",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-8`,
+                lgaId,
+                mandateId,
+                documentName: "Fixed Asset Register",
+                description: "Current register of fixed assets",
+                requiredFormat: "Excel",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-9`,
+                lgaId,
+                mandateId,
+                documentName: "Internal Audit Reports",
+                description: "Reports from internal audit unit",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-10`,
+                lgaId,
+                mandateId,
+                documentName: "Executive Committee Minutes",
+                description:
+                  "Minutes of meetings held by the Executive Committee",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+            ];
+            newDocs = [...s.documentUploads, ...requiredDocs];
+          }
+
+          return {
+            documentUploads: newDocs,
+            mandates: s.mandates.map((m) => {
+              if (m.id === mandateId) {
+                const accepted = m.acceptedByLgas || [];
+                if (!accepted.includes(lgaId)) {
+                  return { ...m, acceptedByLgas: [...accepted, lgaId] };
+                }
+              }
+              return m;
+            }),
+          };
+        });
         get().addToast({
           type: "success",
-          title: "Supervisor Assigned",
-          message: `Zone assignment confirmed`,
+          title: "Mandate Accepted",
+          message:
+            "Mandate accepted. Please proceed to the Document Portal to upload required files.",
         });
       },
 
-      unassignSupervisor: (zoneId) =>
+      addSupervisor: (zoneId, supervisorId) => {
         set((s) => ({
-          zones: s.zones.map((z) =>
-            z.id === zoneId ? { ...z, supervisorId: undefined } : z,
-          ),
+          zones: s.zones.map((z) => {
+            if (z.id === zoneId) {
+              const current = z.supervisorIds || [];
+              if (current.includes(supervisorId)) return z;
+              return { ...z, supervisorIds: [...current, supervisorId] };
+            }
+            return z;
+          }),
+        }));
+        get().addToast({
+          type: "success",
+          title: "Supervisor Added",
+          message: `Supervisor assigned to zone`,
+        });
+      },
+
+      ensureDocumentsExist: (mandateId, lgaId) => {
+        set((s) => {
+          const mandate = s.mandates.find((m) => m.id === mandateId);
+          const dueDate = mandate?.endDate || new Date().toISOString();
+
+          // Define the full list of 10 Required Documents
+          const allRequiredDocs: DocumentUpload[] = [
+            {
+              id: `doc-${mandateId}-${lgaId}-1`,
+              lgaId,
+              mandateId,
+              documentName: "Annual Financial Statements",
+              description:
+                "Complete audited or unaudited financial statements for the period.",
+              requiredFormat: "PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-2`,
+              lgaId,
+              mandateId,
+              documentName: "Approved Budget",
+              description:
+                "Current and preceding year approved budget documents",
+              requiredFormat: "PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-3`,
+              lgaId,
+              mandateId,
+              documentName: "Bank Statements",
+              description:
+                "Bank statements for all LGA accounts covering 12 months",
+              requiredFormat: "PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-4`,
+              lgaId,
+              mandateId,
+              documentName: "Trial Balance",
+              description: "Consolidated trial balance for the fiscal year",
+              requiredFormat: "Excel/PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-5`,
+              lgaId,
+              mandateId,
+              documentName: "Payment Vouchers",
+              description: "Sampled payment vouchers above threshold",
+              requiredFormat: "PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-6`,
+              lgaId,
+              mandateId,
+              documentName: "Contract Register",
+              description:
+                "Register of all contracts awarded during the period",
+              requiredFormat: "Excel/PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-7`,
+              lgaId,
+              mandateId,
+              documentName: "Asset Register",
+              description: "Updated register of fixed assets and properties",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-8`,
+              lgaId,
+              mandateId,
+              documentName: "Payroll Schedule",
+              description: "Monthly payroll summary and nominal roll",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-9`,
+              lgaId,
+              mandateId,
+              documentName: "Executive Committee Minutes",
+              description:
+                "Minutes of meetings involving key financial decisions",
+              requiredFormat: "PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-10`,
+              lgaId,
+              mandateId,
+              documentName: "Internal Audit Report",
+              description: "Quarterly internal audit reports for the period",
+              requiredFormat: "PDF",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+          ];
+
+          // Filter out documents that already exist (by name match or duplicate ID checks)
+          const existingDocs = s.documentUploads.filter(
+            (d) => d.mandateId === mandateId && d.lgaId === lgaId,
+          );
+
+          const missingDocs = allRequiredDocs.filter((req) => {
+            // Check if a document with this name already exists for this mandate/LGA
+            // Also check somewhat fuzzy to avoid "Annual Financial Statement" vs "Statements" duplicates if desired
+            // But here we rely on exact match or we'll just have duplicates which is better than missing docs
+            const exists = existingDocs.some(
+              (ex) => ex.documentName === req.documentName,
+            );
+            return !exists;
+          });
+
+          if (missingDocs.length === 0) return {}; // All good
+
+          // Force update with new docs
+          if (missingDocs.length > 0) {
+            get().addToast({
+              type: "info",
+              title: "System Update",
+              message: `Added ${missingDocs.length} missing required documents for this mandate.`,
+            });
+          }
+
+          return { documentUploads: [...s.documentUploads, ...missingDocs] };
+        });
+      },
+
+      removeSupervisor: (zoneId, supervisorId) =>
+        set((s) => ({
+          zones: s.zones.map((z) => {
+            if (z.id === zoneId && z.supervisorIds) {
+              return {
+                ...z,
+                supervisorIds: z.supervisorIds.filter(
+                  (id) => id !== supervisorId,
+                ),
+              };
+            }
+            return z;
+          }),
         })),
 
       // Update store logic to also update user record when lead is assigned
@@ -412,20 +850,69 @@ export const useAuditStore = create(
       },
 
       generateLetters: (mandateId) => {
-        const { lgas, letters: existing } = get();
+        const { lgas, letters: existing, mandates } = get();
+        const mandate = mandates.find((m) => m.id === mandateId);
+        if (!mandate) return;
+
         const alreadyGenerated = existing.filter(
           (l) => l.mandateId === mandateId,
         );
         const lgaIds = new Set(alreadyGenerated.map((l) => l.lgaId));
         const newLetters: NotificationLetter[] = lgas
           .filter((l) => !lgaIds.has(l.id))
-          .map((lga) => ({
-            id: `letter-${uid()}-${lga.id}`,
-            lgaId: lga.id,
-            mandateId,
-            status: "Draft" as LetterStatus,
-            checklist: [...NOTIFICATION_CHECKLIST],
-          }));
+          .map((lga) => {
+            const date = new Date().toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            });
+            const content = `
+**OFFICE OF THE STATE AUDITOR-GENERAL**  
+Lagos State Government  
+  
+${date}  
+  
+The Chairman,  
+${lga.name} Local Government,  
+Lagos State.  
+  
+**Attention:** ${lga.contactName || "Council Manager"}  
+  
+**RE: NOTIFICATION OF AUDIT ENGAGEMENT - ${mandate.title.toUpperCase()} (FY ${mandate.auditYear})**  
+  
+In accordance with the provisions of the **Lagos State Audit Law (2015)** and the relevant sections of the **Constitution of the Federal Republic of Nigeria (1999 as amended)**, this letter serves to formally notify you of the commencement of the statutory audit exercise for the ${mandate.auditYear} financial year.  
+  
+**Objective:**  
+The primary objective of this audit is to express an opinion on the financial statements of the Local Government and to ensure compliance with relevant laws and regulations.  
+  
+**Scope of Audit:**  
+${mandate.scope}  
+  
+**Audit Period:**  
+The audit will cover the period from **${new Date(mandate.startDate).toLocaleDateString()}** to **${new Date(mandate.endDate).toLocaleDateString()}**.  
+  
+**Requirements:**  
+To facilitate a smooth and efficient audit process, you are required to prepare the attached list of documents and make them available to the audit team upon their arrival. Please ensure that key personnel, including the Council Treasurer, Head of Human Resources, and other relevant officers, are available for interviews and clarifications.  
+  
+We anticipate your full cooperation to enable the timely completion of this exercise.  
+  
+Yours faithfully,  
+  
+**(Signed)**  
+  
+**State Auditor-General**  
+Lagos State
+`.trim();
+
+            return {
+              id: `letter-${uid()}-${lga.id}`,
+              lgaId: lga.id,
+              mandateId,
+              status: "Draft" as LetterStatus,
+              checklist: [...NOTIFICATION_CHECKLIST],
+              content,
+            };
+          });
         set((s) => ({ letters: [...s.letters, ...newLetters] }));
         get().addToast({
           type: "success",
@@ -501,6 +988,13 @@ export const useAuditStore = create(
             a.id === auditId
               ? { ...a, entryMeetingDate: date, entryMeetingNotes: notes }
               : a,
+          ),
+        })),
+
+      updateAuditTimelines: (auditId, timelines) =>
+        set((s) => ({
+          audits: s.audits.map((a) =>
+            a.id === auditId ? { ...a, phaseTimelines: timelines } : a,
           ),
         })),
 
@@ -846,6 +1340,14 @@ export const useAuditStore = create(
         }
       },
 
+      deleteQuestionnaireResponse: (auditId, questionId) => {
+        set((s) => ({
+          questionnaireResponses: s.questionnaireResponses.filter(
+            (r) => !(r.auditId === auditId && r.questionId === questionId),
+          ),
+        }));
+      },
+
       getAuditResponses: (auditId) =>
         get().questionnaireResponses.filter((r) => r.auditId === auditId),
 
@@ -1094,7 +1596,7 @@ export const useAuditStore = create(
       },
     }),
     {
-      name: "audit-storage",
+      name: "audit-storage-v3",
       storage: createJSONStorage(() => localStorage),
     },
   ),

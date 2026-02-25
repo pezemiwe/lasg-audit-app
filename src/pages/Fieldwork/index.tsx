@@ -15,10 +15,12 @@ import {
   Minus,
   Activity,
   XCircle,
+  Eye,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
 import StatusBadge from "../../components/UI/StatusBadge";
+import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
 import { WorkflowGate } from "../../components/UI/WorkflowGate";
 import type {
   ControlTestResult,
@@ -315,7 +317,26 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
   const [subExcCount, setSubExcCount] = useState(0);
   const [subExcAmt, setSubExcAmt] = useState(0);
   const [subConclusion, setSubConclusion] = useState("");
-  const [subEvidence, setSubEvidence] = useState<string[]>([]);
+
+  const [subEvidence, setSubEvidence] = useState<
+    {
+      name: string;
+      url: string;
+      type: string;
+      size: string;
+      uploadedAt: string;
+      uploadedBy: string;
+    }[]
+  >([]);
+
+  const [previewDoc, setPreviewDoc] = useState<{
+    name: string;
+    type: string;
+    url?: string;
+    uploadedBy: string;
+    uploadedAt: string;
+    size?: string;
+  } | null>(null);
 
   const handleAddSubstantive = () => {
     if (!subProc.trim() || subPop <= 0 || subSample <= 0) return;
@@ -328,6 +349,7 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
       exceptionCount: subExcCount,
       exceptionAmount: subExcAmt,
       conclusion: subConclusion,
+      evidenceFiles: subEvidence,
       performedBy: user?.id || "",
       status: subExcCount > 0 ? "Completed" : "In Progress",
     });
@@ -717,9 +739,16 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
     input.onchange = (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (files && files.length > 0) {
-        const names = Array.from(files).map((f) => f.name);
         if (context === "substantive") {
-          setSubEvidence((prev) => [...prev, ...names]);
+          const newFiles = Array.from(files).map((f) => ({
+            name: f.name,
+            url: URL.createObjectURL(f),
+            type: f.name.split(".").pop()?.toUpperCase() || "FILE",
+            size: `${(f.size / 1024).toFixed(1)} KB`,
+            uploadedAt: new Date().toISOString(),
+            uploadedBy: user?.name || "Unknown",
+          }));
+          setSubEvidence((prev) => [...prev, ...newFiles]);
         }
         store.addToast({
           type: "success",
@@ -1303,17 +1332,19 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                       className={s.formTextarea}
                       value={subProc}
                       onChange={(e) => setSubProc(e.target.value)}
-                      placeholder="Describe the substantive procedure performed..."
+                      placeholder="E.g. Vouched transition to supporting doc, Verified accuracy, completeness..."
                       rows={2}
                     />
                   </div>
                   <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Conclusion</label>
+                    <label className={s.formLabel}>
+                      Conclusion & Exception Note
+                    </label>
                     <textarea
                       className={s.formTextarea}
                       value={subConclusion}
                       onChange={(e) => setSubConclusion(e.target.value)}
-                      placeholder="State your audit conclusion..."
+                      placeholder="State conclusion on compliance. If exceptions found, categorization severity..."
                       rows={2}
                     />
                   </div>
@@ -1334,14 +1365,42 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                         style={{
                           marginTop: "0.5rem",
                           display: "flex",
-                          gap: "0.4rem",
+                          gap: "0.5rem",
                           flexWrap: "wrap",
                         }}
                       >
                         {subEvidence.map((f, i) => (
-                          <span key={i} className={s.poolTag}>
-                            {f}
-                          </span>
+                          <div
+                            key={i}
+                            className={s.poolTag}
+                            style={{
+                              padding: "0.3rem 0.6rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                            }}
+                          >
+                            <span style={{ fontSize: "0.8rem" }}>
+                              {f.name}{" "}
+                              <span style={{ opacity: 0.6 }}>({f.size})</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDoc(f)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                color: "#000",
+                              }}
+                              title="Preview"
+                            >
+                              <Eye size={14} />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -2478,6 +2537,12 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
             </div>
           )}
         </div>
+      )}
+      {previewDoc && (
+        <DocumentPreviewModal
+          document={previewDoc}
+          onClose={() => setPreviewDoc(null)}
+        />
       )}
     </div>
   );

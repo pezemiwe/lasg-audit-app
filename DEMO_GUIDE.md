@@ -1,141 +1,184 @@
-# LASG Audit Automation Platform Demo Guide & Workflow
+# Comprehensive Feature Testing & Demo Guide
 
-This guide walks you through the **Audit-Centric Workflow** implemented in the LASG Audit Platform. The system has been restructured to provide a "Single Pane of Glass" for each audit engagement, allowing users to navigate through the entire audit lifecycle from a single view.
-
----
-
-## Quick Start
-
-1.  **Install Dependencies:** `npm install`
-2.  **Start Development Server:** `npm run dev`
-3.  **Open Browser:** `http://localhost:5173`
-4.  **Login:** Use the pre-filled credentials on the login screen.
+This guide provides a complete walkthrough of the LASG Audit Automation Platform, designed to test every feature, workflow, and automation available. Follow the steps sequentially to simulate a full audit lifecycle.
 
 ---
 
-## Key Roles for Demo
+##  Test Accounts & Credentials
 
-| Role                      | Email                       | Password      | Perspective                                                                   |
-| :------------------------ | :-------------------------- | :------------ | :---------------------------------------------------------------------------- |
-| **Audit Lead**            | `lead.ogunjobi@lasg.gov.ng` | `password123` | **Doer:** Plans audit, executes fieldwork, drafts reports. Sees everything.   |
-| **State Auditor General** | `ag@lasg.gov.ng`            | `password123` | **Oversight:** Reviews high-level progress. **Cannot see Questionnaire tab.** |
-| **Supervisor**            | `sup.ikeja@lasg.gov.ng`     | `password123` | **Reviewer:** Approves planning, fieldwork, and reports.                      |
-| **Head of LGA**           | `hlga.ikeja@lasg.gov.ng`    | `password123` | **Auditee:** Uploads documents, responds to queries/reports.                  |
+Use `password123` for all accounts.
 
----
-
-## End-to-End Demo Walkthrough
-
-### Phase 0: Mandate Initiation (State Auditor General & HLGA)
-
-**Goal:** Establish the audit authority and kick off the cycle.
-
-1.  **Login as State Auditor General** (`ag@lasg.gov.ng`).
-2.  **Navigate to "Mandates"** in the sidebar.
-3.  **Click "New Mandate"**:
-    - Create a new mandate (e.g., "Ikeja LGA 2025 Statutory Audit").
-    - Set type to "Financial" and "Compliance".
-4.  **Publish Mandate**:
-    - Locate the draft in the list.
-    - Click the **Publish** button (paper airplane icon).
-    - Confirm in the modal.
-5.  **Logout and Login as Head of LGA** (`hlga.ikeja@lasg.gov.ng`).
-6.  **Navigate to "Mandates"**:
-    - Locate the newly published mandate.
-    - Click **View Details** (eye icon).
-    - Click the **"Accept Mandate"** button in the header.
-    - **Action:** Confirm the modal to acknowledge the audit and set status to "Active".
-
-### Phase 1: The "Single Pane of Glass" Concept (Audit Lead)
-
-**Goal:** Show how an auditor manages an entire engagement from one place.
-
-1.  **Login as Audit Lead** (`lead.ogunjobi@lasg.gov.ng`).
-2.  **Navigate to "My Audits"** in the sidebar.
-3.  **Click on an Audit** (e.g., "Ikeja LGA 2024 Statutory Audit").
-    - _Observation:_ You land on the **Audit Detail View**.
-    - _Observation:_ Notice the tabs at the top: **Overview**, **Questionnaire**, **Pre-Audit**, **Planning**, **Fieldwork**, **Reporting**, **Post-Audit**, **Documents**.
-4.  **Explore the "Overview" Tab**:
-    - See high-level info: Audit Type, Year, Current Status, Key Dates.
-
-### Phase 2: Pre-Audit & Planning (Audit Lead)
-
-1.  **Click "Questionnaire" Tab**:
-    - Show the Internal Control Questionnaire (ICQ).
-    - Fill out a few responses to calculate the risk score.
-    - _Note:_ This tab is separate for Auditors but visible here for convenience.
-2.  **Click "Pre-Audit" Tab**:
-    - View Key Dates and Engagement Letter status.
-    - Show the "Pre-Audit Checklist" (Meeting with HLGA, Logistics setup).
-3.  **Click "Planning" Tab**:
-    - **Scope Agreement**: Show the agreed audit scope.
-    - **Risk Assessment**: Click "Add Risk Matrix" to document a high-level risk.
-    - **Work Programme**: Show the list of audit steps to be performed.
-
-### Phase 3: Execution & Fieldwork (Audit Lead)
-
-1.  **Click "Fieldwork" Tab**:
-    - **Internal Controls**: Test a control (e.g., "Payment Voucher Approval"). Mark it as "Ineffective" to trigger a finding.
-    - **Substantive Testing**: Add a sample test.
-    - **Fraud Flags**: Show how to raise a "Red Flag" during fieldwork.
-2.  **Submit Fieldwork**:
-    - Click "Submit Fieldwork" button (top right of the tab content).
-
-### Phase 4: Reporting & Review (Supervisor & AG)
-
-1.  **Logout and Login as Supervisor** (`sup.ikeja@lasg.gov.ng`).
-2.  **Navigate to "Zone Audits"** -> Click the **Same Audit**.
-3.  **Click "Fieldwork" Tab**:
-    - Review the work done by the Audit Lead.
-    - Click "Approve" or "Request Changes".
-4.  **Click "Reporting" Tab**:
-    - View the **Draft Report** generated from findings.
-    - Show the workflow: Draft -> Submitted -> Approved -> Management Response -> Final.
-
-### Phase 5: The "Auditorial" View (State Auditor General)
-
-**Goal:** Demonstrate the specialized view for the AG.
-
-1.  **Logout and Login as State Auditor General** (`ag@lasg.gov.ng`).
-2.  **Navigate to "All Engagements"**.
-3.  **Select an Audit**.
-4.  **Check Tabs**:
-    - _Observation:_ **The "Questionnaire" tab is MISSING.**
-    - _Why?_ The AG focuses on high-level results (Planning, Fieldwork results, Reports), not the granular ICQ inputs.
-    - Navigate to **Reporting** to see final reports waiting for approval.
-
-### Phase 6: Auditee Interaction (Head of LGA)
-
-1.  **Logout and Login as Head of LGA** (`hlga.ikeja@lasg.gov.ng`).
-2.  **Navigate to "Audits"** -> Select the Audit.
-3.  **Click "Documents" Tab**:
-    - Upload a requested document (e.g., "Bank Statement").
-4.  **Click "Reporting" Tab**:
-    - View "Approved Reports" waiting for management response.
-    - Respond to a finding (e.g., "We have corrected this issue...").
+| Role | Email | Name | Context |
+| :--- | :--- | :--- | :--- |
+| **System Admin** | `admin@lasg.gov.ng` | System Admin | Platform configuration, user management. |
+| **Auditor General** | `ag@lasg.gov.ng` | State Auditor General | Strategic oversight, final mandate approval. |
+| **Audit Supervisor** | `sup.ikeja@lasg.gov.ng` | Sarah Connor | Zone manager, review & approval. |
+| **Audit Lead** | `lead.ogunjobi@lasg.gov.ng` | Tunde Ogunjobi | Engagement manager, planning & reporting. |
+| **Team Auditor** | `auditor.adebayo@lasg.gov.ng` | Bolu Adebayo | Fieldwork execution, detailed testing. |
+| **Head of LGA** | `hlga.ikeja@lasg.gov.ng` | Hon. Chairman | Auditee interface, document provision. |
 
 ---
 
-## Feature Checklist for Testing
+##  End-to-End Workflow: Statutory Audit Cycle
 
-| Feature                        | Tab Location             | User(s)    | Status |
-| :----------------------------- | :----------------------- | :--------- | :----- |
-| **View Audit Overview**        | Overview                 | All        | Ready  |
-| **Fill ICQ / Risk Assessment** | Questionnaire / Planning | Lead, Team | Ready  |
-| **Hide Questionnaire for AG**  | _(System Logic)_         | AG         | Ready  |
-| **Upload Documents**           | Documents                | HLGA, Lead | Ready  |
-| **Execute Fieldwork/Tests**    | Fieldwork                | Lead, Team | Ready  |
-| **Approve Fieldwork**          | Fieldwork                | Supervisor | Ready  |
-| **Draft Report**               | Reporting                | Lead       | Ready  |
-| **Management Response**        | Reporting                | HLGA       | Ready  |
-| **Post-Audit Follow-up**       | Post-Audit               | Lead, HLGA | Ready  |
+### Phase 1: Mandate & Strategy (System Admin & Auditor General)
 
-## Troubleshooting
+**Actor:** `admin@lasg.gov.ng`
+1.  **Platform Configuration**:
+    *   Go to **Platform Settings** > Verify **Audit Year** is set to "2025".
+    *   Go to **User Management** > Click **Add User** > Create a new "Team Auditor" named "Test User" (`test.user@lasg.gov.ng`).
 
-- **"Audit Not Found"**: Ensure you clicked an audit from the list. Direct URL access might fail if the ID doesn't exist in the mock data.
-- **"Access Denied"**: Check your role. Only Leads/Team can edit Fieldwork. Only Supervisors/AG can approve.
-- **Tab Missing?**: Remember, `Questionnaire` is hidden for `AG` and `AGF`.
+**Actor:** `ag@lasg.gov.ng`
+2.  **Create Mandate**:
+    *   Go to **Mandates** > **New Mandate**.
+    *   **Title:** "2025 Statutory Audit of Ikeja LGA".
+    *   **Type:** Statutory.
+    *   **Start Date:** Today's date.
+    *   **End Date:** 3 months from now.
+    *   **Description:** "Annual statutory audit of financial statements."
+    *   **Save Draft**.
+3.  **Publish Mandate**:
+    *   Locate the draft mandate.
+    *   Click **Publish** (Paper Airplane icon).
+    *   **Automation Check:** A notification should be sent to the Head of LGA (Ikeja).
 
 ---
 
-_Generated for LASG Audit Platform Demo - Feb 2026_
+### Phase 2: Engagement Setup & Planning (Audit Supervisor & Lead)
+
+**Actor:** `sup.ikeja@lasg.gov.ng`
+1.  **Assign Lead**:
+    *   Go to **Mandates** > Find "2025 Statutory Audit of Ikeja LGA" > Click **Assign Lead**.
+    *   Select `Tunde Ogunjobi`.
+    *   **Automation Check:** Auditor `lead.ogunjobi` receives an assignment notification.
+
+**Actor:** `lead.ogunjobi@lasg.gov.ng`
+1.  **Accept Assignment**:
+    *   Dashboard > **Assignments** > Click **Accept** on the new mandate.
+2.  **Form Team**:
+    *   Go to **Build Team** (Sidebar) or **Audit Detail > Overview > Audit Team**.
+    *   Add `Bolu Adebayo` (`auditor.adebayo`) as a Team Member.
+    *   **Messaging System Test:** Open the Messaging Widget (Bubble icon, bottom right). Select `Bolu Adebayo` and send: "Welcome to the Ikeja Audit team."
+
+---
+
+### Phase 3: Pre-Audit & Risk Assessment (Audit Lead)
+
+**Actor:** `lead.ogunjobi@lasg.gov.ng`
+1.  **Questionnaire (New Feature Test)**:
+    *   Go to **My Audits** > Select Audit > **Questionnaire** Tab.
+    *   **Test Textarea Width:** Observe that textareas assume full width.
+    *   **Test Input:** Answer Question 1 ("Organizational Structure"). Type > 100 words (use lorem ipsum).
+    *   **Test Validation:** Note the word count indicator changing color (Red -> Green).
+    *   **Test Save:** Click **Save Response**.
+    *   **Visual Check:** The textarea should disappear and be replaced by a green "Saved" panel with the text.
+    *   **Test Edit:** Click **Edit** on the saved panel. Modify text. Click **Save Response** again.
+    *   **Test Delete:** Click **Delete**. Confirm the response is removed and textarea reappears.
+    *   **Bulk Save:** Answer 3 questions > Click **Save All Responses** at the top.
+
+2.  **Risk Assessment**:
+    *   Go to **Planning** Tab > **Risk Assessment**.
+    *   **Add Risk Matrix**:
+        *   **Risk:** "Payroll Fraud".
+        *   **Impact:** High (5).
+        *   **Likelihood:** Medium (3).
+        *   **Control:** "Biometric verification".
+    *   **Automation Check:** Risk Score is calculated (15 - High).
+
+3.  **Scope Agreement**:
+    *   Go to **Planning** Tab > **Scope Agreement**.
+    *   Add a scope item: "Review of 2024 Project files".
+    *   Click **Sign Off Scope** > Sign as Auditor.
+
+---
+
+### Phase 4: Fieldwork Execution (Team Auditor)
+
+**Actor:** `auditor.adebayo@lasg.gov.ng`
+1.  **Execute Procedures**:
+    *   Go to **My Tasks** > Select Audit > **Fieldwork** Tab.
+    *   **Work Programme**: Check off "Review Cash Book" status to "In Progress".
+2.  **Testing**:
+    *   **Control Tests**: Click **Add Test**.
+        *   **Control:** "Payment Vouchers signed by Chairman".
+        *   **Sample Size:** 25.
+        *   **Exceptions:** 2.
+        *   **Conclusion:** "Effective".
+    *   **Substantive Tests**: Click **Add Test**.
+        *   **Procedure:** "Physical verification of generator".
+        *   **Result:** "Asset located but currently faulty".
+3.  **Raise Finding**:
+    *   Go to **Audit Trail** / **Findings**.
+    *   Log a Finding: "Faulty Generator purchased in 2024".
+    *   **Severity:** Medium.
+
+---
+
+### Phase 5: Reporting & Review (Supervisor & AG)
+
+**Actor:** `lead.ogunjobi@lasg.gov.ng`
+1.  **Draft Report**:
+    *   Go to **Reporting** Tab.
+    *   Click **Generate Draft Report**.
+    *   Edit Executive Summary.
+    *   **Submit for Review**.
+
+**Actor:** `sup.ikeja@lasg.gov.ng`
+1.  **Review Report**:
+    *   Go to **Zone Audits** > Select Audit > **Reporting** Tab.
+    *   Examine Draft.
+    *   **Action:** Click **Approve Report**.
+
+**Actor:** `ag@lasg.gov.ng`
+1.  **Final Approval**:
+    *   Go to **All Engagements** > Select Audit.
+    *   **Dashboard Overview**: Check the "Audit Progress" chart.
+    *   Go to **Reporting** Tab > **Sign Off Audit**.
+    *   **Automation Check:** Status changes to "Completed".
+
+---
+
+##  Specific Feature Tests
+
+### 1. Messaging Widget
+*   **Role:** Any.
+*   **Action:** Open widget (Shift+M or click icon).
+*   **Test:**
+    *   Search for a user.
+    *   Send a message.
+    *   Check **Unread Counter** on the recipient's dashboard (requires logging in as recipient).
+
+### 2. Notifications System
+*   **Trigger:** Deadline approaching (simulated via `timelineLogic`).
+*   **Action:**
+    *   Log in as Audit Lead.
+    *   Check **Bell Icon** (Top Right).
+    *   Click a notification to navigate to the relevant context.
+    *   Click **Mark all as read**.
+
+### 3. Professional Textarea (UI Component)
+*   **Location:** Questionnaire, Reporting, Findings.
+*   **Tests:**
+    *   **Focus State:** Click textarea -> Green accent bar appears at top.
+    *   **Typing:** "Typing..." dot pulses green in bottom status bar.
+    *   **Limits:** Type below `minWords` -> Word count is Red. Type above -> Word count is Green.
+    *   **Resize:** Drag handle -> Component resizes smoothly.
+
+### 4. Document Management
+*   **Role:** Head of LGA.
+*   **Action:**
+    *   Go to **Audits** > **Documents** Tab.
+    *   **Upload:** "2024 Cash Book.xlsx".
+*   **Role:** Audit Lead.
+*   **Action:**
+    *   Go to **Documents** Tab.
+    *   **Preview:** Click the eye icon.
+    *   **Review:** Click checkmark to "Accept" the document as valid evidence.
+
+---
+
+##  Troubleshooting & Reset
+To reset the demo data:
+1.  Clear Local Storage: `F12` > Application > Local Storage > Clear All.
+2.  Refresh the page. The app will re-seed from `src/mock/data.ts`.
+

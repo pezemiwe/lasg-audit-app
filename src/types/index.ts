@@ -25,7 +25,7 @@ export type ZoneName = "Ikeja" | "Lagos Island" | "Ikorodu" | "Badagry" | "Epe";
 export interface Zone {
   id: string;
   name: ZoneName;
-  supervisorId?: string;
+  supervisorIds?: string[];
   lgas: string[];
 }
 
@@ -44,6 +44,7 @@ export type AuditType = "Financial" | "Performance" | "Compliance" | "Combined";
 
 export type AuditStatus =
   | "Pending"
+  | "Pre-Audit"
   | "Planning"
   | "Fieldwork"
   | "Review"
@@ -60,11 +61,28 @@ export interface Mandate {
   scope: string;
   objectives: string;
   timelines: string;
+  startDate: string;
+  endDate: string;
   auditTypes: AuditType[];
   status: MandateStatus;
   createdAt: string;
   publishedAt?: string;
   createdBy: string;
+  auditorGeneralSignature?: string;
+  acceptedByLgas?: string[];
+}
+
+export type AuditPhase =
+  | "Pre-Audit"
+  | "Planning"
+  | "Fieldwork"
+  | "Review"
+  | "Reporting"
+  | "Post-Audit";
+
+export interface PhaseTimeline {
+  startDate: string;
+  endDate: string;
 }
 
 export interface Audit {
@@ -75,6 +93,7 @@ export interface Audit {
   status: AuditStatus;
   startDate?: string;
   endDate?: string;
+  phaseTimelines?: Partial<Record<AuditPhase, PhaseTimeline>>;
   mandateId: string;
   leadId?: string;
   teamIds?: string[];
@@ -97,6 +116,21 @@ export interface RiskMatrix {
   status: "Open" | "Mitigated" | "Accepted";
   preparedBy: string;
   createdAt: string;
+}
+
+export type NotificationType = "info" | "success" | "warning" | "error";
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  isRead: boolean;
+  timestamp: string;
+  link?: string;
+  relatedEntityId?: string;
+  relatedEntityType?: "mandate" | "audit" | "report" | "document" | "system";
 }
 
 export interface MaterialityThreshold {
@@ -153,6 +187,14 @@ export interface SubstantiveTest {
   conclusion: string;
   performedBy: string;
   performedAt: string;
+  evidenceFiles?: {
+    name: string;
+    url: string;
+    type: string;
+    size: string;
+    uploadedAt: string;
+    uploadedBy: string;
+  }[];
   status: "Pending" | "In Progress" | "Completed" | "Escalated";
 }
 
@@ -214,12 +256,16 @@ export type LetterStatus =
 export interface NotificationLetter {
   id: string;
   lgaId: string;
-  mandateId: string;
+  mandateId: string; // Keep as string, maybe optional?
   status: LetterStatus;
+  type?: string; 
+  title?: string;
+  date?: string;
   sentAt?: string;
   acknowledgedAt?: string;
   documentsReceivedAt?: string;
-  checklist: string[];
+  checklist?: string[]; // Make optional
+  content?: string;
 }
 
 export interface Workpaper {

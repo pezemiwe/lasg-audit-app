@@ -19,7 +19,6 @@ import {
   Users,
   Shield,
 } from "lucide-react";
-import { WorkflowGate } from "../../components/UI/WorkflowGate";
 import s from "../../styles/pages.module.css";
 
 const reportStatusVariant = (st: ReportStatus) => {
@@ -75,8 +74,8 @@ const WORKFLOW_STEPS = [
   },
   {
     key: "Final",
-    label: "4. Final Report",
-    desc: "Exit meeting held, report finalized",
+    label: "4. Final AG Approval",
+    desc: "Auditor General approves final report",
   },
 ];
 
@@ -363,11 +362,7 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
       selectedReport.status === "Approved" && !selectedReport.lgaResponse;
     const hasMgmtResponse = !!selectedReport.lgaResponse;
     const canFinalize =
-      (user?.role === "AUDIT_LEAD" ||
-        user?.role === "AUDIT_SUPERVISOR" ||
-        isAG) &&
-      hasMgmtResponse &&
-      selectedReport.status !== "Final";
+      isAG && hasMgmtResponse && selectedReport.status !== "Final";
 
     /* Workflow step index */
     const stepIdx =
@@ -392,7 +387,7 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
           <ChevronLeft size={16} /> Back to Reports
         </button>
 
-        {/* ── 3-Level Workflow Progress Bar ── */}
+        {/* ── 4-Level Workflow Progress Bar ── */}
         <div className={s.card} style={{ marginBottom: "1.5rem" }}>
           <div className={s.cardBody}>
             <div
@@ -1355,9 +1350,9 @@ const ReportsPageWrapper: React.FC<{
 }> = (props) => (
   // We can pass embedded to WorkflowGate if we want to customize its appearance too,
   // but for now let's just use it as logic gate.
-  <WorkflowGate phase="reporting">
-    <ReportsPage {...props} />
-  </WorkflowGate>
+  // <WorkflowGate phase="reporting">
+  <ReportsPage {...props} />
+  // </WorkflowGate>
 );
 
 export default ReportsPageWrapper;
