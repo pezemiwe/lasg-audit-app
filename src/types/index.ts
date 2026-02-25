@@ -258,7 +258,7 @@ export interface NotificationLetter {
   lgaId: string;
   mandateId: string; // Keep as string, maybe optional?
   status: LetterStatus;
-  type?: string; 
+  type?: string;
   title?: string;
   date?: string;
   sentAt?: string;

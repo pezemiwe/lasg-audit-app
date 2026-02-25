@@ -91,7 +91,9 @@ const DashboardLayout: React.FC = () => {
 
       if (trulyNew.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const notifsToAdd = trulyNew.map(({ _id, _isRead, ...rest }: any) => rest);
+        const notifsToAdd = trulyNew.map(
+          ({ _id, _isRead, ...rest }: any) => rest,
+        );
         addNotifications(notifsToAdd);
       }
     }

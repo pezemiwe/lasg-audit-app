@@ -16,6 +16,7 @@ import {
   Activity,
   XCircle,
   Eye,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
@@ -1442,6 +1443,7 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                       <th>Exc. Amount</th>
                       <th>Rate</th>
                       <th>Status</th>
+                      <th>Evidence</th>
                       <th>Performed By</th>
                     </tr>
                   </thead>
@@ -1497,6 +1499,32 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                               label={st.status}
                               variant={substStatusVariant(st.status)}
                             />
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: "0.2rem" }}>
+                              {st.evidenceFiles && st.evidenceFiles.length > 0 ? (
+                                st.evidenceFiles.map((file, idx) => (
+                                  <button
+                                    key={idx}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      color: "#64748b",
+                                      padding: "0.2rem",
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                    onClick={() => setPreviewDoc(file)}
+                                    title={file.name}
+                                  >
+                                    <FileText size={16} />
+                                  </button>
+                                ))
+                              ) : (
+                                <span style={{ color: "#9ca3af", fontSize: "0.8rem" }}>-</span>
+                              )}
+                            </div>
                           </td>
                           <td style={{ fontSize: "0.82rem" }}>
                             {userName(st.performedBy)}
