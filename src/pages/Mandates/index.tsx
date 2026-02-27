@@ -58,7 +58,9 @@ const MandatesPage: React.FC = () => {
   const [selectedComplianceLgaId, setSelectedComplianceLgaId] = useState<
     string | null
   >(null);
-  const [previewDoc, setPreviewDoc] = useState<any>(null);
+  const [previewDoc, setPreviewDoc] = useState<
+    (typeof documentUploads)[number] | null
+  >(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<MandateStatus | "All">("All");
@@ -967,7 +969,14 @@ const MandatesPage: React.FC = () => {
                   </table>
                   {previewDoc && (
                     <DocumentPreviewModal
-                      document={previewDoc}
+                      document={{
+                        name: previewDoc.documentName,
+                        type: previewDoc.requiredFormat,
+                        uploadedBy: previewDoc.uploadedBy || "",
+                        uploadedAt: previewDoc.uploadedAt || "",
+                        size: previewDoc.fileSize,
+                        url: previewDoc.fileName || "",
+                      }}
                       onClose={() => setPreviewDoc(null)}
                     />
                   )}

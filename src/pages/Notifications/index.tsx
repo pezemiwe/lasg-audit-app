@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useLayoutEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -164,7 +164,7 @@ const NotificationsPage: React.FC = () => {
   const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const state = location.state as { selectedNotifId?: string } | null;
     if (state && state.selectedNotifId) {
       const selectedId = state.selectedNotifId;
@@ -172,9 +172,12 @@ const NotificationsPage: React.FC = () => {
       if (found) {
         // Clear state first to prevent cascading renders
         window.history.replaceState({}, document.title);
-        // Then update both states together
-        setSelectedNotif(found);
-        setModalOpen(true);
+        // Defer state updates to next render cycle
+        const timer = setTimeout(() => {
+          setSelectedNotif(found);
+          setModalOpen(true);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [location.state, notifications]);

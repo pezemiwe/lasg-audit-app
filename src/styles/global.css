@@ -317,13 +317,15 @@ body:hover .cursor {
 }
 
 .hero-inner {
-  padding: 0 4rem;
+  padding: 0 2rem; /* Reduced to match navbar padding */
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
 }
 .hero-left {
   max-width: 820px;
@@ -625,13 +627,15 @@ body:hover .cursor {
 }
 
 .hero-divider {
-  margin: 3rem 0 0;
-  padding: 0 4rem;
+  margin: 3rem auto 0;
+  padding: 0 2rem; /* Reduced to match navbar padding */
   display: flex;
   align-items: center;
   gap: 2rem;
   opacity: 0;
   animation: fadeUp 0.7s 0.9s var(--ease) forwards;
+  max-width: 1400px;
+  width: 100%;
 }
 .divider-line {
   flex: 1;
