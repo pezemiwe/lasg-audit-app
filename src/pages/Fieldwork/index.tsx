@@ -25,6 +25,7 @@ import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
 import { WorkflowGate } from "../../components/UI/WorkflowGate";
 import type {
   ControlTestResult,
+  SubstantiveTest,
   SubstantiveTestArea,
   RiskLevel,
   FraudFlag,
@@ -89,6 +90,136 @@ const substStatusVariant = (st: string) => {
 
 const userName = (id: string) =>
   MOCK_USERS.find((u) => u.id === id)?.name || id;
+
+const SubstantiveTestDetailModal: React.FC<{
+  test: SubstantiveTest | null;
+  onClose: () => void;
+  onPreviewEvidence: (file: NonNullable<SubstantiveTest["evidenceFiles"]>[number]) => void;
+}> = ({ test, onClose, onPreviewEvidence }) => {
+  if (!test) return null;
+
+  const exceptionRate =
+    test.sampleSize > 0 ? (test.exceptionCount / test.sampleSize) * 100 : 0;
+
+  const detailRows = [
+    { label: "Audit Area", value: test.area },
+    { label: "Population Size", value: test.populationSize.toLocaleString() },
+    { label: "Sample Size", value: test.sampleSize.toLocaleString() },
+    { label: "Exceptions", value: test.exceptionCount.toLocaleString() },
+    {
+      label: "Exception Amount",
+      value: `₦${test.exceptionAmount.toLocaleString()}`,
+    },
+    { label: "Exception Rate", value: `${exceptionRate.toFixed(1)}%` },
+    { label: "Status", value: test.status },
+    { label: "Performed By", value: userName(test.performedBy) },
+    {
+      label: "Performed At",
+      value: new Date(test.performedAt).toLocaleString(),
+    },
+  ];
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="bg-white w-full max-w-4xl max-h-[88vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="subst-test-title"
+      >
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 bg-white">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-2">
+              Substantive Test Detail
+            </div>
+            <h3 id="subst-test-title" className="text-xl font-bold text-gray-900">
+              {test.area}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Review the full test record, exceptions, evidence, and conclusion.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close substantive test details"
+          >
+            <XCircle className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-6 space-y-6 bg-slate-50">
+          <div className="bg-white border border-slate-200 rounded-xl p-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 mb-3">
+              Procedure
+            </div>
+            <div className="text-sm leading-7 text-slate-700">{test.procedure}</div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {detailRows.map((row) => (
+              <div
+                key={row.label}
+                className="bg-white border border-slate-200 rounded-xl px-4 py-3"
+              >
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 mb-1">
+                  {row.label}
+                </div>
+                <div className="text-sm font-medium text-slate-800">{row.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 mb-3">
+                Auditor Conclusion
+              </div>
+              <div className="text-sm leading-7 text-slate-700">
+                {test.conclusion || "No conclusion recorded for this test yet."}
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 mb-3">
+                Evidence Files
+              </div>
+              {test.evidenceFiles && test.evidenceFiles.length > 0 ? (
+                <div className="space-y-3">
+                  {test.evidenceFiles.map((file) => (
+                    <button
+                      key={`${test.id}-${file.name}`}
+                      type="button"
+                      onClick={() => onPreviewEvidence(file)}
+                      className="w-full text-left flex items-center justify-between gap-4 px-4 py-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors"
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-slate-800">{file.name}</div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          {file.size} • {file.type} • {new Date(file.uploadedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <Eye className="w-4 h-4 text-slate-500" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-slate-500">
+                  No supporting evidence has been attached.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 type Tab =
   | "controls"
@@ -338,6 +469,8 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
     uploadedAt: string;
     size?: string;
   } | null>(null);
+  const [selectedSubstantiveTest, setSelectedSubstantiveTest] =
+    useState<SubstantiveTest | null>(null);
 
   const handleAddSubstantive = () => {
     if (!subProc.trim() || subPop <= 0 || subSample <= 0) return;
@@ -1454,7 +1587,12 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                           ? (st.exceptionCount / st.sampleSize) * 100
                           : 0;
                       return (
-                        <tr key={st.id}>
+                        <tr
+                          key={st.id}
+                          onClick={() => setSelectedSubstantiveTest(st)}
+                          style={{ cursor: "pointer" }}
+                          title="Click to view substantive test details"
+                        >
                           <td style={{ fontWeight: 600 }}>{st.area}</td>
                           <td
                             style={{
@@ -1515,7 +1653,10 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                                       display: "flex",
                                       alignItems: "center",
                                     }}
-                                    onClick={() => setPreviewDoc(file)}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setPreviewDoc(file);
+                                    }}
                                     title={file.name}
                                   >
                                     <FileText size={16} />
@@ -2570,6 +2711,13 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
         <DocumentPreviewModal
           document={previewDoc}
           onClose={() => setPreviewDoc(null)}
+        />
+      )}
+      {selectedSubstantiveTest && (
+        <SubstantiveTestDetailModal
+          test={selectedSubstantiveTest}
+          onClose={() => setSelectedSubstantiveTest(null)}
+          onPreviewEvidence={(file) => setPreviewDoc(file)}
         />
       )}
     </div>

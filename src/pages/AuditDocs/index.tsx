@@ -264,7 +264,7 @@ const AuditDocs: React.FC = () => {
               fontSize: "0.875rem",
             }}
           >
-            {lgaName} LGA — Working papers, findings, audit reports and file
+            {lgaName} — Working papers, findings, audit reports and file
             completeness tracker.
           </p>
         </div>

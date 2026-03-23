@@ -91,8 +91,8 @@ const Login: React.FC = () => {
             <p className={s.brandDesc}>
               Office of the Auditor-General for Local Governments. Ensuring
               transparency, accountability, and fiscal responsibility across all
-              20 LGAs. Access to this system is restricted to authorized
-              personnel only.
+              57 Councils (20 LGAs &amp; 37 LCDAs). Access to this system is
+              restricted to authorized personnel only.
             </p>
             <div className={s.securityNotice}>
               <div className={s.securityHeader}>

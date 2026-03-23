@@ -3,8 +3,10 @@ import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
 import { calculateOverallRisk } from "../../utils/auditLogic";
 import { WorkflowGate } from "../../components/UI/WorkflowGate";
+import WorkProgrammeSection from "../../components/AuditPlanning/WorkProgrammeSection";
 import ps from "../../styles/pages.module.css";
 import type { RiskLevel } from "../../types";
+import { useSearchParams } from "react-router-dom";
 
 const RISK_COLOR: Record<
   RiskLevel,
@@ -124,7 +126,6 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
   const {
     audits,
     lgas,
-    programmes,
     riskMatrices,
     materiality,
     controlTests,
@@ -133,9 +134,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
   } = useAuditStore();
   const addRiskMatrix = useAuditStore((st) => st.addRiskMatrix);
   const addToast = useAuditStore((st) => st.addToast);
-  const [activeTab, setActiveTab] = useState<
-    "risk" | "materiality" | "entity" | "programme"
-  >("entity");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showRiskForm, setShowRiskForm] = useState(false);
   const [showMaterialityForm, setShowMaterialityForm] = useState(false);
   const [materialityForm, setMaterialityForm] = useState({
@@ -175,7 +174,13 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
   const auditMat = materiality.find((m) => m.auditId === derivedAuditId);
   // const auditControls = controlTests.filter((c) => c.auditId === derivedAuditId);
   void controlTests; // suppress unused warning
-  const auditProg = programmes.find((p) => p.auditId === derivedAuditId);
+
+  const validTabs = ["entity", "risk", "materiality", "programme"] as const;
+  type PlanningTab = (typeof validTabs)[number];
+  const requestedTab = searchParams.get("tab");
+  const activeTab: PlanningTab = validTabs.includes(requestedTab as PlanningTab)
+    ? (requestedTab as PlanningTab)
+    : "entity";
 
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat("en-NG", {
@@ -243,8 +248,8 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
                 fontSize: "0.875rem",
               }}
             >
-              {lgaName} LGA — Risk assessment, materiality determination, and
-              audit programme preparation.
+              {lgaName} — Risk assessment, materiality determination, and audit
+              programme preparation.
             </p>
           </div>
           {myAudit && <StatusBadge status={myAudit.status} />}
@@ -256,13 +261,12 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
           <button
             key={tab.id}
             className={`${ps.tabBtn} ${activeTab === tab.id ? ps.active : ""}`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => setSearchParams({ tab: tab.id })}
           >
             {tab.label}
           </button>
         ))}
       </div>
-
       {activeTab === "entity" && (
         <div
           style={{
@@ -277,7 +281,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
           >
             <Card
               title="Executive Summary"
-              subtitle={`Overview of ${lgaName} Local Government Area`}
+              subtitle={`Overview of ${lgaName} Council`}
             >
               <div
                 style={{
@@ -288,10 +292,10 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
                 }}
               >
                 <p style={{ margin: 0, marginBottom: "1rem" }}>
-                  <strong>{lgaName} LGA</strong> is situated in the{" "}
+                  <strong>{lgaName}</strong> is situated in the{" "}
                   {zone?.name || "West"} Senatorial District of Lagos State.
                   Established in 1982, it serves a population of approximately
-                  450,000 residents. The LGA is characterized by significant
+                  450,000 residents. The council is characterized by significant
                   commercial activities and a growing residential base.
                 </p>
                 <p style={{ margin: 0 }}>
@@ -724,7 +728,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
 
           <Card
             title="Risk Assessment Matrix"
-            subtitle={`${auditRisks.length} risk(s) identified for ${lgaName} LGA`}
+            subtitle={`${auditRisks.length} risk(s) identified for ${lgaName}`}
             action={
               !showRiskForm &&
               user?.role !== "STATE_AUDITOR_GENERAL" &&
@@ -1100,7 +1104,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
             <>
               <Card
                 title="Materiality Thresholds"
-                subtitle={`${lgaName} LGA · FY 2024/2025`}
+                subtitle={`${lgaName} · FY 2024/2025`}
                 action={
                   user.role === "AUDIT_LEAD" && (
                     <button
@@ -1556,193 +1560,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({ auditId, embedded }) => {
       )}
 
       {activeTab === "programme" && (
-        <Card
-          title="Audit Programme"
-          subtitle={`${lgaName} LGA — Approved audit procedures and assignments`}
-        >
-          {auditProg ? (
-            <div style={{ padding: "1.5rem" }}>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1.5rem",
-                  marginBottom: "2rem",
-                  flexWrap: "wrap",
-                }}
-              >
-                {[
-                  {
-                    label: "Programme Status",
-                    value: <StatusBadge status={auditProg.status} />,
-                  },
-                  {
-                    label: "Total Procedures",
-                    value: `${auditProg.procedures?.length ?? 0}`,
-                  },
-                  { label: "Prepared By", value: auditProg.preparedBy },
-                  {
-                    label: "Approved By",
-                    value: auditProg.approvedBy ?? "Pending",
-                  },
-                ].map(({ label, value }) => (
-                  <div
-                    key={label}
-                    style={{
-                      padding: "1rem 1.25rem",
-                      background: "var(--bg)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "3px",
-                      minWidth: "140px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.07em",
-                        color: "var(--text-3)",
-                        marginBottom: "0.4rem",
-                      }}
-                    >
-                      {label}
-                    </div>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: "0.875rem",
-                        color: "var(--text)",
-                      }}
-                    >
-                      {value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {auditProg.procedures && auditProg.procedures.length > 0 && (
-                <div style={{ overflowX: "auto" }}>
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      fontSize: "0.83rem",
-                    }}
-                  >
-                    <thead>
-                      <tr style={{ background: "var(--bg)" }}>
-                        {[
-                          "#",
-                          "Area",
-                          "Procedure",
-                          "Assigned To",
-                          "Status",
-                        ].map((h) => (
-                          <th
-                            key={h}
-                            style={{
-                              padding: "0.75rem 1rem",
-                              textAlign: "left",
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.07em",
-                              color: "var(--text-3)",
-                              borderBottom: "1px solid var(--border)",
-                            }}
-                          >
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {auditProg.procedures.map((proc, i) => (
-                        <tr
-                          key={proc.id}
-                          style={{
-                            borderBottom: "1px solid var(--border)",
-                            background:
-                              i % 2 === 0 ? "transparent" : "var(--bg)",
-                          }}
-                        >
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-3)",
-                              fontWeight: 600,
-                            }}
-                          >
-                            {String(i + 1).padStart(2, "0")}
-                          </td>
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              fontWeight: 600,
-                              color: "var(--text)",
-                            }}
-                          >
-                            {proc.area}
-                          </td>
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-2)",
-                              lineHeight: 1.5,
-                              maxWidth: "280px",
-                            }}
-                          >
-                            {proc.procedure}
-                          </td>
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-2)",
-                            }}
-                          >
-                            {proc.assignedTo || "—"}
-                          </td>
-                          <td style={{ padding: "0.75rem 1rem" }}>
-                            <StatusBadge
-                              status={
-                                proc.status === "Completed"
-                                  ? "Completed"
-                                  : proc.status === "In Progress"
-                                    ? "In Progress"
-                                    : "Pending"
-                              }
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              {(!auditProg.procedures || auditProg.procedures.length === 0) && (
-                <p style={{ color: "var(--text-3)", fontSize: "0.875rem" }}>
-                  No procedures defined yet.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div
-              style={{
-                padding: "3rem",
-                textAlign: "center",
-                color: "var(--text-3)",
-              }}
-            >
-              <p style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                No audit programme found for this engagement.
-              </p>
-              <p style={{ fontSize: "0.8rem" }}>
-                The audit lead can create a programme from the Workpapers
-                section.
-              </p>
-            </div>
-          )}
-        </Card>
+        <WorkProgrammeSection auditId={derivedAuditId} embedded />
       )}
     </div>
   );

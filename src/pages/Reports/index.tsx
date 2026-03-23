@@ -218,7 +218,7 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
     openModal({
       title: approved ? "Approve Report" : "Request Revision",
       message: approved
-        ? "Approve this draft report? It will be sent to the LGA Head for Management Response."
+        ? "Approve this draft report? It will be sent to the Council Head for Management Response."
         : "Request revisions on this report? The audit lead will be notified to make corrections.",
       confirmText: approved ? "Approve" : "Request Revision",
       variant: approved ? "info" : "warning",
@@ -570,7 +570,7 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
               )}
               {selectedReport.lgaResponse && (
                 <div className={s.detailRow}>
-                  <div className={s.detailLabel}>LGA Response</div>
+                  <div className={s.detailLabel}>Council Response</div>
                   <div className={s.detailValue} style={{ color: "#15803d" }}>
                     {selectedReport.lgaResponse}
                   </div>
@@ -877,9 +877,9 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
                 }}
               >
                 <strong>Note:</strong> The exit meeting is the final opportunity
-                for the LGA to present additional evidence or contest findings.
-                Once finalized, the report will be included in the AG&apos;s
-                consolidated report.
+                for the council to present additional evidence or contest
+                findings. Once finalized, the report will be included in the
+                AG&apos;s consolidated report.
               </div>
             </div>
           </div>
@@ -922,7 +922,7 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
                   className={s.formInput}
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g., Financial Audit Report — Ikeja LGA FY 2025"
+                  placeholder="e.g., Financial Audit Report — Ikeja FY 2025"
                 />
               </div>
               <div className={s.formGroup}>
@@ -1195,7 +1195,7 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
               <thead>
                 <tr>
                   <th>Title</th>
-                  <th>LGA</th>
+                  <th>Council</th>
                   <th>Type</th>
                   <th>Findings</th>
                   <th>Mgmt Response</th>

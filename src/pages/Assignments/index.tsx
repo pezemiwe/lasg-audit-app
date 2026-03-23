@@ -202,7 +202,7 @@ const AssignmentsPage: React.FC = () => {
                       {getRoleName(inv.role)} Assignment
                     </div>
                     <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
-                      {inv.lgaId && `${getLgaName(inv.lgaId)} LGA`}
+                      {inv.lgaId && `${getLgaName(inv.lgaId)}`}
                       {inv.zoneId && `${getZoneName(inv.zoneId)} Zone`}
                       {` · Sent ${new Date(inv.sentAt).toLocaleDateString("en-NG")}`}
                     </div>

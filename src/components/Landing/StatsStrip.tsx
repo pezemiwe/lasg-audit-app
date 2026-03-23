@@ -56,10 +56,10 @@ const StatsStrip: React.FC = () => {
     <section className="stats-strip" ref={sectionRef}>
       <div className="stats-inner">
         <Stat
-          val={20}
+          val={57}
           suffix=""
-          label="LGAs"
-          sub="Unified Coverage"
+          label="Councils"
+          sub="20 LGAs &amp; 37 LCDAs"
           delay="d1"
         />
         <Stat

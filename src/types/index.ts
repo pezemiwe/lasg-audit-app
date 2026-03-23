@@ -22,6 +22,8 @@ export interface User {
 
 export type ZoneName = "Ikeja" | "Lagos Island" | "Ikorodu" | "Badagry" | "Epe";
 
+export type CouncilType = "LGA" | "LCDA";
+
 export interface Zone {
   id: string;
   name: ZoneName;
@@ -33,6 +35,8 @@ export interface LGA {
   id: string;
   name: string;
   zoneId: string;
+  councilType?: CouncilType;
+  parentLgaId?: string;
   auditLeadId?: string;
   contactName?: string;
   contactEmail?: string;
@@ -103,6 +107,14 @@ export interface Audit {
 }
 
 export type RiskLevel = "Low" | "Medium" | "High" | "Critical";
+
+export type AuditAssertion =
+  | "Existence/Occurrence"
+  | "Completeness"
+  | "Accuracy/Valuation"
+  | "Rights & Obligations"
+  | "Presentation & Disclosure"
+  | "Cut-off";
 
 export interface RiskMatrix {
   id: string;
@@ -326,24 +338,47 @@ export interface ActivityLog {
 export interface AuditProgramme {
   id: string;
   auditId: string;
+  templateId?: string;
   objectives: string;
   scope: string;
+  methodology?: string;
+  materialityReference?: string;
   riskAreas: string[];
   procedures: ProgrammeProcedure[];
-  status: "Draft" | "Submitted" | "Approved" | "Revision Required";
+  status:
+    | "Draft"
+    | "Submitted"
+    | "Under Review"
+    | "Approved"
+    | "Revision Required";
   preparedBy: string;
+  reviewedBy?: string;
   submittedAt?: string;
   approvedBy?: string;
   approvedAt?: string;
+  revisionNotes?: string;
 }
 
 export interface ProgrammeProcedure {
   id: string;
   area: string;
   procedure: string;
+  assertion?: AuditAssertion;
+  natureOfTest?:
+    | "Substantive"
+    | "Control"
+    | "Analytical"
+    | "Inquiry"
+    | "Observation"
+    | "Inspection";
+  expectedEvidence?: string;
+  sampleSize?: string;
   assignedTo?: string;
-  status: "Not Started" | "In Progress" | "Completed";
+  status: "Not Started" | "In Progress" | "Completed" | "N/A";
   evidenceUploaded?: boolean;
+  workpaperRef?: string;
+  findings?: string;
+  completedAt?: string;
 }
 
 export type ScopeAgreementStatus =
@@ -535,4 +570,26 @@ export interface ExitConference {
   minutesApproved: boolean;
   createdBy: string;
   createdAt: string;
+}
+
+/* ─── Standardised Audit Work Programme Templates ─── */
+
+export interface ProgrammeTemplateSection {
+  title: string;
+  objective: string;
+  riskLevel: RiskLevel;
+  procedures: Omit<
+    ProgrammeProcedure,
+    "id" | "assignedTo" | "status" | "evidenceUploaded"
+  >[];
+  sortOrder: number;
+}
+
+export interface ProgrammeTemplate {
+  id: string;
+  name: string;
+  auditType: AuditType;
+  description: string;
+  methodology: string;
+  sections: ProgrammeTemplateSection[];
 }

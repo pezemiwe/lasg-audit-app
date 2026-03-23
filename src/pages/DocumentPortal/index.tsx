@@ -278,7 +278,7 @@ const DocumentPortalPage: React.FC<{
           <div>
             <h1 className={s.pageTitle}>{detailDoc.documentName}</h1>
             <p className={s.pageSubtitle}>
-              {lga?.name} LGA | Due:{" "}
+              {lga?.name} | Due:{" "}
               {new Date(detailDoc.dueDate).toLocaleDateString()}
             </p>
           </div>
@@ -525,7 +525,7 @@ const DocumentPortalPage: React.FC<{
             <p className={s.pageSubtitle}>
               {isLGA
                 ? "Submit required audit documents and track review status"
-                : "Review and manage LGA document submissions across all mandates"}
+                : "Review and manage council document submissions across all mandates"}
             </p>
           </div>
           <span className={s.pageBadge}>
@@ -595,7 +595,7 @@ const DocumentPortalPage: React.FC<{
                 onChange={(e) => setSelectedLgaId(e.target.value)}
                 style={{ width: 200 }}
               >
-                <option value="all">All LGAs</option>
+                <option value="all">All Councils</option>
                 {lgas.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.name}
@@ -646,7 +646,7 @@ const DocumentPortalPage: React.FC<{
               <table className={s.table}>
                 <thead>
                   <tr>
-                    {!isLGA && <th>LGA</th>}
+                    {!isLGA && <th>Council</th>}
                     <th>Document</th>
                     <th>Format</th>
                     <th>Due Date</th>

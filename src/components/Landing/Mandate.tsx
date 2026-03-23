@@ -47,7 +47,7 @@ const Mandate: React.FC = () => {
                 <h4>Risk Assurance</h4>
                 <p>
                   Proactive identification and mitigation of fiscal risks in
-                  LGAs.
+                  councils.
                 </p>
               </div>
             </div>

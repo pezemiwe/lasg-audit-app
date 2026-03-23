@@ -79,7 +79,7 @@ const UserManagement: React.FC = () => {
             fontSize: "0.875rem",
           }}
         >
-          All platform users, their roles, zone/LGA assignments, and access
+          All platform users, their roles, zone/council assignments, and access
           levels.
         </p>
       </div>
@@ -223,7 +223,7 @@ const UserManagement: React.FC = () => {
                   "Email",
                   "Role",
                   "Zone",
-                  "LGA",
+                  "Council",
                   "Specialisations",
                   "Experience",
                 ].map((h) => (

@@ -7,16 +7,6 @@ import { FileText, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import s from "../../styles/pages.module.css";
 
-// Helper to generate stable mock progress
-const getMockProgress = (id: string) => {
-  if (!id) return 0;
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return (Math.abs(hash) % 70) + 15;
-};
-
 const AuditPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +14,9 @@ const AuditPage: React.FC = () => {
   const lgas = useAuditStore((state) => state.lgas);
   const zones = useAuditStore((state) => state.zones);
   const users = useAuditStore((state) => state.users);
+  const computeAuditProgress = useAuditStore(
+    (state) => state.computeAuditProgress,
+  );
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AuditStatus | "All">("All");
@@ -73,6 +66,12 @@ const AuditPage: React.FC = () => {
       case "TEAM_AUDITOR":
         // Check property existence safely
         return audits.filter((a) => a.teamIds?.includes(user.id));
+      case "HEAD_OF_LOCAL_GOVERNMENT":
+        // HLGA sees only the audit for their own council
+        return user.lgaId ? audits.filter((a) => a.lgaId === user.lgaId) : [];
+      case "AUDITOR_GENERAL_FEDERATION":
+        // AGF has oversight of all audits
+        return audits;
       default:
         return [];
     }
@@ -191,7 +190,7 @@ const AuditPage: React.FC = () => {
           </div>
         ) : (
           filtered.map((audit) => {
-            const progress = getMockProgress(audit.id);
+            const progress = computeAuditProgress(audit.id);
             return (
               <div
                 key={audit.id}

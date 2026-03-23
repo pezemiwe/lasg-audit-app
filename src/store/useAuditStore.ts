@@ -35,6 +35,8 @@ import type {
   ExitConference,
   User,
   Notification,
+  ProgrammeTemplate,
+  CouncilType,
 } from "../types";
 import {
   ZONES,
@@ -61,6 +63,7 @@ import {
   SEED_DOCUMENT_UPLOADS,
   SEED_STAGE_APPROVALS,
   SEED_NOTIFICATIONS,
+  PROGRAMME_TEMPLATES,
 } from "../mock/data";
 
 interface ToastMessage {
@@ -262,6 +265,22 @@ interface AuditStore {
     programmeId: string,
     procedureId: string,
     updates: Partial<ProgrammeProcedure>,
+  ) => void;
+
+  /* ─── Council & Programme Template Helpers ─── */
+  programmeTemplates: ProgrammeTemplate[];
+  getCouncilsByType: (type?: CouncilType) => LGA[];
+  getLgaCount: () => number;
+  getLcdaCount: () => number;
+  getTotalCouncilCount: () => number;
+  getParentLga: (lcdaId: string) => LGA | undefined;
+  getChildLcdas: (lgaId: string) => LGA[];
+  createProgrammeFromTemplate: (
+    templateId: string,
+    auditId: string,
+    preparedBy: string,
+    objectives: string,
+    scope: string,
   ) => void;
 
   /* ─── Post-Audit Actions ─── */
@@ -492,63 +511,6 @@ export const useAuditStore = create(
                 mandateId,
                 documentName: "Revenue Receipts & Payment Vouchers",
                 description: "Sample of revenue receipts and PVs",
-                requiredFormat: "PDF",
-                status: "Not Uploaded",
-                version: 1,
-                dueDate,
-              },
-              {
-                id: `doc-${mandateId}-${lgaId}-6`,
-                lgaId,
-                mandateId,
-                documentName: "Payroll Records",
-                description: "Staff payroll records for the audit period",
-                requiredFormat: "Excel/PDF",
-                status: "Not Uploaded",
-                version: 1,
-                dueDate,
-              },
-              {
-                id: `doc-${mandateId}-${lgaId}-7`,
-                lgaId,
-                mandateId,
-                documentName: "Contract Awards & Procurement Files",
-                description:
-                  "Details of contracts awarded and procurement processes",
-                requiredFormat: "PDF",
-                status: "Not Uploaded",
-                version: 1,
-                dueDate,
-              },
-              {
-                id: `doc-${mandateId}-${lgaId}-8`,
-                lgaId,
-                mandateId,
-                documentName: "Fixed Asset Register",
-                description: "Current register of fixed assets",
-                requiredFormat: "Excel",
-                status: "Not Uploaded",
-                version: 1,
-                dueDate,
-              },
-              {
-                id: `doc-${mandateId}-${lgaId}-9`,
-                lgaId,
-                mandateId,
-                documentName: "Internal Audit Reports",
-                description: "Reports from internal audit unit",
-                requiredFormat: "PDF",
-                status: "Not Uploaded",
-                version: 1,
-                dueDate,
-              },
-              {
-                id: `doc-${mandateId}-${lgaId}-10`,
-                lgaId,
-                mandateId,
-                documentName: "Executive Committee Minutes",
-                description:
-                  "Minutes of meetings held by the Executive Committee",
                 requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
@@ -941,7 +903,7 @@ Lagos State
         get().addToast({
           type: "success",
           title: "All Letters Dispatched",
-          message: "Notification letters sent to all LGA contacts",
+          message: "Notification letters sent to all Council contacts",
         });
       },
 
@@ -1453,6 +1415,75 @@ Lagos State
               : p,
           ),
         })),
+
+      /* ─── Council & Programme Template Helpers ─── */
+      programmeTemplates: [...PROGRAMME_TEMPLATES],
+
+      getCouncilsByType: (type) => {
+        const all = get().lgas;
+        if (!type) return all;
+        return all.filter((c) => (c.councilType || "LGA") === type);
+      },
+
+      getLgaCount: () =>
+        get().lgas.filter((c) => !c.councilType || c.councilType === "LGA")
+          .length,
+
+      getLcdaCount: () =>
+        get().lgas.filter((c) => c.councilType === "LCDA").length,
+
+      getTotalCouncilCount: () => get().lgas.length,
+
+      getParentLga: (lcdaId) => {
+        const lcda = get().lgas.find((c) => c.id === lcdaId);
+        if (!lcda?.parentLgaId) return undefined;
+        return get().lgas.find((c) => c.id === lcda.parentLgaId);
+      },
+
+      getChildLcdas: (lgaId) =>
+        get().lgas.filter((c) => c.parentLgaId === lgaId),
+
+      createProgrammeFromTemplate: (
+        templateId,
+        auditId,
+        preparedBy,
+        objectives,
+        scope,
+      ) => {
+        const template = PROGRAMME_TEMPLATES.find((t) => t.id === templateId);
+        if (!template) return;
+
+        const procedures: ProgrammeProcedure[] = template.sections.flatMap(
+          (section) =>
+            section.procedures.map((proc) => ({
+              ...proc,
+              id: `proc-${uid()}`,
+              status: "Not Started" as const,
+              assignedTo: undefined,
+              evidenceUploaded: false,
+            })),
+        );
+
+        const programme: AuditProgramme = {
+          id: `prog-${uid()}`,
+          auditId,
+          templateId,
+          objectives,
+          scope,
+          methodology: template.methodology,
+          riskAreas: template.sections.map((s) => s.title),
+          procedures,
+          status: "Draft",
+          preparedBy,
+        };
+
+        set((s) => ({ programmes: [...s.programmes, programme] }));
+        get().addToast({
+          type: "success",
+          title: "Programme Generated",
+          message: `Created from "${template.name}" template with ${procedures.length} procedures`,
+        });
+      },
 
       /* ─── Post-Audit Actions ─── */
       addFollowUp: (data) => {

@@ -81,7 +81,13 @@ const ZoneManagementPage: React.FC = () => {
           <h1 className={s.pageTitle}>Zone Management</h1>
           <p className={s.pageSubtitle}>
             Assign audit supervisors to the 5 administrative zones of Lagos
-            State
+            State — covering {lgas.length} Councils (
+            {
+              lgas.filter((l) => !l.councilType || l.councilType === "LGA")
+                .length
+            }{" "}
+            LGAs &amp; {lgas.filter((l) => l.councilType === "LCDA").length}{" "}
+            LCDAs)
           </p>
         </div>
         <span className={s.pageBadge}>
@@ -187,7 +193,14 @@ const ZoneManagementPage: React.FC = () => {
                       marginTop: "0.15rem",
                     }}
                   >
-                    {zoneLgas.length} LGA{zoneLgas.length !== 1 ? "s" : ""}
+                    {
+                      zoneLgas.filter(
+                        (l) => !l.councilType || l.councilType === "LGA",
+                      ).length
+                    }{" "}
+                    LGAs,{" "}
+                    {zoneLgas.filter((l) => l.councilType === "LCDA").length}{" "}
+                    LCDAs
                     {hasSupervisors &&
                       ` · ${assignedSupervisors.length} Supervisor(s)`}
                   </div>
@@ -297,7 +310,7 @@ const ZoneManagementPage: React.FC = () => {
 
                   <div style={{ flex: "1 1 300px" }}>
                     <div className={s.sectionDivider}>
-                      Local Government Areas
+                      Councils (LGAs &amp; LCDAs)
                     </div>
                     <div style={{ marginTop: "0.75rem" }}>
                       {zoneLgas.map((lga) => {
@@ -343,6 +356,22 @@ const ZoneManagementPage: React.FC = () => {
                               <div>
                                 <div className={s.listRowName}>
                                   {lga.name}
+                                  {lga.councilType === "LCDA" && (
+                                    <span
+                                      style={{
+                                        fontSize: "0.65rem",
+                                        fontWeight: 600,
+                                        color: "#7c3aed",
+                                        background: "#ede9fe",
+                                        padding: "0.1rem 0.4rem",
+                                        borderRadius: "4px",
+                                        marginLeft: "0.4rem",
+                                        letterSpacing: "0.04em",
+                                      }}
+                                    >
+                                      LCDA
+                                    </span>
+                                  )}
                                   {lead && (
                                     <span
                                       style={{
