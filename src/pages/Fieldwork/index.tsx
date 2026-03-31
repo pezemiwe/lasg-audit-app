@@ -1,338 +1,144 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
-  Shield,
-  Search,
-  BarChart3,
-  FileCheck,
-  MapPin,
+  ClipboardList,
+  FolderOpen,
   AlertTriangle,
-  Plus,
-  CheckCircle,
-  Upload,
-  Flag,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Activity,
-  XCircle,
-  Eye,
   FileText,
+  ChevronDown,
+  ChevronRight,
+  Upload,
+  CheckCircle,
+  Clock,
+  Lock,
+  Send,
+  Save,
+  Play,
+  Pause,
+  MessageSquare,
+  Building2,
+  DollarSign,
+  Users,
+  ShieldCheck,
+  Zap,
+  ArrowRight,
+  BarChart3,
+  Scale,
+  Flag,
+  X,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
+import type { AuditStore } from "../../store/useAuditStore";
 import StatusBadge from "../../components/UI/StatusBadge";
-import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
-import { WorkflowGate } from "../../components/UI/WorkflowGate";
+import type { BadgeVariant } from "../../components/UI/StatusBadge";
 import type {
-  ControlTestResult,
-  SubstantiveTest,
-  SubstantiveTestArea,
-  RiskLevel,
-  FraudFlag,
+  ProcedureExecution,
+  ProcedureExecutionStatus,
+  FieldworkException,
+  ExceptionSeverity,
+  ExceptionClassification,
+  DocumentRequisition,
+  BankAccount,
+  ContractFlag,
+  VouchingChecklist,
+  SiteVerification,
+  StaffVerificationItem,
+  DeductionRemittanceRow,
+  ReconciliationRow,
+  IGRChainItem,
+  AdvanceItem,
+  StockCountItem,
+  GrantExpenditure,
+  FieldworkWorkingPaper,
+  FieldworkCompletionMemo,
+  ReviewComment,
 } from "../../types";
-import { MOCK_USERS } from "../../mock/data";
 import s from "../../styles/pages.module.css";
 
-/* ─── Helpers ─── */
-const controlResultVariant = (r: ControlTestResult) => {
-  switch (r) {
-    case "Effective":
-      return "success" as const;
-    case "Partially Effective":
-      return "warning" as const;
-    case "Ineffective":
-      return "error" as const;
-    default:
-      return "default" as const;
-  }
+type Panel = "tracker" | "evidence" | "exceptions" | "workpapers";
+
+const PANELS: { key: Panel; label: string; icon: React.ReactNode }[] = [
+  {
+    key: "tracker",
+    label: "Procedure Tracker",
+    icon: <ClipboardList size={15} />,
+  },
+  {
+    key: "evidence",
+    label: "Evidence Library",
+    icon: <FolderOpen size={15} />,
+  },
+  {
+    key: "exceptions",
+    label: "Exceptions Register",
+    icon: <AlertTriangle size={15} />,
+  },
+  { key: "workpapers", label: "Working Papers", icon: <FileText size={15} /> },
+];
+
+const AREA_ICONS: Record<string, React.ReactNode> = {
+  "Personnel & Payroll": <Users size={14} />,
+  "FAAC & Revenue": <DollarSign size={14} />,
+  "Bank & Cash": <Building2 size={14} />,
+  "Procurement & Contracts": <ShieldCheck size={14} />,
+  "Advances & Imprest": <Scale size={14} />,
+  "Stores & Inventory": <BarChart3 size={14} />,
+  "Grants (UBEC/PHC)": <Flag size={14} />,
 };
 
-const severityVariant = (sev: RiskLevel) => {
-  switch (sev) {
-    case "Low":
-      return "success" as const;
-    case "Medium":
-      return "warning" as const;
-    case "High":
-      return "error" as const;
-    case "Critical":
-      return "error" as const;
-  }
-};
-
-const fraudStatusVariant = (st: FraudFlag["status"]) => {
+const statusBadgeVariant = (st: ProcedureExecutionStatus): BadgeVariant => {
   switch (st) {
-    case "Open":
-      return "warning" as const;
-    case "Under Investigation":
-      return "info" as const;
-    case "Escalated":
-      return "error" as const;
-    case "Resolved":
-      return "success" as const;
-    case "Dismissed":
-      return "default" as const;
-  }
-};
-
-const substStatusVariant = (st: string) => {
-  switch (st) {
-    case "Completed":
-      return "success" as const;
+    case "Locked":
+      return "default";
+    case "Not Started":
+      return "info";
     case "In Progress":
-      return "info" as const;
-    case "Escalated":
-      return "error" as const;
+      return "warning";
+    case "Submitted":
+      return "gold";
+    case "Reviewed":
+      return "info";
+    case "Cleared":
+      return "success";
+    case "Exception Raised":
+      return "error";
+    case "Limitation":
+      return "error";
     default:
-      return "warning" as const;
+      return "default";
   }
 };
 
-const userName = (id: string) =>
-  MOCK_USERS.find((u) => u.id === id)?.name || id;
-
-const SubstantiveTestDetailModal: React.FC<{
-  test: SubstantiveTest | null;
-  onClose: () => void;
-  onPreviewEvidence: (file: NonNullable<SubstantiveTest["evidenceFiles"]>[number]) => void;
-}> = ({ test, onClose, onPreviewEvidence }) => {
-  if (!test) return null;
-
-  const exceptionRate =
-    test.sampleSize > 0 ? (test.exceptionCount / test.sampleSize) * 100 : 0;
-
-  const detailRows = [
-    { label: "Audit Area", value: test.area },
-    { label: "Population Size", value: test.populationSize.toLocaleString() },
-    { label: "Sample Size", value: test.sampleSize.toLocaleString() },
-    { label: "Exceptions", value: test.exceptionCount.toLocaleString() },
-    {
-      label: "Exception Amount",
-      value: `₦${test.exceptionAmount.toLocaleString()}`,
-    },
-    { label: "Exception Rate", value: `${exceptionRate.toFixed(1)}%` },
-    { label: "Status", value: test.status },
-    { label: "Performed By", value: userName(test.performedBy) },
-    {
-      label: "Performed At",
-      value: new Date(test.performedAt).toLocaleString(),
-    },
-  ];
-
-  return (
-    <div
-      className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4"
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        className="bg-white w-full max-w-4xl max-h-[88vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="subst-test-title"
-      >
-        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 bg-white">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-2">
-              Substantive Test Detail
-            </div>
-            <h3 id="subst-test-title" className="text-xl font-bold text-gray-900">
-              {test.area}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Review the full test record, exceptions, evidence, and conclusion.
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="Close substantive test details"
-          >
-            <XCircle className="w-6 h-6" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto p-6 space-y-6 bg-slate-50">
-          <div className="bg-white border border-slate-200 rounded-xl p-5">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 mb-3">
-              Procedure
-            </div>
-            <div className="text-sm leading-7 text-slate-700">{test.procedure}</div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {detailRows.map((row) => (
-              <div
-                key={row.label}
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3"
-              >
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 mb-1">
-                  {row.label}
-                </div>
-                <div className="text-sm font-medium text-slate-800">{row.value}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 mb-3">
-                Auditor Conclusion
-              </div>
-              <div className="text-sm leading-7 text-slate-700">
-                {test.conclusion || "No conclusion recorded for this test yet."}
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-xl p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 mb-3">
-                Evidence Files
-              </div>
-              {test.evidenceFiles && test.evidenceFiles.length > 0 ? (
-                <div className="space-y-3">
-                  {test.evidenceFiles.map((file) => (
-                    <button
-                      key={`${test.id}-${file.name}`}
-                      type="button"
-                      onClick={() => onPreviewEvidence(file)}
-                      className="w-full text-left flex items-center justify-between gap-4 px-4 py-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors"
-                    >
-                      <div>
-                        <div className="text-sm font-medium text-slate-800">{file.name}</div>
-                        <div className="text-xs text-slate-500 mt-1">
-                          {file.size} • {file.type} • {new Date(file.uploadedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <Eye className="w-4 h-4 text-slate-500" />
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-slate-500">
-                  No supporting evidence has been attached.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+const severityVariant = (sv: ExceptionSeverity): BadgeVariant => {
+  switch (sv) {
+    case "Low":
+      return "success";
+    case "Medium":
+      return "warning";
+    case "High":
+      return "error";
+    case "Critical":
+      return "error";
+  }
 };
 
-type Tab =
-  | "controls"
-  | "substantive"
-  | "analytical"
-  | "compliance"
-  | "physical"
-  | "fraud";
+const reqStatusVariant = (st: DocumentRequisition["status"]): BadgeVariant => {
+  switch (st) {
+    case "Pending":
+      return "warning";
+    case "Issued":
+      return "info";
+    case "Received":
+      return "success";
+    case "Overdue":
+      return "error";
+    case "Waived":
+      return "default";
+  }
+};
 
-/* ─── Analytical Procedure local type ─── */
-interface AnalyticalRow {
-  id: string;
-  area: string;
-  currentYear: number;
-  priorYear: number;
-  variance: number;
-  variancePct: number;
-  explanation: string;
-  conclusion: string;
-}
-
-/* ─── Compliance Check local type ─── */
-interface ComplianceCheck {
-  id: string;
-  regulation: string;
-  requirement: string;
-  compliant: "Yes" | "No" | "Partial" | "";
-  evidence: string;
-  finding: string;
-}
-
-/* ─── Physical Verification local type ─── */
-interface PhysicalItem {
-  id: string;
-  assetDescription: string;
-  location: string;
-  registerValue: number;
-  exists: "Yes" | "No" | "Partial" | "";
-  condition: "Good" | "Fair" | "Poor" | "Missing" | "";
-  photoUploaded: boolean;
-  remarks: string;
-}
-
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-  { key: "controls", label: "Internal Controls", icon: <Shield size={16} /> },
-  {
-    key: "substantive",
-    label: "Substantive Tests",
-    icon: <Search size={16} />,
-  },
-  {
-    key: "analytical",
-    label: "Analytical Procedures",
-    icon: <BarChart3 size={16} />,
-  },
-  {
-    key: "compliance",
-    label: "Compliance Checks",
-    icon: <FileCheck size={16} />,
-  },
-  {
-    key: "physical",
-    label: "Physical Verification",
-    icon: <MapPin size={16} />,
-  },
-  { key: "fraud", label: "Fraud Flags", icon: <Flag size={16} /> },
-];
-
-const CONTROL_AREAS = [
-  "Revenue Collection",
-  "Expenditure Authorisation",
-  "Payroll Processing",
-  "Bank Reconciliation",
-  "Fixed Assets Management",
-  "Procurement",
-  "Cash Management",
-  "Stores & Inventory",
-  "Budget Control",
-  "IT General Controls",
-];
-
-const COMPLIANCE_REGS = [
-  {
-    regulation: "Financial Memoranda 2009",
-    requirement:
-      "All revenue collections must be receipted and lodged to the Treasury within 24 hours",
-  },
-  {
-    regulation: "Public Procurement Act 2007",
-    requirement:
-      "Contracts exceeding N5M must follow competitive bidding with due process certification",
-  },
-  {
-    regulation: "Fiscal Responsibility Act 2007",
-    requirement:
-      "Quarterly budget implementation reports must be published within 30 days of quarter end",
-  },
-  {
-    regulation: "Treasury Single Account (TSA) Policy",
-    requirement:
-      "All government funds must be domiciled in approved Treasury Single Accounts",
-  },
-  {
-    regulation: "Pension Reform Act 2014",
-    requirement:
-      "Employer and employee pension contributions must be remitted by the 7th of the following month",
-  },
-  {
-    regulation: "Stores Regulations",
-    requirement:
-      "All stores items must be maintained in Store Ledgers with quarterly stock-taking",
-  },
-];
+const userName = (id: string, store: AuditStore) =>
+  store.users.find((u) => u.id === id)?.name || id;
 
 interface FieldworkPageProps {
   auditId?: string;
@@ -345,10 +151,19 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
 }) => {
   const { user } = useAuth();
   const store = useAuditStore();
-  const [activeTab, setActiveTab] = useState<Tab>("controls");
-  const [showForm, setShowForm] = useState(false);
 
-  /* ─── Pick first audit for current user ─── */
+  const [activePanel, setActivePanel] = useState<Panel>("tracker");
+  const [openProcedure, setOpenProcedure] = useState<string | null>(null);
+  const [showRequisition, setShowRequisition] = useState(false);
+  const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [excFilter, setExcFilter] = useState<"all" | ExceptionSeverity>("all");
+  const [wpFilter, setWpFilter] = useState<
+    "all" | FieldworkWorkingPaper["reviewStatus"]
+  >("all");
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+
   const myAudit = useMemo(() => {
     if (!user) return undefined;
     if (propAuditId) return store.audits.find((a) => a.id === propAuditId);
@@ -368,526 +183,604 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
     return store.audits[0];
   }, [user, store.audits, store.lgas, propAuditId]);
 
-  const auditId = myAudit?.id || "audit-1";
+  const auditId = myAudit?.id || "";
   const lgaName =
     store.lgas.find((l) => l.id === myAudit?.lgaId)?.name || "Selected LGA";
 
-  const controlTests = store.getAuditControlTests(auditId);
-  const substantiveTests = store.getAuditSubstantiveTests(auditId);
-  const fraudFlags = store.getAuditFraudFlags(auditId);
-
-  const isWriter = user?.role === "AUDIT_LEAD" || user?.role === "TEAM_AUDITOR";
-
-  const isReviewer =
-    user?.role === "AUDIT_SUPERVISOR" || user?.role === "STATE_AUDITOR_GENERAL";
-
-  /* ─── Internal Control Form State ─── */
-  const [ctrlArea, setCtrlArea] = useState(CONTROL_AREAS[0]);
-  const [ctrlDesc, setCtrlDesc] = useState("");
-  const [ctrlProc, setCtrlProc] = useState("");
-  const [ctrlResult, setCtrlResult] = useState<ControlTestResult>("Not Tested");
-  const [ctrlWeakness, setCtrlWeakness] = useState("");
-  const [ctrlRec, setCtrlRec] = useState("");
-
-  const handleAddControl = () => {
-    if (!ctrlDesc.trim() || !ctrlProc.trim()) return;
-    if (
-      (ctrlResult === "Ineffective" || ctrlResult === "Partially Effective") &&
-      ctrlWeakness.trim().split(/\s+/).length < 50
-    ) {
-      store.addToast({
-        type: "warning",
-        title: "Insufficient Detail",
-        message:
-          "Weakness description must be at least 50 words for ineffective / partially effective controls",
-      });
-      return;
-    }
-    store.addControlTest({
-      auditId,
-      controlArea: ctrlArea,
-      controlDescription: ctrlDesc,
-      testProcedure: ctrlProc,
-      result: ctrlResult,
-      weakness: ctrlWeakness || undefined,
-      recommendation: ctrlRec || undefined,
-      testedBy: user?.id || "",
-    });
-    store.logActivity({
-      userId: user?.id || "",
-      action: "ADD_CONTROL_TEST",
-      details: `Control test recorded: ${ctrlArea} — ${ctrlResult}`,
-      entityType: "fieldwork",
-      entityId: auditId,
-    });
-    // Auto-raise fraud flag for ineffective controls
-    if (ctrlResult === "Ineffective") {
-      store.addToast({
-        type: "warning",
-        title: "Auto Fraud Alert",
-        message: `Ineffective control in ${ctrlArea} — consider raising fraud flag`,
-      });
-    }
-    resetControlForm();
-    setShowForm(false);
-  };
-
-  const resetControlForm = () => {
-    setCtrlArea(CONTROL_AREAS[0]);
-    setCtrlDesc("");
-    setCtrlProc("");
-    setCtrlResult("Not Tested");
-    setCtrlWeakness("");
-    setCtrlRec("");
-  };
-
-  /* ─── Substantive Test Form State ─── */
-  const [subArea, setSubArea] = useState<SubstantiveTestArea>("Revenue");
-  const [subProc, setSubProc] = useState("");
-  const [subPop, setSubPop] = useState(0);
-  const [subSample, setSubSample] = useState(0);
-  const [subExcCount, setSubExcCount] = useState(0);
-  const [subExcAmt, setSubExcAmt] = useState(0);
-  const [subConclusion, setSubConclusion] = useState("");
-
-  const [subEvidence, setSubEvidence] = useState<
-    {
-      name: string;
-      url: string;
-      type: string;
-      size: string;
-      uploadedAt: string;
-      uploadedBy: string;
-    }[]
-  >([]);
-
-  const [previewDoc, setPreviewDoc] = useState<{
-    name: string;
-    type: string;
-    url?: string;
-    uploadedBy: string;
-    uploadedAt: string;
-    size?: string;
-  } | null>(null);
-  const [selectedSubstantiveTest, setSelectedSubstantiveTest] =
-    useState<SubstantiveTest | null>(null);
-
-  const handleAddSubstantive = () => {
-    if (!subProc.trim() || subPop <= 0 || subSample <= 0) return;
-    store.addSubstantiveTest({
-      auditId,
-      area: subArea,
-      procedure: subProc,
-      populationSize: subPop,
-      sampleSize: subSample,
-      exceptionCount: subExcCount,
-      exceptionAmount: subExcAmt,
-      conclusion: subConclusion,
-      evidenceFiles: subEvidence,
-      performedBy: user?.id || "",
-      status: subExcCount > 0 ? "Completed" : "In Progress",
-    });
-    store.logActivity({
-      userId: user?.id || "",
-      action: "ADD_SUBSTANTIVE_TEST",
-      details: `Substantive test: ${subArea} — ${subExcCount} exceptions (₦${subExcAmt.toLocaleString()})`,
-      entityType: "fieldwork",
-      entityId: auditId,
-    });
-    // Auto-escalate if exception rate > 10%
-    const excRate = subPop > 0 ? (subExcCount / subSample) * 100 : 0;
-    if (excRate > 10) {
-      store.addToast({
-        type: "error",
-        title: "High Exception Rate",
-        message: `${excRate.toFixed(1)}% exception rate in ${subArea} — auto-escalated to Supervisor`,
-      });
-    }
-    resetSubForm();
-    setShowForm(false);
-  };
-
-  const resetSubForm = () => {
-    setSubArea("Revenue");
-    setSubProc("");
-    setSubPop(0);
-    setSubSample(0);
-    setSubExcCount(0);
-    setSubExcAmt(0);
-    setSubConclusion("");
-    setSubEvidence([]);
-  };
-
-  /* ─── Analytical Procedures State ─── */
-  const [analyticalRows, setAnalyticalRows] = useState<AnalyticalRow[]>([
-    {
-      id: "ap-1",
-      area: "Internally Generated Revenue (IGR)",
-      currentYear: 485000000,
-      priorYear: 420000000,
-      variance: 65000000,
-      variancePct: 15.5,
-      explanation:
-        "Increase attributed to improved tax collection and new revenue streams from market levies.",
-      conclusion: "Reasonable — consistent with policy changes.",
-    },
-    {
-      id: "ap-2",
-      area: "Personnel Costs",
-      currentYear: 340000000,
-      priorYear: 310000000,
-      variance: 30000000,
-      variancePct: 9.7,
-      explanation:
-        "Increment due to minimum wage implementation and new recruitments.",
-      conclusion: "Reasonable — matches HR records.",
-    },
-    {
-      id: "ap-3",
-      area: "Capital Expenditure",
-      currentYear: 210000000,
-      priorYear: 380000000,
-      variance: -170000000,
-      variancePct: -44.7,
-      explanation:
-        "Significant decrease. Management claims budget cuts — requires further investigation.",
-      conclusion:
-        "INVESTIGATE — Decline is disproportionate. Need to verify capital projects status.",
-    },
-    {
-      id: "ap-4",
-      area: "Overhead Costs",
-      currentYear: 125000000,
-      priorYear: 98000000,
-      variance: 27000000,
-      variancePct: 27.6,
-      explanation: "",
-      conclusion: "",
-    },
-  ]);
-  const [apArea, setApArea] = useState("");
-  const [apCurrent, setApCurrent] = useState(0);
-  const [apPrior, setApPrior] = useState(0);
-
-  const addAnalyticalRow = () => {
-    if (!apArea.trim()) return;
-    const variance = apCurrent - apPrior;
-    const variancePct = apPrior > 0 ? (variance / apPrior) * 100 : 0;
-    setAnalyticalRows((prev) => [
-      ...prev,
-      {
-        id: `ap-${Date.now()}`,
-        area: apArea,
-        currentYear: apCurrent,
-        priorYear: apPrior,
-        variance,
-        variancePct,
-        explanation: "",
-        conclusion: "",
-      },
-    ]);
-    setApArea("");
-    setApCurrent(0);
-    setApPrior(0);
-    setShowForm(false);
-  };
-
-  const updateAnalytical = (
-    id: string,
-    field: "explanation" | "conclusion",
-    value: string,
-  ) => {
-    setAnalyticalRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)),
-    );
-  };
-
-  /* ─── Compliance State ─── */
-  const [complianceChecks, setComplianceChecks] = useState<ComplianceCheck[]>(
-    COMPLIANCE_REGS.map((reg, i) => ({
-      id: `cc-${i}`,
-      regulation: reg.regulation,
-      requirement: reg.requirement,
-      compliant: "" as ComplianceCheck["compliant"],
-      evidence: "",
-      finding: "",
-    })),
+  const requisitions = useMemo(
+    () => store.documentRequisitions.filter((r) => r.auditId === auditId),
+    [store.documentRequisitions, auditId],
   );
-
-  const updateCompliance = (
-    id: string,
-    field: keyof ComplianceCheck,
-    value: string,
-  ) => {
-    setComplianceChecks((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)),
-    );
-  };
-
-  /* ─── Physical Verification State ─── */
-  const [physicalItems, setPhysicalItems] = useState<PhysicalItem[]>([
-    {
-      id: "pv-1",
-      assetDescription: "Toyota Hilux — LSD 234 CG",
-      location: "LGA Headquarters Compound",
-      registerValue: 18500000,
-      exists: "No",
-      condition: "Missing",
-      photoUploaded: false,
-      remarks:
-        "Vehicle not found at any LGA premises. Disposed without board approval per asset register notes.",
-    },
-    {
-      id: "pv-2",
-      assetDescription: "Desktop Computer (Dell Optiplex) × 15 Units",
-      location: "Finance Department",
-      registerValue: 3750000,
-      exists: "Partial",
-      condition: "Fair",
-      photoUploaded: false,
-      remarks: "Only 11 of 15 units found. 4 units unaccounted for.",
-    },
-    {
-      id: "pv-3",
-      assetDescription: "1000 KVA Generator",
-      location: "Power House — Main Building",
-      registerValue: 28000000,
-      exists: "Yes",
-      condition: "Good",
-      photoUploaded: true,
-      remarks:
-        "Asset exists, operational. Serial number matches register. Last serviced March 2026.",
-    },
-  ]);
-  const [pvDesc, setPvDesc] = useState("");
-  const [pvLocation, setPvLocation] = useState("");
-  const [pvValue, setPvValue] = useState(0);
-
-  const addPhysicalItem = () => {
-    if (!pvDesc.trim()) return;
-    setPhysicalItems((prev) => [
-      ...prev,
-      {
-        id: `pv-${Date.now()}`,
-        assetDescription: pvDesc,
-        location: pvLocation,
-        registerValue: pvValue,
-        exists: "",
-        condition: "",
-        photoUploaded: false,
-        remarks: "",
-      },
-    ]);
-    setPvDesc("");
-    setPvLocation("");
-    setPvValue(0);
-    setShowForm(false);
-  };
-
-  const updatePhysical = (
-    id: string,
-    field: keyof PhysicalItem,
-    value: string | boolean | number,
-  ) => {
-    setPhysicalItems((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
-    );
-  };
-
-  /* ─── Fraud Flag Form ─── */
-  const [ffIndicator, setFfIndicator] = useState("");
-  const [ffDesc, setFfDesc] = useState("");
-  const [ffArea, setFfArea] = useState("");
-  const [ffSeverity, setFfSeverity] = useState<RiskLevel>("High");
-
-  const handleRaiseFraud = () => {
-    if (!ffIndicator.trim() || !ffDesc.trim()) return;
-    store.addFraudFlag({
-      auditId,
-      indicator: ffIndicator,
-      description: ffDesc,
-      area: ffArea || "General",
-      raisedBy: user?.id || "",
-      severity: ffSeverity,
-      status: "Open",
-    });
-    store.logActivity({
-      userId: user?.id || "",
-      action: "RAISE_FRAUD_FLAG",
-      details: `Fraud flag raised: ${ffIndicator} (${ffSeverity})`,
-      entityType: "fieldwork",
-      entityId: auditId,
-    });
-    store.addToast({
-      type: "error",
-      title: "Fraud Flag Raised",
-      message: `${ffIndicator} flagged for investigation`,
-    });
-    setFfIndicator("");
-    setFfDesc("");
-    setFfArea("");
-    setFfSeverity("High");
-    setShowForm(false);
-  };
-
-  const handleEscalateFraud = (id: string) => {
-    store.resolveFraudFlag(id, ""); // We'll abuse this — let me use direct store update
-    useAuditStore.setState((state) => ({
-      fraudFlags: state.fraudFlags.map((f) =>
-        f.id === id ? { ...f, status: "Escalated" as const } : f,
-      ),
-    }));
-    store.addToast({
-      type: "warning",
-      title: "Fraud Flag Escalated",
-      message: "Escalated to Supervisor / AG for action",
-    });
-  };
-
-  const handleResolveFraud = (id: string) => {
-    const resolution = prompt("Enter resolution details:");
-    if (!resolution) return;
-    store.resolveFraudFlag(id, resolution);
-    store.addToast({
-      type: "success",
-      title: "Fraud Flag Resolved",
-      message: "Resolution recorded",
-    });
-  };
-
-  /* ─── Fieldwork Completion ─── */
-  const handleSubmitFieldwork = () => {
-    if (controlTests.length === 0) {
-      store.addToast({
-        type: "warning",
-        title: "Cannot Submit",
-        message: "At least one internal control test is required",
-      });
-      return;
-    }
-    if (substantiveTests.length === 0) {
-      store.addToast({
-        type: "warning",
-        title: "Cannot Submit",
-        message: "At least one substantive test is required",
-      });
-      return;
-    }
-    const openFraud = fraudFlags.filter(
-      (f) => f.status === "Open" || f.status === "Under Investigation",
-    );
-    if (openFraud.length > 0) {
-      store.addToast({
-        type: "warning",
-        title: "Open Fraud Flags",
-        message: `${openFraud.length} fraud flag(s) are unresolved. Please resolve or escalate before submitting.`,
-      });
-      return;
-    }
-    store.submitStageApproval({
-      auditId,
-      stage: "Fieldwork",
-      status: "Pending",
-      submittedBy: user?.id || "",
-    });
-    store.logActivity({
-      userId: user?.id || "",
-      action: "SUBMIT_FIELDWORK",
-      details: `Fieldwork submitted for review: ${controlTests.length} controls, ${substantiveTests.length} substantive tests`,
-      entityType: "fieldwork",
-      entityId: auditId,
-    });
-  };
-
-  const handleApproveFieldwork = () => {
-    const pending = store
-      .getAuditApprovals(auditId)
-      .find((a) => a.stage === "Fieldwork" && a.status === "Pending");
-    if (!pending) return;
-    store.reviewStageApproval(pending.id, user?.id || "", true);
-    store.updateAuditStatus(auditId, "Reporting");
-    store.addToast({
-      type: "success",
-      title: "Fieldwork Approved",
-      message: "Audit status advanced to Reporting phase",
-    });
-    store.logActivity({
-      userId: user?.id || "",
-      action: "APPROVE_FIELDWORK",
-      details: "Fieldwork phase approved — advanced to Reporting",
-      entityType: "fieldwork",
-      entityId: auditId,
-    });
-  };
-
-  const handleRejectFieldwork = () => {
-    const pending = store
-      .getAuditApprovals(auditId)
-      .find((a) => a.stage === "Fieldwork" && a.status === "Pending");
-    if (!pending) return;
-    const comments = prompt("Reason for requesting changes:");
-    store.reviewStageApproval(
-      pending.id,
-      user?.id || "",
-      false,
-      comments || undefined,
-    );
-    store.addToast({
-      type: "info",
-      title: "Changes Requested",
-      message: "Fieldwork returned for revision",
-    });
-  };
-
-  /* ─── KPI Calculations ─── */
-  const effectiveControls = controlTests.filter(
-    (c) => c.result === "Effective",
-  ).length;
-  const ineffectiveControls = controlTests.filter(
-    (c) => c.result === "Ineffective",
-  ).length;
-  const totalExceptions = substantiveTests.reduce(
-    (sum, t) => sum + t.exceptionCount,
-    0,
+  const executions = useMemo(
+    () => store.procedureExecutions.filter((e) => e.auditId === auditId),
+    [store.procedureExecutions, auditId],
   );
-  const totalExcAmt = substantiveTests.reduce(
-    (sum, t) => sum + t.exceptionAmount,
-    0,
+  const exceptions = useMemo(
+    () => store.fieldworkExceptions.filter((e) => e.auditId === auditId),
+    [store.fieldworkExceptions, auditId],
   );
-  const criticalFraud = fraudFlags.filter(
-    (f) => f.severity === "Critical",
-  ).length;
-  const openFraud = fraudFlags.filter((f) => f.status === "Open").length;
+  const workingPapers = useMemo(
+    () => store.getAuditFieldworkWorkingPapers(auditId),
+    [store.fieldworkWorkingPapers, auditId],
+  );
+  const bankAccounts = useMemo(
+    () => store.getAuditBankAccounts(auditId),
+    [store.bankAccounts, auditId],
+  );
+  const contractFlags = useMemo(
+    () => store.getAuditContractFlags(auditId),
+    [store.contractFlags, auditId],
+  );
+  const fieldworkMemo = useMemo(
+    () => store.getAuditFieldworkMemo(auditId),
+    [store.fieldworkMemos, auditId],
+  );
+  const programme = store.getAuditProgramme(auditId);
+  const materiality = store.getAuditMateriality(auditId);
+
+  const isLead = user?.role === "AUDIT_LEAD";
+  const isAuditor = user?.role === "TEAM_AUDITOR";
+  const isSupervisor = user?.role === "AUDIT_SUPERVISOR";
+  const isHlg = user?.role === "HEAD_OF_LOCAL_GOVERNMENT";
+  const isWriter = isLead || isAuditor;
+
+  useEffect(() => {
+    if (auditId && programme && executions.length === 0) {
+      store.initProcedureExecutions(auditId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auditId, programme, executions.length]);
+
+  useEffect(() => {
+    if (auditId && programme && requisitions.length === 0) {
+      store.generateRequisitions(auditId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auditId, programme, requisitions.length]);
+
+  const areaGroups = useMemo(() => {
+    const groups: Record<string, ProcedureExecution[]> = {};
+    executions.forEach((e) => {
+      (groups[e.auditArea] ||= []).push(e);
+    });
+    return groups;
+  }, [executions]);
+
+  const stats = useMemo(() => {
+    const total = executions.length;
+    const cleared = executions.filter((e) => e.status === "Cleared").length;
+    const inProgress = executions.filter(
+      (e) => e.status === "In Progress",
+    ).length;
+    const notStarted = executions.filter(
+      (e) => e.status === "Not Started",
+    ).length;
+    const locked = executions.filter((e) => e.status === "Locked").length;
+    const submitted = executions.filter((e) => e.status === "Submitted").length;
+    const excRaised = executions.filter(
+      (e) => e.status === "Exception Raised",
+    ).length;
+    const budgetedHours = executions.reduce((s, e) => s + e.budgetedHours, 0);
+    const loggedHours = executions.reduce((s, e) => s + e.loggedHours, 0);
+    return {
+      total,
+      cleared,
+      inProgress,
+      notStarted,
+      locked,
+      submitted,
+      excRaised,
+      budgetedHours,
+      loggedHours,
+    };
+  }, [executions]);
+
+  const excStats = useMemo(() => {
+    const critical = exceptions.filter((e) => e.severity === "Critical").length;
+    const high = exceptions.filter((e) => e.severity === "High").length;
+    const medium = exceptions.filter((e) => e.severity === "Medium").length;
+    const low = exceptions.filter((e) => e.severity === "Low").length;
+    const totalImpact = exceptions.reduce((s, e) => s + e.financialImpact, 0);
+    const aboveMateriality = materiality
+      ? exceptions.filter(
+          (e) => e.financialImpact > (materiality.overallMateriality || 0),
+        ).length
+      : 0;
+    return {
+      critical,
+      high,
+      medium,
+      low,
+      total: exceptions.length,
+      totalImpact,
+      aboveMateriality,
+    };
+  }, [exceptions, materiality]);
+
+  const toggleArea = useCallback((area: string) => {
+    setExpandedAreas((prev) => ({ ...prev, [area]: !prev[area] }));
+  }, []);
 
   const fieldworkApproval = store
     .getAuditApprovals(auditId)
     .find((a) => a.stage === "Fieldwork");
-  const fieldworkStatus = fieldworkApproval?.status;
+  const allCleared =
+    executions.length > 0 &&
+    executions.every(
+      (e) => e.status === "Cleared" || e.status === "Limitation",
+    );
+  const allExceptionsClassified = exceptions.every((e) => e.classification);
+  const canComplete = allCleared && allExceptionsClassified && isLead;
 
-  /* ─── Evidence upload handler ─── */
-  const handleEvidenceUpload = (context: string) => {
+  const pctCleared =
+    stats.total > 0 ? Math.round((stats.cleared / stats.total) * 100) : 0;
+  const supervisorCheckpoint =
+    isSupervisor && fieldworkApproval?.status !== "Approved"
+      ? pctCleared >= 75
+        ? "75%"
+        : pctCleared >= 50
+          ? "50%"
+          : pctCleared >= 25
+            ? "25%"
+            : null
+      : null;
+
+  return (
+    <div>
+      {!embedded && (
+        <div className={s.pageHeader}>
+          <div>
+            <h1 className={s.pageTitle}>Fieldwork — {lgaName}</h1>
+            <p className={s.pageSubtitle}>
+              Execute audit procedures, document evidence, and log findings
+            </p>
+            {fieldworkApproval && (
+              <StatusBadge
+                label={
+                  fieldworkApproval.status === "Pending"
+                    ? "Submitted — Awaiting Supervisor Review"
+                    : fieldworkApproval.status === "Approved"
+                      ? "Fieldwork Complete"
+                      : "Changes Requested"
+                }
+                variant={
+                  fieldworkApproval.status === "Approved"
+                    ? "success"
+                    : fieldworkApproval.status === "Pending"
+                      ? "info"
+                      : "error"
+                }
+                size="md"
+              />
+            )}
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            {isWriter && !showRequisition && (
+              <button
+                className={s.btnOutline}
+                onClick={() => setShowRequisition(true)}
+              >
+                <Send size={14} /> Document Requisition
+              </button>
+            )}
+            {canComplete && !fieldworkApproval && (
+              <button
+                className={s.btnPrimary}
+                onClick={() => setShowCompletionModal(true)}
+              >
+                <CheckCircle size={14} /> Complete Fieldwork
+              </button>
+            )}
+            {isSupervisor && fieldworkApproval?.status === "Pending" && (
+              <>
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => {
+                    store.reviewStageApproval(
+                      fieldworkApproval.id,
+                      user?.id || "",
+                      true,
+                    );
+                    store.updateAuditStatus(auditId, "Reporting");
+                    if (fieldworkMemo) {
+                      store.updateFieldworkMemo(fieldworkMemo.id, {
+                        signedBySupervisor: true,
+                        signedBySupervisorAt: new Date().toISOString(),
+                      });
+                    }
+                    store.addToast({
+                      type: "success",
+                      title: "Fieldwork Approved",
+                      message:
+                        "Completion memo routed to HLG for acknowledgement",
+                    });
+                  }}
+                >
+                  <CheckCircle size={14} /> Approve
+                </button>
+                <button
+                  className={s.btnDanger}
+                  onClick={() => {
+                    const reason = prompt(
+                      "Reason for requesting additional work:",
+                    );
+                    if (reason) {
+                      store.reviewStageApproval(
+                        fieldworkApproval.id,
+                        user?.id || "",
+                        false,
+                        reason,
+                      );
+                      store.addToast({
+                        type: "info",
+                        title: "Changes Requested",
+                        message: "Fieldwork returned for additional work",
+                      });
+                    }
+                  }}
+                >
+                  <X size={14} /> Request Changes
+                </button>
+              </>
+            )}
+            {isHlg &&
+              fieldworkApproval?.status === "Approved" &&
+              fieldworkMemo?.signedBySupervisor &&
+              !fieldworkMemo?.hlgAcknowledged && (
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => {
+                    if (fieldworkMemo) {
+                      store.updateFieldworkMemo(fieldworkMemo.id, {
+                        hlgAcknowledged: true,
+                        hlgAcknowledgedAt: new Date().toISOString(),
+                      });
+                    }
+                    store.addToast({
+                      type: "success",
+                      title: "Fieldwork Acknowledged",
+                      message: `${lgaName} fieldwork acknowledged — proceeding to Audit Queries`,
+                    });
+                  }}
+                >
+                  <CheckCircle size={14} /> Acknowledge Fieldwork Completion
+                </button>
+              )}
+          </div>
+        </div>
+      )}
+
+      <div className={s.kpiRow}>
+        <div className={s.kpiCard}>
+          <div className={s.kpiIconBlue}>
+            <ClipboardList size={20} />
+          </div>
+          <div>
+            <div className={s.kpiLabel}>Procedures</div>
+            <div className={s.kpiValue}>
+              {stats.cleared}/{stats.total}
+            </div>
+            <div className={s.kpiMeta}>
+              {stats.inProgress} in progress · {stats.locked} locked
+            </div>
+          </div>
+        </div>
+        <div className={s.kpiCard}>
+          <div className={s.kpiIconAmber}>
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <div className={s.kpiLabel}>Exceptions</div>
+            <div className={s.kpiValue}>{excStats.total}</div>
+            <div className={s.kpiMeta}>
+              {excStats.critical} critical · {excStats.high} high
+            </div>
+          </div>
+        </div>
+        <div className={s.kpiCard}>
+          <div className={s.kpiIconPurple}>
+            <Clock size={20} />
+          </div>
+          <div>
+            <div className={s.kpiLabel}>Hours</div>
+            <div className={s.kpiValue}>
+              {stats.loggedHours}/{stats.budgetedHours}
+            </div>
+            <div className={s.kpiMeta}>
+              {stats.budgetedHours > 0
+                ? Math.round((stats.loggedHours / stats.budgetedHours) * 100)
+                : 0}
+              % utilised
+            </div>
+          </div>
+        </div>
+        <div className={s.kpiCard}>
+          <div className={s.kpiIconGreen}>
+            <DollarSign size={20} />
+          </div>
+          <div>
+            <div className={s.kpiLabel}>Financial Exposure</div>
+            <div className={s.kpiValue}>
+              ₦{(excStats.totalImpact / 1e6).toFixed(1)}M
+            </div>
+            <div className={s.kpiMeta}>
+              {excStats.aboveMateriality} above materiality
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {supervisorCheckpoint && (
+        <div
+          style={{
+            background: "#fffbeb",
+            border: "1px solid #fcd34d",
+            borderRadius: "0.5rem",
+            padding: "0.75rem 1rem",
+            marginBottom: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            fontSize: "0.82rem",
+          }}
+        >
+          <ShieldCheck size={16} style={{ color: "#d97706", flexShrink: 0 }} />
+          <span>
+            <strong>{supervisorCheckpoint} procedures cleared.</strong>{" "}
+            {supervisorCheckpoint} interim review checkpoint reached — please
+            review all cleared working papers in the Working Papers tab before
+            proceeding.
+          </span>
+        </div>
+      )}
+
+      {isHlg &&
+        fieldworkApproval?.status === "Approved" &&
+        fieldworkMemo?.signedBySupervisor &&
+        !fieldworkMemo?.hlgAcknowledged && (
+          <div
+            style={{
+              background: "#eff6ff",
+              border: "1px solid #93c5fd",
+              borderRadius: "0.5rem",
+              padding: "0.75rem 1rem",
+              marginBottom: "1rem",
+              fontSize: "0.82rem",
+            }}
+          >
+            <strong>Fieldwork Completion — Acknowledgement Required.</strong>{" "}
+            The Audit Supervisor has signed off the Completion Memorandum for{" "}
+            {lgaName}. Please click &ldquo;Acknowledge Fieldwork
+            Completion&rdquo; above to confirm governance visibility and proceed
+            to Audit Queries.
+          </div>
+        )}
+
+      {showRequisition && (
+        <RequisitionPanel
+          requisitions={requisitions}
+          store={store}
+          auditId={auditId}
+          lgaName={lgaName}
+          isLead={!!isLead}
+          onClose={() => setShowRequisition(false)}
+        />
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: "0.35rem",
+          marginBottom: "1.25rem",
+          flexWrap: "wrap",
+        }}
+      >
+        {PANELS.map((p) => (
+          <button
+            key={p.key}
+            className={
+              activePanel === p.key ? s.filterChipActive : s.filterChip
+            }
+            onClick={() => setActivePanel(p.key)}
+            style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}
+          >
+            {p.icon} {p.label}
+          </button>
+        ))}
+      </div>
+
+      {activePanel === "tracker" && (
+        <ProcedureTrackerPanel
+          areaGroups={areaGroups}
+          stats={stats}
+          expandedAreas={expandedAreas}
+          toggleArea={toggleArea}
+          store={store}
+          userId={user?.id || ""}
+          isWriter={!!isWriter}
+          isLead={!!isLead}
+          isSupervisor={!!isSupervisor}
+          onOpenProcedure={setOpenProcedure}
+        />
+      )}
+
+      {activePanel === "evidence" && (
+        <EvidenceLibraryPanel executions={executions} store={store} />
+      )}
+
+      {activePanel === "exceptions" && (
+        <ExceptionsRegisterPanel
+          exceptions={exceptions}
+          excStats={excStats}
+          excFilter={excFilter}
+          setExcFilter={setExcFilter}
+          store={store}
+          userId={user?.id || ""}
+          isLead={!!isLead}
+          isSupervisor={!!isSupervisor}
+          materiality={materiality}
+        />
+      )}
+
+      {activePanel === "workpapers" && (
+        <WorkingPapersPanel
+          workingPapers={workingPapers}
+          wpFilter={wpFilter}
+          setWpFilter={setWpFilter}
+          store={store}
+          userId={user?.id || ""}
+          isLead={!!isLead}
+          isSupervisor={!!isSupervisor}
+        />
+      )}
+
+      {openProcedure && (
+        <ProcedureWorkspace
+          executionId={openProcedure}
+          store={store}
+          userId={user?.id || ""}
+          userName={user?.name || ""}
+          userRole={user?.role || "TEAM_AUDITOR"}
+          isWriter={!!isWriter}
+          isLead={!!isLead}
+          isSupervisor={!!isSupervisor}
+          auditId={auditId}
+          bankAccounts={bankAccounts}
+          contractFlags={contractFlags}
+          onClose={() => setOpenProcedure(null)}
+        />
+      )}
+
+      {showCompletionModal && (
+        <FieldworkCompletionModal
+          auditId={auditId}
+          stats={stats}
+          excStats={excStats}
+          exceptions={exceptions}
+          store={store}
+          userId={user?.id || ""}
+          lgaName={lgaName}
+          memo={fieldworkMemo}
+          executions={executions}
+          materiality={materiality?.overallMateriality ?? 0}
+          onClose={() => setShowCompletionModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default FieldworkPage;
+
+const Card: React.FC<{
+  title?: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+  borderColor?: string;
+}> = ({ title, children, action, borderColor }) => (
+  <div
+    className={s.card}
+    style={borderColor ? { borderLeft: `4px solid ${borderColor}` } : undefined}
+  >
+    {title && (
+      <div
+        className={s.cardHeader}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h3 className={s.cardTitle}>{title}</h3>
+        {action}
+      </div>
+    )}
+    <div className={s.cardBody}>{children}</div>
+  </div>
+);
+
+const RequisitionPanel: React.FC<{
+  requisitions: DocumentRequisition[];
+  store: AuditStore;
+  auditId: string;
+  lgaName: string;
+  isLead: boolean;
+  onClose: () => void;
+}> = ({ requisitions, store, auditId, lgaName, isLead, onClose }) => {
+  const issued = requisitions.some((r) => r.status !== "Pending");
+  const receivedCount = requisitions.filter(
+    (r) => r.status === "Received",
+  ).length;
+
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newDocName, setNewDocName] = useState("");
+  const [newDocArea, setNewDocArea] = useState("");
+  const [newDocDeadline, setNewDocDeadline] = useState("");
+
+  const today = new Date();
+  const getOverdueDays = (r: DocumentRequisition) => {
+    if (r.status === "Received" || r.status === "Waived") return 0;
+    const deadline = new Date(r.neededBy);
+    const diff = Math.floor((today.getTime() - deadline.getTime()) / 86400000);
+    return diff > 0 ? diff : 0;
+  };
+
+  const handleAddItem = () => {
+    if (!newDocName.trim() || !newDocArea.trim() || !newDocDeadline) return;
+    const nextRef = `REQ-${String(requisitions.length + 1).padStart(3, "0")}`;
+    store.addDocumentRequisition({
+      auditId,
+      ref: nextRef,
+      documentName: newDocName.trim(),
+      auditArea: newDocArea.trim(),
+      neededBy: newDocDeadline,
+      status: "Pending",
+      linkedProcedureIds: [],
+    });
+    setNewDocName("");
+    setNewDocArea("");
+    setNewDocDeadline("");
+    setShowAddItem(false);
+    store.addToast({
+      type: "success",
+      title: "Item Added",
+      message: `${nextRef} added to requisition list`,
+    });
+  };
+
+  const handleIssue = () => {
+    requisitions.forEach((r) => {
+      if (r.status === "Pending") {
+        store.updateRequisitionStatus(r.id, "Issued");
+      }
+    });
+    store.addToast({
+      type: "success",
+      title: "Requisition Issued",
+      message: `Document requisition list sent to Council Treasurer of ${lgaName}`,
+    });
+    store.logActivity({
+      userId: "",
+      action: "ISSUE_REQUISITION",
+      details: `Requisition issued to ${lgaName} — ${requisitions.length} documents`,
+      entityType: "fieldwork",
+      entityId: auditId,
+    });
+  };
+
+  const handleReceive = (reqId: string) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".pdf,.jpg,.jpeg,.png,.xlsx,.csv,.doc,.docx";
-    input.multiple = true;
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files && files.length > 0) {
-        if (context === "substantive") {
-          const newFiles = Array.from(files).map((f) => ({
-            name: f.name,
-            url: URL.createObjectURL(f),
-            type: f.name.split(".").pop()?.toUpperCase() || "FILE",
-            size: `${(f.size / 1024).toFixed(1)} KB`,
-            uploadedAt: new Date().toISOString(),
-            uploadedBy: user?.name || "Unknown",
-          }));
-          setSubEvidence((prev) => [...prev, ...newFiles]);
-        }
+    input.accept = ".pdf,.xlsx,.csv,.doc,.docx,.jpg,.png";
+    input.onchange = (ev) => {
+      const f = (ev.target as HTMLInputElement).files?.[0];
+      if (f) {
+        const url = URL.createObjectURL(f);
+        store.updateRequisitionStatus(reqId, "Received", f.name, url);
         store.addToast({
           type: "success",
-          title: "Evidence Attached",
-          message: `${files.length} file(s) uploaded for ${context}`,
+          title: "Document Received",
+          message: `${f.name} received and tagged to requisition`,
         });
       }
     };
@@ -895,1839 +788,4932 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
   };
 
   return (
-    <div>
-      {/* ─── Page Header ─── */}
-      {!embedded && (
-        <div className={s.pageHeader}>
-          <div>
-            <h1 className={s.pageTitle}>Fieldwork — {lgaName}</h1>
-            <p className={s.pageSubtitle}>
-              Execute audit procedures, test controls, and document findings
-            </p>
-            {fieldworkStatus && (
-              <StatusBadge
-                label={
-                  fieldworkStatus === "Pending"
-                    ? "Submitted — Awaiting Review"
-                    : fieldworkStatus === "Approved"
-                      ? "Fieldwork Approved"
-                      : "Changes Requested"
-                }
-                variant={
-                  fieldworkStatus === "Approved"
-                    ? "success"
-                    : fieldworkStatus === "Changes Requested"
-                      ? "error"
-                      : "info"
-                }
-                size="md"
-              />
-            )}
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            {isWriter && !fieldworkStatus && (
-              <button className={s.btnPrimary} onClick={handleSubmitFieldwork}>
-                <CheckCircle size={14} /> Submit Fieldwork
-              </button>
-            )}
-            {isReviewer && fieldworkStatus === "Pending" && (
-              <>
-                <button
-                  className={s.btnPrimary}
-                  onClick={handleApproveFieldwork}
-                >
-                  <CheckCircle size={14} /> Approve
-                </button>
-                <button className={s.btnDanger} onClick={handleRejectFieldwork}>
-                  <XCircle size={14} /> Request Changes
-                </button>
-              </>
-            )}
-          </div>
+    <Card
+      title={`Document Requisition — ${lgaName}`}
+      borderColor="#2563eb"
+      action={
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+            {receivedCount}/{requisitions.length} received
+          </span>
+          <button className={s.btnIcon} onClick={onClose}>
+            <X size={14} />
+          </button>
         </div>
-      )}
-
-      {/* ─── KPI Row ─── */}
-      <div className={s.kpiRow}>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconBlue}>
-            <Shield size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Controls Tested</div>
-            <div className={s.kpiValue}>{controlTests.length}</div>
-            <div className={s.kpiMeta}>
-              {effectiveControls} effective · {ineffectiveControls} ineffective
-            </div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconAmber}>
-            <Search size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Substantive Tests</div>
-            <div className={s.kpiValue}>{substantiveTests.length}</div>
-            <div className={s.kpiMeta}>
-              {totalExceptions} exceptions · ₦{(totalExcAmt / 1e6).toFixed(1)}M
-            </div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconPurple}>
-            <AlertTriangle size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Fraud Flags</div>
-            <div className={s.kpiValue}>{fraudFlags.length}</div>
-            <div className={s.kpiMeta}>
-              {criticalFraud} critical · {openFraud} open
-            </div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconGreen}>
-            <Activity size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Fieldwork Progress</div>
-            <div className={s.kpiValue}>
-              {fieldworkStatus === "Approved"
-                ? "100%"
-                : `${Math.min(
-                    100,
-                    Math.round(
-                      (controlTests.length > 0 ? 30 : 0) +
-                        (substantiveTests.length > 0
-                          ? 30 *
-                            (substantiveTests.filter(
-                              (t) => t.status === "Completed",
-                            ).length /
-                              Math.max(1, substantiveTests.length))
-                          : 0) +
-                        (analyticalRows.some((r) => r.conclusion) ? 15 : 0) +
-                        (complianceChecks.some((c) => c.compliant) ? 15 : 0) +
-                        (physicalItems.some((p) => p.exists) ? 10 : 0),
-                    ),
-                  )}%`}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Tabs ─── */}
-      <div className={s.tabs}>
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            className={activeTab === tab.key ? s.tabActive : s.tab}
-            onClick={() => {
-              setActiveTab(tab.key);
-              setShowForm(false);
-            }}
-          >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.4rem",
-              }}
-            >
-              {tab.icon} {tab.label}
-              {tab.key === "fraud" && fraudFlags.length > 0 && (
-                <span
+      }
+    >
+      <div className={s.tableWrap}>
+        <table className={s.table}>
+          <thead>
+            <tr>
+              <th>Ref</th>
+              <th>Document Required</th>
+              <th>Audit Area</th>
+              <th>Needed By</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {requisitions.map((r) => (
+              <tr key={r.id}>
+                <td style={{ fontWeight: 600, fontSize: "0.78rem" }}>
+                  {r.ref}
+                </td>
+                <td
                   style={{
-                    background: "#dc2626",
-                    color: "#fff",
-                    borderRadius: "99px",
-                    fontSize: "0.65rem",
-                    padding: "0.1rem 0.45rem",
-                    fontWeight: 700,
+                    maxWidth: "260px",
+                    whiteSpace: "normal",
+                    fontSize: "0.82rem",
                   }}
                 >
-                  {fraudFlags.length}
-                </span>
-              )}
-            </span>
-          </button>
-        ))}
+                  {r.documentName}
+                </td>
+                <td style={{ fontSize: "0.78rem" }}>{r.auditArea}</td>
+                <td style={{ fontSize: "0.78rem" }}>
+                  {new Date(r.neededBy).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                  {getOverdueDays(r) > 0 && (
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color:
+                          getOverdueDays(r) >= 7
+                            ? "#dc2626"
+                            : getOverdueDays(r) >= 3
+                              ? "#ea580c"
+                              : "#ca8a04",
+                        marginTop: "0.1rem",
+                      }}
+                    >
+                      {getOverdueDays(r)} day
+                      {getOverdueDays(r) !== 1 ? "s" : ""} overdue
+                      {getOverdueDays(r) >= 7 && " — Non-Cooperation Risk"}
+                      {getOverdueDays(r) >= 3 &&
+                        getOverdueDays(r) < 7 &&
+                        " — Send Reminder"}
+                    </span>
+                  )}
+                </td>
+                <td>
+                  <StatusBadge
+                    label={r.status}
+                    variant={reqStatusVariant(r.status)}
+                  />
+                </td>
+                <td>
+                  {r.status === "Issued" && (
+                    <button
+                      className={s.btnIcon}
+                      onClick={() => handleReceive(r.id)}
+                      title="Upload received document"
+                    >
+                      <Upload size={13} />
+                    </button>
+                  )}
+                  {r.status === "Received" && r.receivedFileName && (
+                    <span style={{ fontSize: "0.72rem", color: "#15803d" }}>
+                      {r.receivedFileName}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {/* ─────────────────────────────────────────── */}
-      {/* TAB 1: INTERNAL CONTROLS                   */}
-      {/* ─────────────────────────────────────────── */}
-      {activeTab === "controls" && (
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3
+      {isLead && !issued && (
+        <div className={s.formActions}>
+          <button className={s.btnPrimary} onClick={handleIssue}>
+            <Send size={14} /> Issue Requisition
+          </button>
+        </div>
+      )}
+      {isLead && (
+        <div style={{ marginTop: "0.75rem" }}>
+          {!showAddItem ? (
+            <button
+              className={s.btnOutline}
+              onClick={() => setShowAddItem(true)}
+              style={{ fontSize: "0.75rem" }}
+            >
+              + Add Item
+            </button>
+          ) : (
+            <div
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
+                display: "grid",
+                gridTemplateColumns: "2fr 1fr 1fr auto auto",
+                gap: "0.5rem",
+                alignItems: "flex-end",
+                padding: "0.75rem",
+                background: "#f8fafc",
+                borderRadius: "0.5rem",
+                border: "1px solid #e2e8f0",
               }}
             >
-              Internal Control Evaluation
-            </h3>
-            {isWriter && (
+              <div className={s.formGroup} style={{ margin: 0 }}>
+                <label className={s.formLabel}>Document Name</label>
+                <input
+                  className={s.formInput}
+                  value={newDocName}
+                  onChange={(e) => setNewDocName(e.target.value)}
+                  placeholder="e.g. Internal audit reports FY2024"
+                />
+              </div>
+              <div className={s.formGroup} style={{ margin: 0 }}>
+                <label className={s.formLabel}>Audit Area</label>
+                <input
+                  className={s.formInput}
+                  value={newDocArea}
+                  onChange={(e) => setNewDocArea(e.target.value)}
+                  placeholder="e.g. IA Review"
+                />
+              </div>
+              <div className={s.formGroup} style={{ margin: 0 }}>
+                <label className={s.formLabel}>Needed By</label>
+                <input
+                  type="date"
+                  className={s.formInput}
+                  value={newDocDeadline}
+                  onChange={(e) => setNewDocDeadline(e.target.value)}
+                />
+              </div>
               <button
                 className={s.btnPrimary}
-                onClick={() => setShowForm(!showForm)}
+                onClick={handleAddItem}
+                style={{ fontSize: "0.75rem", alignSelf: "flex-end" }}
               >
-                <Plus size={14} /> New Control Test
+                Add
               </button>
-            )}
-          </div>
-
-          {showForm && isWriter && (
-            <div className={s.card} style={{ marginBottom: "1.5rem" }}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Record Control Test</h3>
-              </div>
-              <div className={s.cardBody}>
-                <div className={s.formGrid}>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Control Area</label>
-                    <select
-                      className={s.formSelect}
-                      value={ctrlArea}
-                      onChange={(e) => setCtrlArea(e.target.value)}
-                    >
-                      {CONTROL_AREAS.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Test Result</label>
-                    <select
-                      className={s.formSelect}
-                      value={ctrlResult}
-                      onChange={(e) =>
-                        setCtrlResult(e.target.value as ControlTestResult)
-                      }
-                    >
-                      <option value="Not Tested">Not Tested</option>
-                      <option value="Effective">Effective</option>
-                      <option value="Partially Effective">
-                        Partially Effective
-                      </option>
-                      <option value="Ineffective">Ineffective</option>
-                    </select>
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Control Description</label>
-                    <textarea
-                      className={s.formTextarea}
-                      value={ctrlDesc}
-                      onChange={(e) => setCtrlDesc(e.target.value)}
-                      placeholder="Describe the control being tested..."
-                      rows={2}
-                    />
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Test Procedure</label>
-                    <textarea
-                      className={s.formTextarea}
-                      value={ctrlProc}
-                      onChange={(e) => setCtrlProc(e.target.value)}
-                      placeholder="Describe how the control was tested (sample size, methods)..."
-                      rows={2}
-                    />
-                  </div>
-                  {(ctrlResult === "Ineffective" ||
-                    ctrlResult === "Partially Effective") && (
-                    <>
-                      <div className={s.formGroupFull}>
-                        <label className={s.formLabel}>
-                          Weakness Identified{" "}
-                          <span style={{ color: "#dc2626" }}>
-                            (min 50 words)
-                          </span>
-                        </label>
-                        <textarea
-                          className={s.formTextarea}
-                          value={ctrlWeakness}
-                          onChange={(e) => setCtrlWeakness(e.target.value)}
-                          placeholder="Describe the weakness in detail..."
-                          rows={3}
-                        />
-                        <span style={{ fontSize: "0.72rem", color: "#64748b" }}>
-                          {
-                            ctrlWeakness.trim().split(/\s+/).filter(Boolean)
-                              .length
-                          }{" "}
-                          words
-                        </span>
-                      </div>
-                      <div className={s.formGroupFull}>
-                        <label className={s.formLabel}>Recommendation</label>
-                        <textarea
-                          className={s.formTextarea}
-                          value={ctrlRec}
-                          onChange={(e) => setCtrlRec(e.target.value)}
-                          placeholder="Recommended corrective action..."
-                          rows={2}
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className={s.formActions}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => {
-                      resetControlForm();
-                      setShowForm(false);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className={s.btnPrimary}
-                    onClick={handleAddControl}
-                    disabled={!ctrlDesc.trim() || !ctrlProc.trim()}
-                  >
-                    <Shield size={14} /> Save Control Test
-                  </button>
-                </div>
-              </div>
+              <button
+                className={s.btnSecondary}
+                onClick={() => setShowAddItem(false)}
+                style={{ fontSize: "0.75rem", alignSelf: "flex-end" }}
+              >
+                Cancel
+              </button>
             </div>
           )}
+        </div>
+      )}
+    </Card>
+  );
+};
 
-          {controlTests.length > 0 ? (
-            <div className={s.card}>
+const ProcedureTrackerPanel: React.FC<{
+  areaGroups: Record<string, ProcedureExecution[]>;
+  stats: {
+    total: number;
+    cleared: number;
+    inProgress: number;
+    notStarted: number;
+    locked: number;
+    submitted: number;
+    excRaised: number;
+    budgetedHours: number;
+    loggedHours: number;
+  };
+  expandedAreas: Record<string, boolean>;
+  toggleArea: (area: string) => void;
+  store: AuditStore;
+  userId: string;
+  isWriter: boolean;
+  isLead: boolean;
+  isSupervisor: boolean;
+  onOpenProcedure: (id: string) => void;
+}> = ({
+  areaGroups,
+  stats,
+  expandedAreas,
+  toggleArea,
+  store,
+  isWriter,
+  onOpenProcedure,
+}) => {
+  const pct =
+    stats.total > 0 ? Math.round((stats.cleared / stats.total) * 100) : 0;
+
+  return (
+    <div>
+      <Card borderColor="#2563eb">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "1rem",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#64748b",
+                marginBottom: "0.15rem",
+              }}
+            >
+              Fieldwork Progress
+            </div>
+            <div style={{ fontSize: "0.82rem", color: "#334155" }}>
+              Total: <strong>{stats.total}</strong> · Cleared:{" "}
+              <strong>{stats.cleared}</strong> · In Progress:{" "}
+              <strong>{stats.inProgress}</strong> · Not Started:{" "}
+              <strong>{stats.notStarted}</strong> · Locked:{" "}
+              <strong>{stats.locked}</strong>
+            </div>
+            <div
+              style={{
+                fontSize: "0.78rem",
+                color: "#64748b",
+                marginTop: "0.15rem",
+              }}
+            >
+              Exceptions: {stats.excRaised} · Hours: {stats.loggedHours}/
+              {stats.budgetedHours}
+            </div>
+          </div>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+          >
+            <div style={{ width: "140px" }}>
+              <div className={s.progressBar}>
+                <div className={s.progressFill} style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700 }}>{pct}%</span>
+          </div>
+        </div>
+      </Card>
+
+      {Object.entries(areaGroups).map(([area, procs]) => {
+        const areaCleared = procs.filter(
+          (p) => p.status === "Cleared" || p.status === "Limitation",
+        ).length;
+        const expanded = expandedAreas[area] !== false;
+        return (
+          <div key={area} className={s.card} style={{ marginTop: "0.75rem" }}>
+            <div
+              className={s.cardHeader}
+              style={{ cursor: "pointer", userSelect: "none" }}
+              onClick={() => toggleArea(area)}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                {expanded ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+                {AREA_ICONS[area] || <ClipboardList size={14} />}
+                <h3 className={s.cardTitle} style={{ margin: 0 }}>
+                  {area}
+                </h3>
+                <span
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: areaCleared === procs.length ? "#15803d" : "#64748b",
+                  }}
+                >
+                  {areaCleared}/{procs.length}
+                </span>
+              </div>
+              <div className={s.progressBar} style={{ width: "100px" }}>
+                <div
+                  className={s.progressFill}
+                  style={{
+                    width: `${procs.length > 0 ? (areaCleared / procs.length) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+            {expanded && (
               <div className={s.tableWrap}>
                 <table className={s.table}>
                   <thead>
                     <tr>
-                      <th>Control Area</th>
-                      <th>Description</th>
-                      <th>Test Procedure</th>
-                      <th>Result</th>
-                      <th>Tested By</th>
-                      <th>Date</th>
+                      <th style={{ width: "80px" }}>Ref</th>
+                      <th>Procedure</th>
+                      <th>Assignee</th>
+                      <th>Status</th>
+                      <th>Due</th>
+                      <th>Hours</th>
+                      <th>Evidence</th>
+                      <th>Exc.</th>
+                      {isWriter && <th>Action</th>}
                     </tr>
                   </thead>
                   <tbody>
-                    {controlTests.map((ct) => (
-                      <tr key={ct.id}>
-                        <td style={{ fontWeight: 600 }}>{ct.controlArea}</td>
+                    {procs.map((proc) => (
+                      <tr
+                        key={proc.id}
+                        style={
+                          proc.status === "Locked"
+                            ? { opacity: 0.55 }
+                            : undefined
+                        }
+                      >
                         <td
                           style={{
-                            maxWidth: "200px",
-                            whiteSpace: "normal",
-                            fontSize: "0.82rem",
+                            fontWeight: 600,
+                            fontSize: "0.78rem",
+                            fontFamily: "monospace",
                           }}
                         >
-                          {ct.controlDescription}
+                          {proc.procedureRef}
                         </td>
                         <td
                           style={{
-                            maxWidth: "200px",
+                            maxWidth: "300px",
                             whiteSpace: "normal",
                             fontSize: "0.82rem",
                           }}
                         >
-                          {ct.testProcedure}
+                          {proc.procedureDescription}
+                        </td>
+                        <td style={{ fontSize: "0.78rem" }}>
+                          {userName(proc.assignedTo, store)}
                         </td>
                         <td>
                           <StatusBadge
-                            label={ct.result}
-                            variant={controlResultVariant(ct.result)}
+                            label={proc.status}
+                            variant={statusBadgeVariant(proc.status)}
                           />
                         </td>
-                        <td style={{ fontSize: "0.82rem" }}>
-                          {userName(ct.testedBy)}
+                        <td style={{ fontSize: "0.78rem" }}>
+                          {new Date(proc.dueDate).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                          })}
                         </td>
-                        <td style={{ fontSize: "0.78rem", color: "#64748b" }}>
-                          {new Date(ct.testedAt).toLocaleDateString("en-NG")}
+                        <td style={{ fontSize: "0.78rem" }}>
+                          {proc.loggedHours.toFixed(1)}/{proc.budgetedHours}
                         </td>
+                        <td style={{ fontSize: "0.78rem" }}>
+                          {proc.evidence.length} file
+                          {proc.evidence.length !== 1 ? "s" : ""}
+                        </td>
+                        <td style={{ fontSize: "0.78rem" }}>
+                          {proc.exceptionIds.length}
+                        </td>
+                        {isWriter && (
+                          <td>
+                            {proc.status !== "Locked" && (
+                              <button
+                                className={s.btnIcon}
+                                onClick={() => onOpenProcedure(proc.id)}
+                                title="Open Procedure"
+                              >
+                                <ArrowRight size={13} />
+                              </button>
+                            )}
+                            {proc.status === "Locked" && (
+                              <Lock size={13} style={{ color: "#94a3b8" }} />
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              {/* Summary panel */}
-              <div className={s.cardFooter}>
-                <div style={{ display: "flex", gap: "2rem" }}>
-                  <span>
-                    <strong>Effective:</strong> {effectiveControls}
-                  </span>
-                  <span>
-                    <strong>Partially Effective:</strong>{" "}
-                    {
-                      controlTests.filter(
-                        (c) => c.result === "Partially Effective",
-                      ).length
-                    }
-                  </span>
-                  <span style={{ color: "#dc2626" }}>
-                    <strong>Ineffective:</strong> {ineffectiveControls}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={s.card}>
-              <div className={s.cardBody}>
-                <div className={s.emptyState}>
-                  <Shield size={40} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>
-                    No control tests recorded yet
-                  </div>
-                  <div className={s.emptyDesc}>
-                    Begin by testing key internal controls for the LGA's
-                    financial operations.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Weakness details */}
-          {controlTests.filter((c) => c.weakness).length > 0 && (
-            <div className={s.card}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>
-                  <AlertTriangle
-                    size={16}
-                    style={{ color: "#dc2626", marginRight: "0.5rem" }}
-                  />
-                  Control Weaknesses Identified (
-                  {controlTests.filter((c) => c.weakness).length})
-                </h3>
-              </div>
-              <div className={s.cardBody}>
-                {controlTests
-                  .filter((c) => c.weakness)
-                  .map((ct) => (
-                    <div key={ct.id} className={s.findingCard}>
-                      <div className={s.findingHeader}>
-                        <div className={s.findingTitle}>{ct.controlArea}</div>
-                        <StatusBadge
-                          label={ct.result}
-                          variant={controlResultVariant(ct.result)}
-                        />
-                      </div>
-                      <div className={s.findingBody}>{ct.weakness}</div>
-                      {ct.recommendation && (
-                        <div className={s.findingRec}>
-                          Recommendation: {ct.recommendation}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────── */}
-      {/* TAB 2: SUBSTANTIVE TESTS                   */}
-      {/* ─────────────────────────────────────────── */}
-      {activeTab === "substantive" && (
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
-              }}
-            >
-              Substantive Testing
-            </h3>
-            {isWriter && (
-              <button
-                className={s.btnPrimary}
-                onClick={() => setShowForm(!showForm)}
-              >
-                <Plus size={14} /> New Substantive Test
-              </button>
             )}
           </div>
-
-          {showForm && isWriter && (
-            <div className={s.card} style={{ marginBottom: "1.5rem" }}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Record Substantive Test</h3>
-              </div>
-              <div className={s.cardBody}>
-                <div className={s.formGrid}>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Test Area</label>
-                    <select
-                      className={s.formSelect}
-                      value={subArea}
-                      onChange={(e) =>
-                        setSubArea(e.target.value as SubstantiveTestArea)
-                      }
-                    >
-                      {(
-                        [
-                          "Revenue",
-                          "Expenditure",
-                          "Assets",
-                          "Liabilities",
-                          "Payroll",
-                          "Bank",
-                          "Procurement",
-                        ] as SubstantiveTestArea[]
-                      ).map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Population Size</label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={subPop || ""}
-                      onChange={(e) => setSubPop(Number(e.target.value))}
-                      placeholder="e.g., 3620"
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Sample Size</label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={subSample || ""}
-                      onChange={(e) => setSubSample(Number(e.target.value))}
-                      placeholder="e.g., 181"
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Exception Count</label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={subExcCount || ""}
-                      onChange={(e) => setSubExcCount(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Exception Amount (₦)</label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={subExcAmt || ""}
-                      onChange={(e) => setSubExcAmt(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>
-                      Sample Rate:{" "}
-                      {subPop > 0
-                        ? ((subSample / subPop) * 100).toFixed(1)
-                        : "0"}
-                      %
-                    </label>
-                    <div
-                      style={{
-                        fontSize: "0.82rem",
-                        color:
-                          subPop > 0 && subSample / subPop < 0.03
-                            ? "#dc2626"
-                            : "#15803d",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {subPop > 0 && subSample / subPop < 0.03
-                        ? "⚠ Below minimum 3% threshold"
-                        : "✓ Adequate sample"}
-                    </div>
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>
-                      Procedure / Test Description
-                    </label>
-                    <textarea
-                      className={s.formTextarea}
-                      value={subProc}
-                      onChange={(e) => setSubProc(e.target.value)}
-                      placeholder="E.g. Vouched transition to supporting doc, Verified accuracy, completeness..."
-                      rows={2}
-                    />
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>
-                      Conclusion & Exception Note
-                    </label>
-                    <textarea
-                      className={s.formTextarea}
-                      value={subConclusion}
-                      onChange={(e) => setSubConclusion(e.target.value)}
-                      placeholder="State conclusion on compliance. If exceptions found, categorization severity..."
-                      rows={2}
-                    />
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>
-                      Supporting Evidence ({subEvidence.length} files)
-                    </label>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <button
-                        className={s.btnSecondary}
-                        onClick={() => handleEvidenceUpload("substantive")}
-                      >
-                        <Upload size={14} /> Upload Evidence (PDF, Images, CSV)
-                      </button>
-                    </div>
-                    {subEvidence.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: "0.5rem",
-                          display: "flex",
-                          gap: "0.5rem",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        {subEvidence.map((f, i) => (
-                          <div
-                            key={i}
-                            className={s.poolTag}
-                            style={{
-                              padding: "0.3rem 0.6rem",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <span style={{ fontSize: "0.8rem" }}>
-                              {f.name}{" "}
-                              <span style={{ opacity: 0.6 }}>({f.size})</span>
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setPreviewDoc(f)}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                color: "#000",
-                              }}
-                              title="Preview"
-                            >
-                              <Eye size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className={s.formActions}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => {
-                      resetSubForm();
-                      setShowForm(false);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className={s.btnPrimary}
-                    onClick={handleAddSubstantive}
-                    disabled={!subProc.trim() || subPop <= 0 || subSample <= 0}
-                  >
-                    <Search size={14} /> Save Test
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {substantiveTests.length > 0 ? (
-            <div className={s.card}>
-              <div className={s.tableWrap}>
-                <table className={s.table}>
-                  <thead>
-                    <tr>
-                      <th>Area</th>
-                      <th>Procedure</th>
-                      <th>Population</th>
-                      <th>Sample</th>
-                      <th>Exceptions</th>
-                      <th>Exc. Amount</th>
-                      <th>Rate</th>
-                      <th>Status</th>
-                      <th>Evidence</th>
-                      <th>Performed By</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {substantiveTests.map((st) => {
-                      const rate =
-                        st.sampleSize > 0
-                          ? (st.exceptionCount / st.sampleSize) * 100
-                          : 0;
-                      return (
-                        <tr
-                          key={st.id}
-                          onClick={() => setSelectedSubstantiveTest(st)}
-                          style={{ cursor: "pointer" }}
-                          title="Click to view substantive test details"
-                        >
-                          <td style={{ fontWeight: 600 }}>{st.area}</td>
-                          <td
-                            style={{
-                              maxWidth: "250px",
-                              whiteSpace: "normal",
-                              fontSize: "0.82rem",
-                            }}
-                          >
-                            {st.procedure}
-                          </td>
-                          <td>{st.populationSize.toLocaleString()}</td>
-                          <td>{st.sampleSize.toLocaleString()}</td>
-                          <td>
-                            <span
-                              style={{
-                                color:
-                                  st.exceptionCount > 0 ? "#dc2626" : "#15803d",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {st.exceptionCount}
-                            </span>
-                          </td>
-                          <td>₦{st.exceptionAmount.toLocaleString()}</td>
-                          <td>
-                            <span
-                              style={{
-                                color:
-                                  rate > 10
-                                    ? "#dc2626"
-                                    : rate > 5
-                                      ? "#d97706"
-                                      : "#15803d",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {rate.toFixed(1)}%
-                            </span>
-                          </td>
-                          <td>
-                            <StatusBadge
-                              label={st.status}
-                              variant={substStatusVariant(st.status)}
-                            />
-                          </td>
-                          <td>
-                            <div style={{ display: "flex", gap: "0.2rem" }}>
-                              {st.evidenceFiles && st.evidenceFiles.length > 0 ? (
-                                st.evidenceFiles.map((file, idx) => (
-                                  <button
-                                    key={idx}
-                                    style={{
-                                      background: "none",
-                                      border: "none",
-                                      cursor: "pointer",
-                                      color: "#64748b",
-                                      padding: "0.2rem",
-                                      display: "flex",
-                                      alignItems: "center",
-                                    }}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      setPreviewDoc(file);
-                                    }}
-                                    title={file.name}
-                                  >
-                                    <FileText size={16} />
-                                  </button>
-                                ))
-                              ) : (
-                                <span style={{ color: "#9ca3af", fontSize: "0.8rem" }}>-</span>
-                              )}
-                            </div>
-                          </td>
-                          <td style={{ fontSize: "0.82rem" }}>
-                            {userName(st.performedBy)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <div className={s.cardFooter}>
-                Total Exceptions: {totalExceptions} · Total Exception Value: ₦
-                {totalExcAmt.toLocaleString()}
-              </div>
-            </div>
-          ) : (
-            <div className={s.card}>
-              <div className={s.cardBody}>
-                <div className={s.emptyState}>
-                  <Search size={40} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>
-                    No substantive tests recorded
-                  </div>
-                  <div className={s.emptyDesc}>
-                    Test account balances by vouching transactions and verifying
-                    accuracy.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Conclusions per area */}
-          {substantiveTests.filter((t) => t.conclusion).length > 0 && (
-            <div className={s.card}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Test Conclusions</h3>
-              </div>
-              <div className={s.cardBody}>
-                {substantiveTests
-                  .filter((t) => t.conclusion)
-                  .map((st) => (
-                    <div key={st.id} className={s.findingCard}>
-                      <div className={s.findingHeader}>
-                        <div className={s.findingTitle}>{st.area}</div>
-                        <StatusBadge
-                          label={st.status}
-                          variant={substStatusVariant(st.status)}
-                        />
-                      </div>
-                      <div className={s.findingBody}>{st.conclusion}</div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────── */}
-      {/* TAB 3: ANALYTICAL PROCEDURES               */}
-      {/* ─────────────────────────────────────────── */}
-      {activeTab === "analytical" && (
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
-              }}
-            >
-              Analytical Procedures — Year-on-Year Comparison
-            </h3>
-            {isWriter && (
-              <button
-                className={s.btnPrimary}
-                onClick={() => setShowForm(!showForm)}
-              >
-                <Plus size={14} /> Add Line Item
-              </button>
-            )}
-          </div>
-
-          {showForm && isWriter && (
-            <div className={s.card} style={{ marginBottom: "1.5rem" }}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Add Analytical Comparison</h3>
-              </div>
-              <div className={s.cardBody}>
-                <div className={s.formGrid}>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Financial Area</label>
-                    <input
-                      className={s.formInput}
-                      value={apArea}
-                      onChange={(e) => setApArea(e.target.value)}
-                      placeholder="e.g., Consultancy Fees, Grant Income..."
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>
-                      Current Year Amount (₦)
-                    </label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={apCurrent || ""}
-                      onChange={(e) => setApCurrent(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Prior Year Amount (₦)</label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={apPrior || ""}
-                      onChange={(e) => setApPrior(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                <div className={s.formActions}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => setShowForm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className={s.btnPrimary}
-                    onClick={addAnalyticalRow}
-                    disabled={!apArea.trim()}
-                  >
-                    <BarChart3 size={14} /> Add Row
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className={s.card}>
-            <div className={s.tableWrap}>
-              <table className={s.table}>
-                <thead>
-                  <tr>
-                    <th>Financial Area</th>
-                    <th style={{ textAlign: "right" }}>Current Year (₦)</th>
-                    <th style={{ textAlign: "right" }}>Prior Year (₦)</th>
-                    <th style={{ textAlign: "right" }}>Variance (₦)</th>
-                    <th style={{ textAlign: "right" }}>Variance %</th>
-                    <th>Trend</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analyticalRows.map((row) => (
-                    <tr key={row.id}>
-                      <td style={{ fontWeight: 600 }}>{row.area}</td>
-                      <td style={{ textAlign: "right" }}>
-                        {row.currentYear.toLocaleString()}
-                      </td>
-                      <td style={{ textAlign: "right" }}>
-                        {row.priorYear.toLocaleString()}
-                      </td>
-                      <td
-                        style={{
-                          textAlign: "right",
-                          color:
-                            row.variance < 0
-                              ? "#dc2626"
-                              : row.variance > 0
-                                ? "#15803d"
-                                : "#64748b",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {row.variance >= 0 ? "+" : ""}
-                        {row.variance.toLocaleString()}
-                      </td>
-                      <td
-                        style={{
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color:
-                            Math.abs(row.variancePct) > 25
-                              ? "#dc2626"
-                              : Math.abs(row.variancePct) > 15
-                                ? "#d97706"
-                                : "#15803d",
-                        }}
-                      >
-                        {row.variancePct >= 0 ? "+" : ""}
-                        {row.variancePct.toFixed(1)}%
-                      </td>
-                      <td>
-                        {row.variance > 0 ? (
-                          <TrendingUp size={16} style={{ color: "#15803d" }} />
-                        ) : row.variance < 0 ? (
-                          <TrendingDown
-                            size={16}
-                            style={{ color: "#dc2626" }}
-                          />
-                        ) : (
-                          <Minus size={16} style={{ color: "#64748b" }} />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Explanations & Conclusions */}
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>
-                Variance Investigation & Conclusions
-              </h3>
-            </div>
-            <div className={s.cardBody}>
-              {analyticalRows.map((row) => (
-                <div
-                  key={row.id}
-                  style={{
-                    padding: "1rem",
-                    borderBottom: "1px solid var(--border, #e2e8f0)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    <strong style={{ fontSize: "0.9rem" }}>{row.area}</strong>
-                    {Math.abs(row.variancePct) > 25 && (
-                      <StatusBadge label="MATERIAL VARIANCE" variant="error" />
-                    )}
-                    {Math.abs(row.variancePct) > 15 &&
-                      Math.abs(row.variancePct) <= 25 && (
-                        <StatusBadge label="INVESTIGATE" variant="warning" />
-                      )}
-                  </div>
-                  {isWriter ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem",
-                      }}
-                    >
-                      <textarea
-                        className={s.formTextarea}
-                        value={row.explanation}
-                        onChange={(e) =>
-                          updateAnalytical(
-                            row.id,
-                            "explanation",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="Management explanation for variance..."
-                        rows={2}
-                        style={{ minHeight: "50px" }}
-                      />
-                      <textarea
-                        className={s.formTextarea}
-                        value={row.conclusion}
-                        onChange={(e) =>
-                          updateAnalytical(row.id, "conclusion", e.target.value)
-                        }
-                        placeholder="Auditor conclusion..."
-                        rows={2}
-                        style={{ minHeight: "50px" }}
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      {row.explanation && (
-                        <div
-                          style={{
-                            fontSize: "0.85rem",
-                            color: "#334155",
-                            marginBottom: "0.3rem",
-                          }}
-                        >
-                          <strong>Explanation:</strong> {row.explanation}
-                        </div>
-                      )}
-                      {row.conclusion && (
-                        <div
-                          style={{
-                            fontSize: "0.85rem",
-                            color: "#064e3b",
-                            fontWeight: 500,
-                          }}
-                        >
-                          <strong>Conclusion:</strong> {row.conclusion}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────── */}
-      {/* TAB 4: COMPLIANCE CHECKS                   */}
-      {/* ─────────────────────────────────────────── */}
-      {activeTab === "compliance" && (
-        <div>
-          <div style={{ marginBottom: "1rem" }}>
-            <h3
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
-              }}
-            >
-              Regulatory Compliance Verification
-            </h3>
-            <p
-              style={{
-                fontSize: "0.85rem",
-                color: "#64748b",
-                marginTop: "0.25rem",
-              }}
-            >
-              Verify compliance with applicable financial regulations, acts, and
-              circulars
-            </p>
-          </div>
-
-          <div className={s.card}>
-            <div className={s.tableWrap}>
-              <table className={s.table}>
-                <thead>
-                  <tr>
-                    <th style={{ width: "200px" }}>Regulation</th>
-                    <th>Requirement</th>
-                    <th style={{ width: "120px" }}>Compliant?</th>
-                    <th>Evidence / Reference</th>
-                    <th>Finding</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {complianceChecks.map((cc) => (
-                    <tr key={cc.id}>
-                      <td style={{ fontWeight: 600, fontSize: "0.82rem" }}>
-                        {cc.regulation}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: "0.82rem",
-                          whiteSpace: "normal",
-                          maxWidth: "300px",
-                        }}
-                      >
-                        {cc.requirement}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <select
-                            className={s.formSelect}
-                            value={cc.compliant}
-                            onChange={(e) =>
-                              updateCompliance(
-                                cc.id,
-                                "compliant",
-                                e.target.value,
-                              )
-                            }
-                            style={{ minWidth: "100px" }}
-                          >
-                            <option value="">--</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                            <option value="Partial">Partial</option>
-                          </select>
-                        ) : (
-                          <StatusBadge
-                            label={cc.compliant || "Not Checked"}
-                            variant={
-                              cc.compliant === "Yes"
-                                ? "success"
-                                : cc.compliant === "No"
-                                  ? "error"
-                                  : cc.compliant === "Partial"
-                                    ? "warning"
-                                    : "default"
-                            }
-                          />
-                        )}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <input
-                            className={s.formInput}
-                            value={cc.evidence}
-                            onChange={(e) =>
-                              updateCompliance(
-                                cc.id,
-                                "evidence",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="e.g., WP Ref 3.2"
-                            style={{ minWidth: "150px" }}
-                          />
-                        ) : (
-                          <span style={{ fontSize: "0.82rem" }}>
-                            {cc.evidence || "—"}
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <input
-                            className={s.formInput}
-                            value={cc.finding}
-                            onChange={(e) =>
-                              updateCompliance(cc.id, "finding", e.target.value)
-                            }
-                            placeholder="Non-compliance details..."
-                            style={{ minWidth: "200px" }}
-                          />
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: "0.82rem",
-                              color: cc.finding ? "#dc2626" : "#64748b",
-                            }}
-                          >
-                            {cc.finding || "—"}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className={s.cardFooter}>
-              <div style={{ display: "flex", gap: "2rem" }}>
-                <span>
-                  <strong>Compliant:</strong>{" "}
-                  {complianceChecks.filter((c) => c.compliant === "Yes").length}
-                </span>
-                <span style={{ color: "#dc2626" }}>
-                  <strong>Non-Compliant:</strong>{" "}
-                  {complianceChecks.filter((c) => c.compliant === "No").length}
-                </span>
-                <span style={{ color: "#d97706" }}>
-                  <strong>Partial:</strong>{" "}
-                  {
-                    complianceChecks.filter((c) => c.compliant === "Partial")
-                      .length
-                  }
-                </span>
-                <span>
-                  <strong>Not Checked:</strong>{" "}
-                  {complianceChecks.filter((c) => !c.compliant).length}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {isWriter && (
-            <div
-              style={{
-                padding: "1rem",
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                borderRadius: "4px",
-                fontSize: "0.82rem",
-                color: "#15803d",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <FileCheck size={16} />
-              Upload supporting evidence for each compliance check by
-              referencing workpaper numbers in the Evidence column.
-              Non-compliance findings will auto-populate the Audit Report.
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────── */}
-      {/* TAB 5: PHYSICAL VERIFICATION               */}
-      {/* ─────────────────────────────────────────── */}
-      {activeTab === "physical" && (
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
-              }}
-            >
-              Physical Verification of Assets
-            </h3>
-            {isWriter && (
-              <button
-                className={s.btnPrimary}
-                onClick={() => setShowForm(!showForm)}
-              >
-                <Plus size={14} /> Add Asset for Verification
-              </button>
-            )}
-          </div>
-
-          {showForm && isWriter && (
-            <div className={s.card} style={{ marginBottom: "1.5rem" }}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Add Asset for Verification</h3>
-              </div>
-              <div className={s.cardBody}>
-                <div className={s.formGrid}>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Asset Description</label>
-                    <input
-                      className={s.formInput}
-                      value={pvDesc}
-                      onChange={(e) => setPvDesc(e.target.value)}
-                      placeholder="e.g., Toyota Hilux — LSD 890 AB"
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Location</label>
-                    <input
-                      className={s.formInput}
-                      value={pvLocation}
-                      onChange={(e) => setPvLocation(e.target.value)}
-                      placeholder="e.g., LGA Headquarters"
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Register Value (₦)</label>
-                    <input
-                      className={s.formInput}
-                      type="number"
-                      value={pvValue || ""}
-                      onChange={(e) => setPvValue(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                <div className={s.formActions}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => setShowForm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className={s.btnPrimary}
-                    onClick={addPhysicalItem}
-                    disabled={!pvDesc.trim()}
-                  >
-                    <MapPin size={14} /> Add Asset
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className={s.card}>
-            <div className={s.tableWrap}>
-              <table className={s.table}>
-                <thead>
-                  <tr>
-                    <th>Asset Description</th>
-                    <th>Location</th>
-                    <th style={{ textAlign: "right" }}>Register Value</th>
-                    <th>Exists?</th>
-                    <th>Condition</th>
-                    <th>Photo</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {physicalItems.map((pv) => (
-                    <tr key={pv.id}>
-                      <td style={{ fontWeight: 600, whiteSpace: "normal" }}>
-                        {pv.assetDescription}
-                      </td>
-                      <td style={{ fontSize: "0.82rem" }}>{pv.location}</td>
-                      <td style={{ textAlign: "right" }}>
-                        ₦{pv.registerValue.toLocaleString()}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <select
-                            className={s.formSelect}
-                            value={pv.exists}
-                            onChange={(e) =>
-                              updatePhysical(pv.id, "exists", e.target.value)
-                            }
-                            style={{ minWidth: "80px" }}
-                          >
-                            <option value="">--</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                            <option value="Partial">Partial</option>
-                          </select>
-                        ) : (
-                          <StatusBadge
-                            label={pv.exists || "—"}
-                            variant={
-                              pv.exists === "Yes"
-                                ? "success"
-                                : pv.exists === "No"
-                                  ? "error"
-                                  : pv.exists === "Partial"
-                                    ? "warning"
-                                    : "default"
-                            }
-                          />
-                        )}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <select
-                            className={s.formSelect}
-                            value={pv.condition}
-                            onChange={(e) =>
-                              updatePhysical(pv.id, "condition", e.target.value)
-                            }
-                            style={{ minWidth: "80px" }}
-                          >
-                            <option value="">--</option>
-                            <option value="Good">Good</option>
-                            <option value="Fair">Fair</option>
-                            <option value="Poor">Poor</option>
-                            <option value="Missing">Missing</option>
-                          </select>
-                        ) : (
-                          <StatusBadge
-                            label={pv.condition || "—"}
-                            variant={
-                              pv.condition === "Good"
-                                ? "success"
-                                : pv.condition === "Fair"
-                                  ? "info"
-                                  : pv.condition === "Poor"
-                                    ? "warning"
-                                    : pv.condition === "Missing"
-                                      ? "error"
-                                      : "default"
-                            }
-                          />
-                        )}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <button
-                            className={
-                              pv.photoUploaded ? s.btnPrimary : s.btnSecondary
-                            }
-                            style={{
-                              padding: "0.3rem 0.6rem",
-                              fontSize: "0.75rem",
-                            }}
-                            onClick={() => {
-                              const input = document.createElement("input");
-                              input.type = "file";
-                              input.accept = "image/*";
-                              input.onchange = () => {
-                                updatePhysical(pv.id, "photoUploaded", true);
-                                store.addToast({
-                                  type: "success",
-                                  title: "Photo Uploaded",
-                                  message: `Evidence photo for ${pv.assetDescription}`,
-                                });
-                              };
-                              input.click();
-                            }}
-                          >
-                            {pv.photoUploaded ? (
-                              <>
-                                <CheckCircle size={12} /> Uploaded
-                              </>
-                            ) : (
-                              <>
-                                <Upload size={12} /> Upload
-                              </>
-                            )}
-                          </button>
-                        ) : (
-                          <StatusBadge
-                            label={pv.photoUploaded ? "Yes" : "No"}
-                            variant={pv.photoUploaded ? "success" : "default"}
-                          />
-                        )}
-                      </td>
-                      <td>
-                        {isWriter ? (
-                          <input
-                            className={s.formInput}
-                            value={pv.remarks}
-                            onChange={(e) =>
-                              updatePhysical(pv.id, "remarks", e.target.value)
-                            }
-                            placeholder="Observations..."
-                            style={{ minWidth: "200px" }}
-                          />
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: "0.82rem",
-                              whiteSpace: "normal",
-                            }}
-                          >
-                            {pv.remarks || "—"}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className={s.cardFooter}>
-              <div style={{ display: "flex", gap: "2rem" }}>
-                <span>
-                  <strong>Verified:</strong>{" "}
-                  {physicalItems.filter((p) => p.exists === "Yes").length}
-                </span>
-                <span style={{ color: "#dc2626" }}>
-                  <strong>Missing:</strong>{" "}
-                  {physicalItems.filter((p) => p.exists === "No").length}
-                </span>
-                <span>
-                  <strong>Total Register Value:</strong> ₦
-                  {physicalItems
-                    .reduce((sum, p) => sum + p.registerValue, 0)
-                    .toLocaleString()}
-                </span>
-                <span style={{ color: "#dc2626" }}>
-                  <strong>Missing Value:</strong> ₦
-                  {physicalItems
-                    .filter((p) => p.exists === "No" || p.exists === "Partial")
-                    .reduce((sum, p) => sum + p.registerValue, 0)
-                    .toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────── */}
-      {/* TAB 6: FRAUD FLAGS                         */}
-      {/* ─────────────────────────────────────────── */}
-      {activeTab === "fraud" && (
-        <div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
-              }}
-            >
-              Fraud Indicators & Red Flags
-            </h3>
-            {isWriter && (
-              <button
-                className={s.btnDanger}
-                onClick={() => setShowForm(!showForm)}
-              >
-                <Flag size={14} /> Raise Fraud Flag
-              </button>
-            )}
-          </div>
-
-          {showForm && isWriter && (
-            <div
-              className={s.card}
-              style={{
-                marginBottom: "1.5rem",
-                borderColor: "#fecaca",
-              }}
-            >
-              <div className={s.cardHeader} style={{ background: "#fef2f2" }}>
-                <h3 className={s.cardTitle} style={{ color: "#991b1b" }}>
-                  <AlertTriangle size={16} style={{ marginRight: "0.5rem" }} />
-                  Raise Fraud / Irregularity Flag
-                </h3>
-              </div>
-              <div className={s.cardBody}>
-                <div className={s.formGrid}>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Fraud Indicator</label>
-                    <input
-                      className={s.formInput}
-                      value={ffIndicator}
-                      onChange={(e) => setFfIndicator(e.target.value)}
-                      placeholder="e.g., Ghost Workers on Payroll"
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Severity</label>
-                    <select
-                      className={s.formSelect}
-                      value={ffSeverity}
-                      onChange={(e) =>
-                        setFfSeverity(e.target.value as RiskLevel)
-                      }
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                      <option value="Critical">Critical</option>
-                    </select>
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Affected Area</label>
-                    <input
-                      className={s.formInput}
-                      value={ffArea}
-                      onChange={(e) => setFfArea(e.target.value)}
-                      placeholder="e.g., Payroll, Procurement..."
-                    />
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Detailed Description</label>
-                    <textarea
-                      className={s.formTextarea}
-                      value={ffDesc}
-                      onChange={(e) => setFfDesc(e.target.value)}
-                      placeholder="Describe the fraud indicator, evidence, and scope..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <div className={s.formActions}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => setShowForm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className={s.btnDanger}
-                    onClick={handleRaiseFraud}
-                    disabled={!ffIndicator.trim() || !ffDesc.trim()}
-                  >
-                    <Flag size={14} /> Raise Flag
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {fraudFlags.length > 0 ? (
-            <div>
-              {fraudFlags.map((ff) => (
-                <div
-                  key={ff.id}
-                  className={s.card}
-                  style={{
-                    borderLeft: `4px solid ${
-                      ff.severity === "Critical"
-                        ? "#dc2626"
-                        : ff.severity === "High"
-                          ? "#d97706"
-                          : ff.severity === "Medium"
-                            ? "#2563eb"
-                            : "#6b7280"
-                    }`,
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "1.25rem",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        <AlertTriangle
-                          size={18}
-                          style={{
-                            color:
-                              ff.severity === "Critical"
-                                ? "#dc2626"
-                                : "#d97706",
-                          }}
-                        />
-                        <strong
-                          style={{
-                            fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            fontSize: "0.95rem",
-                          }}
-                        >
-                          {ff.indicator}
-                        </strong>
-                      </div>
-                      <p
-                        style={{
-                          fontSize: "0.85rem",
-                          color: "#334155",
-                          lineHeight: 1.6,
-                          marginBottom: "0.75rem",
-                        }}
-                      >
-                        {ff.description}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "1.5rem",
-                          fontSize: "0.78rem",
-                          color: "#64748b",
-                        }}
-                      >
-                        <span>
-                          <strong>Area:</strong> {ff.area}
-                        </span>
-                        <span>
-                          <strong>Raised By:</strong> {userName(ff.raisedBy)}
-                        </span>
-                        <span>
-                          <strong>Date:</strong>{" "}
-                          {new Date(ff.raisedAt).toLocaleDateString("en-NG")}
-                        </span>
-                      </div>
-                      {ff.resolution && (
-                        <div
-                          style={{
-                            marginTop: "0.75rem",
-                            padding: "0.75rem",
-                            background: "#f0fdf4",
-                            borderRadius: "4px",
-                            fontSize: "0.82rem",
-                            color: "#15803d",
-                          }}
-                        >
-                          <strong>Resolution:</strong> {ff.resolution}
-                        </div>
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem",
-                        alignItems: "flex-end",
-                      }}
-                    >
-                      <div style={{ display: "flex", gap: "0.4rem" }}>
-                        <StatusBadge
-                          label={ff.severity}
-                          variant={severityVariant(ff.severity)}
-                        />
-                        <StatusBadge
-                          label={ff.status}
-                          variant={fraudStatusVariant(ff.status)}
-                        />
-                      </div>
-                      {(ff.status === "Open" ||
-                        ff.status === "Under Investigation") && (
-                        <div style={{ display: "flex", gap: "0.4rem" }}>
-                          {isWriter && ff.status === "Open" && (
-                            <button
-                              className={`${s.btnDanger} ${s.btnSmall}`}
-                              onClick={() => handleEscalateFraud(ff.id)}
-                            >
-                              Escalate
-                            </button>
-                          )}
-
-                          {isReviewer && (
-                            <button
-                              className={`${s.btnGold} ${s.btnSmall}`}
-                              onClick={() => handleResolveFraud(ff.id)}
-                            >
-                              Resolve
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={s.card}>
-              <div className={s.cardBody}>
-                <div className={s.emptyState}>
-                  <Flag size={40} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>No fraud flags raised</div>
-                  <div className={s.emptyDesc}>
-                    If you identify fraud indicators during fieldwork, raise a
-                    flag here for investigation.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      {previewDoc && (
-        <DocumentPreviewModal
-          document={previewDoc}
-          onClose={() => setPreviewDoc(null)}
-        />
-      )}
-      {selectedSubstantiveTest && (
-        <SubstantiveTestDetailModal
-          test={selectedSubstantiveTest}
-          onClose={() => setSelectedSubstantiveTest(null)}
-          onPreviewEvidence={(file) => setPreviewDoc(file)}
-        />
-      )}
+        );
+      })}
     </div>
   );
 };
 
-const FieldworkPageWrapper: React.FC<FieldworkPageProps> = (props) => (
-  <WorkflowGate phase="fieldwork">
-    <FieldworkPage {...props} />
-  </WorkflowGate>
-);
+const EvidenceLibraryPanel: React.FC<{
+  executions: ProcedureExecution[];
+  store: AuditStore;
+}> = ({ executions }) => {
+  const evidenceByArea = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        area: string;
+        code: string;
+        fileName: string;
+        fileType: string;
+        fileSize: string;
+        uploadedAt: string;
+        uploadedBy: string;
+        procedureRef: string;
+      }[]
+    > = {};
+    executions.forEach((ex) => {
+      ex.evidence.forEach((ev) => {
+        (map[ex.auditArea] ||= []).push({
+          area: ex.auditArea,
+          code: ev.code,
+          fileName: ev.fileName,
+          fileType: ev.fileType,
+          fileSize: ev.fileSize,
+          uploadedAt: ev.uploadedAt,
+          uploadedBy: ev.uploadedBy,
+          procedureRef: ex.procedureRef,
+        });
+      });
+    });
+    return map;
+  }, [executions]);
 
-export default FieldworkPageWrapper;
+  const totalFiles = Object.values(evidenceByArea).reduce(
+    (s, arr) => s + arr.length,
+    0,
+  );
+
+  return (
+    <div>
+      <Card borderColor="#7c3aed">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#64748b",
+              }}
+            >
+              Evidence Library
+            </div>
+            <div
+              style={{
+                fontSize: "0.82rem",
+                color: "#334155",
+                marginTop: "0.15rem",
+              }}
+            >
+              <strong>{totalFiles}</strong> evidence files across{" "}
+              {Object.keys(evidenceByArea).length} audit areas
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {Object.keys(evidenceByArea).length === 0 && (
+        <Card>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "2rem 0",
+              color: "#94a3b8",
+              fontSize: "0.85rem",
+            }}
+          >
+            <FolderOpen
+              size={32}
+              style={{ margin: "0 auto 0.75rem", opacity: 0.5 }}
+            />
+            <div>
+              No evidence files uploaded yet. Open a procedure to attach
+              evidence.
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {Object.entries(evidenceByArea).map(([area, files]) => (
+        <Card
+          key={area}
+          title={`EV-${area
+            .replace(/[^A-Z]/gi, "")
+            .slice(0, 4)
+            .toUpperCase()} — ${area}`}
+        >
+          <div className={s.tableWrap}>
+            <table className={s.table}>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>File Name</th>
+                  <th>Type</th>
+                  <th>Procedure</th>
+                  <th>Uploaded</th>
+                  <th>By</th>
+                </tr>
+              </thead>
+              <tbody>
+                {files.map((f) => (
+                  <tr key={f.code}>
+                    <td
+                      style={{
+                        fontFamily: "monospace",
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {f.code}
+                    </td>
+                    <td style={{ fontSize: "0.82rem" }}>{f.fileName}</td>
+                    <td style={{ fontSize: "0.78rem" }}>{f.fileType}</td>
+                    <td
+                      style={{ fontFamily: "monospace", fontSize: "0.78rem" }}
+                    >
+                      {f.procedureRef}
+                    </td>
+                    <td style={{ fontSize: "0.78rem" }}>
+                      {new Date(f.uploadedAt).toLocaleDateString("en-GB")}
+                    </td>
+                    <td style={{ fontSize: "0.78rem" }}>{f.uploadedBy}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+const ExceptionsRegisterPanel: React.FC<{
+  exceptions: FieldworkException[];
+  excStats: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    total: number;
+    totalImpact: number;
+    aboveMateriality: number;
+  };
+  excFilter: "all" | ExceptionSeverity;
+  setExcFilter: (f: "all" | ExceptionSeverity) => void;
+  store: AuditStore;
+  userId: string;
+  isLead: boolean;
+  isSupervisor: boolean;
+  materiality: ReturnType<AuditStore["getAuditMateriality"]>;
+}> = ({
+  exceptions,
+  excStats,
+  excFilter,
+  setExcFilter,
+  store,
+  isLead,
+  isSupervisor,
+  materiality,
+}) => {
+  const filtered =
+    excFilter === "all"
+      ? exceptions
+      : exceptions.filter((e) => e.severity === excFilter);
+  const [classifyId, setClassifyId] = useState<string | null>(null);
+
+  const queryCount = exceptions.filter((e) => e.potentialAuditQuery).length;
+  const classifiedCount = exceptions.filter((e) => e.classification).length;
+
+  return (
+    <div>
+      <Card borderColor="#dc2626">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "1rem",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#64748b",
+              }}
+            >
+              Open Exceptions Summary
+            </div>
+            <div
+              style={{
+                fontSize: "0.82rem",
+                color: "#334155",
+                marginTop: "0.15rem",
+              }}
+            >
+              Critical:{" "}
+              <strong style={{ color: "#dc2626" }}>{excStats.critical}</strong>{" "}
+              · High:{" "}
+              <strong style={{ color: "#ea580c" }}>{excStats.high}</strong> ·
+              Medium:{" "}
+              <strong style={{ color: "#ca8a04" }}>{excStats.medium}</strong> ·
+              Low: <strong>{excStats.low}</strong>
+            </div>
+            <div
+              style={{
+                fontSize: "0.78rem",
+                color: "#64748b",
+                marginTop: "0.15rem",
+              }}
+            >
+              Total Exposure:{" "}
+              <strong>₦{(excStats.totalImpact / 1e6).toFixed(1)}M</strong>
+              {materiality && (
+                <>
+                  {" "}
+                  · Above Overall Materiality (₦
+                  {(materiality.overallMateriality / 1e6).toFixed(1)}M):{" "}
+                  <strong>{excStats.aboveMateriality}</strong>
+                </>
+              )}{" "}
+              · Potential Audit Queries:{" "}
+              <strong style={{ color: "#dc2626" }}>{queryCount}</strong> ·
+              Classified:{" "}
+              <strong>
+                {classifiedCount}/{excStats.total}
+              </strong>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+            {(["all", "Critical", "High", "Medium", "Low"] as const).map(
+              (f) => (
+                <button
+                  key={f}
+                  className={
+                    excFilter === f ? s.filterChipActive : s.filterChip
+                  }
+                  onClick={() => setExcFilter(f)}
+                >
+                  {f === "all"
+                    ? `All (${excStats.total})`
+                    : `${f} (${excStats[f.toLowerCase() as keyof typeof excStats]})`}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {filtered.length === 0 && (
+        <Card>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "2rem 0",
+              color: "#94a3b8",
+              fontSize: "0.85rem",
+            }}
+          >
+            No exceptions{" "}
+            {excFilter !== "all" ? `with ${excFilter} severity` : "logged yet"}.
+          </div>
+        </Card>
+      )}
+
+      {filtered.map((exc) => (
+        <div
+          key={exc.id}
+          className={s.card}
+          style={{
+            marginTop: "0.75rem",
+            borderLeft: `4px solid ${exc.severity === "Critical" ? "#dc2626" : exc.severity === "High" ? "#ea580c" : exc.severity === "Medium" ? "#ca8a04" : "#22c55e"}`,
+          }}
+        >
+          <div className={s.cardBody}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: "1rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    marginBottom: "0.35rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontWeight: 700,
+                      fontSize: "0.82rem",
+                    }}
+                  >
+                    {exc.ref}
+                  </span>
+                  <StatusBadge
+                    label={exc.severity}
+                    variant={severityVariant(exc.severity)}
+                  />
+                  <StatusBadge
+                    label={exc.status}
+                    variant={
+                      exc.status === "Open"
+                        ? "warning"
+                        : exc.status === "Classified"
+                          ? "success"
+                          : exc.status === "Escalated"
+                            ? "error"
+                            : "info"
+                    }
+                  />
+                  {exc.potentialAuditQuery && (
+                    <StatusBadge label="Audit Query" variant="gold" />
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "#64748b",
+                    marginBottom: "0.35rem",
+                  }}
+                >
+                  {exc.auditArea} · {exc.procedureRef} · Assertion:{" "}
+                  {exc.assertionAffected}
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "#334155",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {exc.finding}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "1.5rem",
+                    marginTop: "0.5rem",
+                    fontSize: "0.78rem",
+                    color: "#64748b",
+                  }}
+                >
+                  <span>
+                    Financial Impact:{" "}
+                    <strong>₦{exc.financialImpact.toLocaleString()}</strong>
+                  </span>
+                  <span>Qualitative: {exc.qualitativeImpact}</span>
+                  <span>
+                    Raised: {new Date(exc.raisedAt).toLocaleDateString("en-GB")}
+                  </span>
+                  <span>By: {userName(exc.raisedBy, store)}</span>
+                </div>
+                {exc.classification && (
+                  <div style={{ fontSize: "0.78rem", marginTop: "0.35rem" }}>
+                    Classification:{" "}
+                    <StatusBadge
+                      label={exc.classification}
+                      variant={
+                        exc.classification === "Proceed to Audit Query"
+                          ? "error"
+                          : exc.classification === "Resolved — No Query"
+                            ? "success"
+                            : exc.classification === "Limitation"
+                              ? "warning"
+                              : "default"
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.35rem",
+                  flexDirection: "column",
+                }}
+              >
+                {isLead && exc.status === "Open" && (
+                  <button
+                    className={s.btnOutline}
+                    onClick={() =>
+                      setClassifyId(classifyId === exc.id ? null : exc.id)
+                    }
+                    style={{ fontSize: "0.72rem" }}
+                  >
+                    Classify
+                  </button>
+                )}
+                {(isLead || isSupervisor) &&
+                  exc.severity === "Critical" &&
+                  !exc.escalatedToHlg && (
+                    <button
+                      className={s.btnDanger}
+                      onClick={() => {
+                        store.escalateExceptionToHlg(exc.id);
+                        store.addToast({
+                          type: "error",
+                          title: "Escalated to HLG",
+                          message: `${exc.ref} escalated — Critical finding alert sent`,
+                        });
+                      }}
+                      style={{ fontSize: "0.72rem" }}
+                    >
+                      Escalate to HLG
+                    </button>
+                  )}
+              </div>
+            </div>
+            {classifyId === exc.id && (
+              <div
+                style={{
+                  marginTop: "0.75rem",
+                  padding: "0.75rem",
+                  background: "#f8fafc",
+                  borderRadius: "0.5rem",
+                  display: "flex",
+                  gap: "0.35rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                {(
+                  [
+                    "Proceed to Audit Query",
+                    "Resolved — No Query",
+                    "Limitation",
+                    "Below Materiality",
+                  ] as ExceptionClassification[]
+                ).map((cl) => (
+                  <button
+                    key={cl}
+                    className={s.btnOutline}
+                    onClick={() => {
+                      store.classifyException(exc.id, cl);
+                      store.addToast({
+                        type: "success",
+                        title: "Exception Classified",
+                        message: `${exc.ref} → ${cl}`,
+                      });
+                      setClassifyId(null);
+                    }}
+                    style={{ fontSize: "0.72rem" }}
+                  >
+                    {cl}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const WorkingPapersPanel: React.FC<{
+  workingPapers: FieldworkWorkingPaper[];
+  wpFilter: "all" | FieldworkWorkingPaper["reviewStatus"];
+  setWpFilter: (f: "all" | FieldworkWorkingPaper["reviewStatus"]) => void;
+  store: AuditStore;
+  userId: string;
+  isLead: boolean;
+  isSupervisor: boolean;
+}> = ({
+  workingPapers,
+  wpFilter,
+  setWpFilter,
+  store,
+  userId,
+  isLead,
+  isSupervisor,
+}) => {
+  const filtered =
+    wpFilter === "all"
+      ? workingPapers
+      : workingPapers.filter((wp) => wp.reviewStatus === wpFilter);
+  const wpStatusVariant = (
+    st: FieldworkWorkingPaper["reviewStatus"],
+  ): BadgeVariant => {
+    switch (st) {
+      case "Prepared":
+        return "warning";
+      case "Under Review":
+        return "info";
+      case "Reviewed by Lead":
+        return "info";
+      case "Returned":
+        return "error";
+      case "Cleared by Supervisor":
+        return "success";
+    }
+  };
+
+  return (
+    <div>
+      <Card borderColor="#15803d">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "1rem",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#64748b",
+              }}
+            >
+              Audit File — Working Papers
+            </div>
+            <div
+              style={{
+                fontSize: "0.82rem",
+                color: "#334155",
+                marginTop: "0.15rem",
+              }}
+            >
+              <strong>{workingPapers.length}</strong> working papers generated
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+            {(
+              [
+                "all",
+                "Prepared",
+                "Under Review",
+                "Reviewed by Lead",
+                "Returned",
+                "Cleared by Supervisor",
+              ] as const
+            ).map((f) => (
+              <button
+                key={f}
+                className={wpFilter === f ? s.filterChipActive : s.filterChip}
+                onClick={() => setWpFilter(f)}
+              >
+                {f === "all"
+                  ? `All (${workingPapers.length})`
+                  : `${f} (${workingPapers.filter((wp) => wp.reviewStatus === f).length})`}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {filtered.length === 0 && (
+        <Card>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "2rem 0",
+              color: "#94a3b8",
+              fontSize: "0.85rem",
+            }}
+          >
+            {workingPapers.length === 0
+              ? "No working papers generated yet. Submit a procedure to auto-generate."
+              : "No working papers match this filter."}
+          </div>
+        </Card>
+      )}
+
+      {filtered.map((wp) => (
+        <div key={wp.id} className={s.card} style={{ marginTop: "0.75rem" }}>
+          <div
+            className={s.cardHeader}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            >
+              <span
+                style={{
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                  fontSize: "0.82rem",
+                }}
+              >
+                {wp.reference}
+              </span>
+              <span style={{ fontSize: "0.82rem" }}>{wp.title}</span>
+              <StatusBadge
+                label={wp.reviewStatus}
+                variant={wpStatusVariant(wp.reviewStatus)}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "0.35rem" }}>
+              {isLead && wp.reviewStatus === "Prepared" && (
+                <button
+                  className={s.btnOutline}
+                  onClick={() => {
+                    store.updateFieldworkWorkingPaper(wp.id, {
+                      reviewStatus: "Under Review",
+                    });
+                    store.addToast({
+                      type: "info",
+                      title: "Under Review",
+                      message: `${wp.reference} marked as under review`,
+                    });
+                  }}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  <Play size={12} /> Start Review
+                </button>
+              )}
+              {isLead &&
+                (wp.reviewStatus === "Prepared" ||
+                  wp.reviewStatus === "Under Review") && (
+                  <>
+                    <button
+                      className={s.btnPrimary}
+                      onClick={() => {
+                        store.updateFieldworkWorkingPaper(wp.id, {
+                          reviewStatus: "Reviewed by Lead",
+                          reviewedByLead: userId,
+                          reviewedByLeadAt: new Date().toISOString(),
+                        });
+                        store.addToast({
+                          type: "success",
+                          title: "Working Paper Reviewed",
+                          message: `${wp.reference} cleared by Lead`,
+                        });
+                      }}
+                      style={{ fontSize: "0.72rem" }}
+                    >
+                      <CheckCircle size={12} /> Clear
+                    </button>
+                    <button
+                      className={s.btnOutline}
+                      onClick={() => {
+                        store.updateFieldworkWorkingPaper(wp.id, {
+                          reviewStatus: "Returned",
+                        });
+                        store.addToast({
+                          type: "warning",
+                          title: "Working Paper Returned",
+                          message: `${wp.reference} returned with comments`,
+                        });
+                      }}
+                      style={{ fontSize: "0.72rem" }}
+                    >
+                      <X size={12} /> Return
+                    </button>
+                  </>
+                )}
+              {isSupervisor && wp.reviewStatus === "Reviewed by Lead" && (
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => {
+                    store.updateFieldworkWorkingPaper(wp.id, {
+                      reviewStatus: "Cleared by Supervisor",
+                      clearedBySupervisor: userId,
+                      clearedBySupervisorAt: new Date().toISOString(),
+                    });
+                    store.addToast({
+                      type: "success",
+                      title: "Working Paper Cleared",
+                      message: `${wp.reference} cleared by Supervisor`,
+                    });
+                  }}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  <ShieldCheck size={12} /> Clear
+                </button>
+              )}
+            </div>
+          </div>
+          <div className={s.cardBody}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0.75rem",
+                fontSize: "0.82rem",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: "#64748b",
+                    marginBottom: "0.15rem",
+                  }}
+                >
+                  Audit Area
+                </div>
+                <div>{wp.auditArea}</div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: "#64748b",
+                    marginBottom: "0.15rem",
+                  }}
+                >
+                  Conclusion
+                </div>
+                <div>{wp.conclusion || "—"}</div>
+              </div>
+              <div style={{ gridColumn: "1 / -1" }}>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: "#64748b",
+                    marginBottom: "0.15rem",
+                  }}
+                >
+                  Work Performed
+                </div>
+                <div style={{ lineHeight: 1.6, whiteSpace: "pre-line" }}>
+                  {wp.workPerformed.slice(0, 300)}
+                  {wp.workPerformed.length > 300 ? "…" : ""}
+                </div>
+              </div>
+              {wp.exceptionRefs.length > 0 && (
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      fontWeight: 600,
+                      color: "#64748b",
+                      marginBottom: "0.15rem",
+                    }}
+                  >
+                    Exception References
+                  </div>
+                  <div>{wp.exceptionRefs.join(", ")}</div>
+                </div>
+              )}
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: "#64748b",
+                    marginBottom: "0.15rem",
+                  }}
+                >
+                  Prepared By
+                </div>
+                <div>
+                  {userName(wp.preparedBy, store)} ·{" "}
+                  {new Date(wp.preparedAt).toLocaleDateString("en-GB")}
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: "#64748b",
+                    marginBottom: "0.15rem",
+                  }}
+                >
+                  Evidence
+                </div>
+                <div>
+                  {wp.evidenceCodes.length > 0
+                    ? wp.evidenceCodes.join(", ")
+                    : "None"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ProcedureWorkspace: React.FC<{
+  executionId: string;
+  store: AuditStore;
+  userId: string;
+  userName: string;
+  userRole: string;
+  isWriter: boolean;
+  isLead: boolean;
+  isSupervisor: boolean;
+  auditId: string;
+  bankAccounts: BankAccount[];
+  contractFlags: ContractFlag[];
+  onClose: () => void;
+}> = ({
+  executionId,
+  store,
+  userId,
+  userName: uName,
+  userRole,
+  isWriter,
+  isLead,
+  isSupervisor,
+  auditId,
+  bankAccounts,
+  contractFlags,
+  onClose,
+}) => {
+  const exec = store.getProcedureExecution(executionId);
+
+  const [workPerformed, setWorkPerformed] = useState(exec?.workPerformed || "");
+  const [conclusion, setConclusion] = useState<
+    ProcedureExecution["conclusion"]
+  >(exec?.conclusion || undefined);
+  const [conclusionNotes, setConclusionNotes] = useState(
+    exec?.conclusionNotes || "",
+  );
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerStart, setTimerStart] = useState<number | null>(null);
+  const [showExceptionForm, setShowExceptionForm] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState("");
+
+  const [staffVerification, setStaffVerification] = useState<
+    StaffVerificationItem[]
+  >(() => {
+    if (
+      exec?.auditArea === "Personnel & Payroll" &&
+      exec.procedureRef.startsWith("PAY-003")
+    ) {
+      return Array.from({ length: 30 }, (_, i) => ({
+        id: `sv-${i}`,
+        name: `Staff ${i + 1}`,
+        department: ["Admin", "Finance", "Works", "Health", "Education"][i % 5],
+        gradeLevel: `GL ${7 + (i % 6)}`,
+        physicallySighted: "" as const,
+        notes: "",
+      }));
+    }
+    return [];
+  });
+
+  const [deductionRows, setDeductionRows] = useState<DeductionRemittanceRow[]>(
+    () => {
+      if (
+        exec?.auditArea === "Personnel & Payroll" &&
+        (exec.procedureRef.startsWith("PAY-004") ||
+          exec.procedureRef.startsWith("PAY-005"))
+      ) {
+        return [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ].map((m, i) => ({
+          id: `dr-${i}`,
+          month: `${m} 2024`,
+          payeDeducted: 0,
+          payeRemitted: 0,
+          payeDifference: 0,
+          pensionDeducted: 0,
+          pensionRemitted: 0,
+          pensionDifference: 0,
+          flagged: false,
+        }));
+      }
+      return [];
+    },
+  );
+
+  const [reconRows, setReconRows] = useState<ReconciliationRow[]>(() => {
+    if (
+      exec?.auditArea === "FAAC & Revenue" &&
+      exec.procedureRef.startsWith("REV-001")
+    ) {
+      return [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ].map((m, i) => ({
+        id: `rec-${i}`,
+        month: `${m} 2024`,
+        sourceA: 0,
+        sourceB: 0,
+        sourceC: 0,
+        differenceAB: 0,
+        differenceAC: 0,
+        explanation: "",
+        flagged: false,
+      }));
+    }
+    return [];
+  });
+
+  const [igrChain, setIgrChain] = useState<IGRChainItem[]>(() => {
+    if (
+      exec?.auditArea === "FAAC & Revenue" &&
+      exec.procedureRef.startsWith("REV-002")
+    ) {
+      return Array.from({ length: 10 }, (_, i) => ({
+        id: `igr-${i}`,
+        receiptRef: `IGR-${String(i + 1).padStart(3, "0")}`,
+        revenueHead: [
+          "Market Levies",
+          "Tenement Rate",
+          "Motor Park Fees",
+          "Business Premises",
+        ][i % 4],
+        amount: 0,
+        assessmentNotice: "" as const,
+        revenueReceipt: "" as const,
+        dailySummary: "" as const,
+        bankPayinSlip: "" as const,
+        bankStatementCredit: "" as const,
+        chainComplete: false,
+      }));
+    }
+    return [];
+  });
+
+  const [siteVerification, setSiteVerification] = useState<Omit<
+    SiteVerification,
+    "id"
+  > | null>(() => {
+    if (
+      exec?.auditArea === "Procurement & Contracts" &&
+      exec.procedureRef.startsWith("PROC-003")
+    ) {
+      return {
+        procedureExecutionId: exec.id,
+        projectName: exec.procedureDescription.slice(0, 60),
+        contractorName: "",
+        contractValue: 0,
+        claimedCompletion: 100,
+        amountPaid: 0,
+        visitDate: new Date().toISOString().split("T")[0],
+        auditorPresent: uName,
+        physicalCondition: "" as const,
+        auditorCompletion: 0,
+        descriptionOfFindings: "",
+        photos: [],
+        discrepancyAmount: 0,
+        exceptionLogged: false,
+      };
+    }
+    return null;
+  });
+
+  const [vouchingChecklist, setVouchingChecklist] = useState<Omit<
+    VouchingChecklist,
+    "id"
+  > | null>(() => {
+    if (
+      exec?.auditArea === "Procurement & Contracts" &&
+      exec.procedureRef.startsWith("PROC-002")
+    ) {
+      return {
+        procedureExecutionId: exec.id,
+        contractDescription: "",
+        vendorName: "",
+        contractValue: 0,
+        contractDate: "",
+        items: [
+          {
+            id: "v1",
+            documentName: "Local Purchase Order / Contract Award Letter",
+            required: true,
+            status: "" as const,
+          },
+          {
+            id: "v2",
+            documentName: "Tender Board Minutes (if above threshold)",
+            required: true,
+            status: "" as const,
+          },
+          {
+            id: "v3",
+            documentName: "Contractor's Invoice",
+            required: true,
+            status: "" as const,
+          },
+          {
+            id: "v4",
+            documentName: "Goods Received Note / Delivery Certificate",
+            required: true,
+            status: "" as const,
+          },
+          {
+            id: "v5",
+            documentName: "Interim Payment Certificate (for civil works)",
+            required: false,
+            status: "" as const,
+          },
+          {
+            id: "v6",
+            documentName: "Payment Voucher (with approval signatures)",
+            required: true,
+            status: "" as const,
+          },
+          {
+            id: "v7",
+            documentName: "Bank payment evidence (transfer receipt)",
+            required: true,
+            status: "" as const,
+          },
+        ],
+        paymentSupported: "" as const,
+        deliveryConfirmed: "" as const,
+        approvalChainComplete: "" as const,
+      };
+    }
+    return null;
+  });
+
+  const [advanceItems] = useState<AdvanceItem[]>(() => {
+    if (
+      exec?.auditArea === "Advances & Imprest" &&
+      exec.procedureRef.startsWith("ADV-001")
+    ) {
+      return Array.from({ length: 8 }, (_, i) => {
+        const dateIssued = new Date(
+          2024,
+          Math.floor(Math.random() * 12),
+          1 + Math.floor(Math.random() * 28),
+        );
+        const daysOut = Math.floor(
+          (Date.now() - dateIssued.getTime()) / 86400000,
+        );
+        const ageBand: AdvanceItem["ageBand"] =
+          daysOut > 365
+            ? "> 1 year"
+            : daysOut > 180
+              ? "6–12 months"
+              : daysOut > 90
+                ? "3–6 months"
+                : "< 3 months";
+        const endOfYear = dateIssued.getMonth() >= 9;
+        return {
+          id: `adv-${i}`,
+          ref: `ADV-2024-${String(i + 1).padStart(3, "0")}`,
+          officerName: `Officer ${i + 1}`,
+          purpose: ["Welfare", "Training", "Stationery", "Travel", "Imprest"][
+            i % 5
+          ],
+          amount: 100000 + Math.floor(Math.random() * 400000),
+          dateIssued: dateIssued.toISOString().split("T")[0],
+          daysOutstanding: daysOut,
+          retired: false,
+          ageBand,
+          endOfYearAdvance: endOfYear,
+          flagged: daysOut > 2,
+        };
+      });
+    }
+    return [];
+  });
+
+  const [stockItems, setStockItems] = useState<StockCountItem[]>(() => {
+    if (
+      exec?.auditArea === "Stores & Inventory" &&
+      exec.procedureRef.startsWith("STOR-001")
+    ) {
+      return [
+        {
+          id: "st-1",
+          itemName: "A4 Paper",
+          unit: "Reams",
+          ledgerBalance: 450,
+          notes: "",
+          flagged: false,
+        },
+        {
+          id: "st-2",
+          itemName: "Printer Ink Cartridges",
+          unit: "Units",
+          ledgerBalance: 23,
+          notes: "",
+          flagged: false,
+        },
+        {
+          id: "st-3",
+          itemName: "Petrol",
+          unit: "Litres",
+          ledgerBalance: 500,
+          notes: "",
+          flagged: false,
+        },
+        {
+          id: "st-4",
+          itemName: "Diesel",
+          unit: "Litres",
+          ledgerBalance: 200,
+          notes: "",
+          flagged: false,
+        },
+        {
+          id: "st-5",
+          itemName: "Cleaning Supplies",
+          unit: "Sets",
+          ledgerBalance: 35,
+          notes: "",
+          flagged: false,
+        },
+      ];
+    }
+    return [];
+  });
+
+  const [grantExpenditures, setGrantExpenditures] = useState<
+    GrantExpenditure[]
+  >(() => {
+    if (
+      exec?.auditArea === "Grants (UBEC/PHC)" &&
+      exec.procedureRef.startsWith("GRANT-002")
+    ) {
+      return Array.from({ length: 6 }, (_, i) => ({
+        id: `ge-${i}`,
+        description: [
+          "Classroom Construction",
+          "Furniture Supply",
+          "Staff Training",
+          "Workshop Materials",
+          "Staff Welfare",
+          "Vehicle Maintenance",
+        ][i],
+        amount: 500000 + Math.floor(Math.random() * 2000000),
+        eligibility: "" as const,
+        notes: "",
+      }));
+    }
+    return [];
+  });
+
+  const [excType, setExcType] = useState("");
+  const [excAssertion, setExcAssertion] = useState<
+    FieldworkException["assertionAffected"]
+  >("Existence/Occurrence");
+  const [excSeverity, setExcSeverity] = useState<ExceptionSeverity>("High");
+  const [excFinding, setExcFinding] = useState("");
+  const [excImpact, setExcImpact] = useState(0);
+  const [excQual, setExcQual] = useState("");
+  const [excSeveritySuggested, setExcSeveritySuggested] =
+    useState<ExceptionSeverity | null>(null);
+
+  if (!exec) return null;
+
+  const suggestSeverity = (impact: number): ExceptionSeverity => {
+    const ov = 28470000;
+    const pf = 19929000;
+    const sm = 5000000;
+    const ct = 1423500;
+    if (impact > ov) return "Critical";
+    if (impact > pf) return "High";
+    if (impact > sm) return "Medium";
+    if (impact < ct) return "Low";
+    return "Medium";
+  };
+
+  const handleStartTimer = () => {
+    setTimerRunning(true);
+    setTimerStart(Date.now());
+    if (exec.status === "Not Started") {
+      store.updateProcedureExecution(exec.id, { status: "In Progress" });
+    }
+  };
+
+  const handleStopTimer = () => {
+    if (timerStart) {
+      const mins = Math.round((Date.now() - timerStart) / 60000);
+      store.addProcedureTimeEntry(exec.id, Math.max(1, mins));
+    }
+    setTimerRunning(false);
+    setTimerStart(null);
+  };
+
+  const handleUploadEvidence = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.xlsx,.csv,.doc,.docx,.jpg,.jpeg,.png";
+    input.multiple = true;
+    input.onchange = (ev) => {
+      const files = (ev.target as HTMLInputElement).files;
+      if (files) {
+        Array.from(files).forEach((f) => {
+          store.addProcedureEvidence(exec.id, {
+            fileName: f.name,
+            fileUrl: URL.createObjectURL(f),
+            fileType: (f.name.split(".").pop() || "FILE").toUpperCase(),
+            fileSize: `${(f.size / 1024).toFixed(1)} KB`,
+            uploadedAt: new Date().toISOString(),
+            uploadedBy: uName,
+            documentType: "Other",
+          });
+        });
+        store.addToast({
+          type: "success",
+          title: "Evidence Uploaded",
+          message: `${files.length} file(s) attached to ${exec.procedureRef}`,
+        });
+      }
+    };
+    input.click();
+  };
+
+  const handleSave = () => {
+    store.updateProcedureExecution(exec.id, {
+      workPerformed,
+      conclusion: conclusion || undefined,
+      conclusionNotes,
+    });
+    store.addToast({
+      type: "success",
+      title: "Progress Saved",
+      message: `${exec.procedureRef} saved`,
+    });
+  };
+
+  const handleSubmit = () => {
+    if (!workPerformed.trim()) {
+      store.addToast({
+        type: "warning",
+        title: "Cannot Submit",
+        message: "Work Performed is required before submission",
+      });
+      return;
+    }
+    if (!conclusion) {
+      store.addToast({
+        type: "warning",
+        title: "Cannot Submit",
+        message: "Select a conclusion before submission",
+      });
+      return;
+    }
+    store.updateProcedureExecution(exec.id, {
+      workPerformed,
+      conclusion,
+      conclusionNotes,
+    });
+    store.submitProcedureForReview(exec.id);
+    store.generateWorkingPaper(exec.id);
+    store.addToast({
+      type: "success",
+      title: "Procedure Submitted",
+      message: `${exec.procedureRef} submitted for review`,
+    });
+    onClose();
+  };
+
+  const handleLogException = () => {
+    if (!excFinding.trim() || !excType.trim()) return;
+    store.addFieldworkException({
+      auditId,
+      procedureId: exec.procedureId,
+      procedureRef: exec.procedureRef,
+      auditArea: exec.auditArea,
+      exceptionType: excType,
+      assertionAffected: excAssertion,
+      severity: excSeverity,
+      finding: excFinding,
+      evidenceCodes: exec.evidence.map((e) => e.code),
+      financialImpact: excImpact,
+      qualitativeImpact: excQual,
+      status: "Open",
+      raisedBy: userId,
+      potentialAuditQuery: excSeverity === "Critical" || excSeverity === "High",
+      notes: "",
+      escalatedToHlg: false,
+    });
+    store.addToast({
+      type: "warning",
+      title: "Exception Logged",
+      message: `Exception raised for ${exec.procedureRef}`,
+    });
+    setShowExceptionForm(false);
+    setExcType("");
+    setExcFinding("");
+    setExcImpact(0);
+    setExcQual("");
+  };
+
+  const handleAddReviewComment = () => {
+    if (!reviewMsg.trim()) return;
+    const comment: ReviewComment = {
+      id: `rc-${Date.now()}`,
+      authorId: userId,
+      authorName: uName,
+      authorRole: userRole as ReviewComment["authorRole"],
+      message: reviewMsg,
+      timestamp: new Date().toISOString(),
+      resolved: false,
+    };
+    store.updateProcedureExecution(exec.id, {
+      reviewComments: [...(exec.reviewComments || []), comment],
+    });
+    setReviewMsg("");
+  };
+
+  const handleLeadReview = (action: "Clear" | "Return" | "Extend") => {
+    if (action === "Return" || action === "Extend") {
+      const msg = prompt(
+        action === "Return"
+          ? "Comments for return:"
+          : "Additional steps to extend:",
+      );
+      if (!msg) return;
+      store.reviewProcedure(exec.id, userId, action, msg);
+    } else {
+      store.reviewProcedure(exec.id, userId, action);
+    }
+    store.addToast({
+      type: action === "Clear" ? "success" : "info",
+      title: `Procedure ${action === "Clear" ? "Reviewed" : action === "Return" ? "Returned" : "Extended"}`,
+      message: `${exec.procedureRef} — ${action}`,
+    });
+    if (action === "Clear" || action === "Return") onClose();
+  };
+
+  const handleSupervisorClear = () => {
+    store.clearProcedure(exec.id, userId);
+    store.addToast({
+      type: "success",
+      title: "Procedure Cleared",
+      message: `${exec.procedureRef} cleared by Supervisor`,
+    });
+    onClose();
+  };
+
+  const runReconciliation = () => {
+    if (
+      exec.auditArea === "Personnel & Payroll" &&
+      (exec.procedureRef.startsWith("PAY-001") ||
+        exec.procedureRef.startsWith("PAY-002"))
+    ) {
+      const totalPayroll = 380 + Math.floor(Math.random() * 40);
+      const totalNominal = 370 + Math.floor(Math.random() * 20);
+      const matched =
+        Math.min(totalPayroll, totalNominal) - Math.floor(Math.random() * 18);
+      const onPayrollNotNominal = totalPayroll - matched;
+      const onNominalNotPayroll = totalNominal - matched;
+      const monthlySalary = 250000 + Math.floor(Math.random() * 50000);
+      const annualExposure = onPayrollNotNominal * monthlySalary * 12;
+      const label = exec.procedureRef.startsWith("PAY-002")
+        ? "biometric register"
+        : "nominal roll";
+      setWorkPerformed(
+        `Reconciliation Engine Output — ${label.toUpperCase()}\n\n` +
+          `Total on payroll: ${totalPayroll}\n` +
+          `Total on ${label}: ${totalNominal}\n` +
+          `Matched: ${matched}\n` +
+          `On payroll, NOT on ${label}: ${onPayrollNotNominal} (FLAGGED — potential ghost workers)\n` +
+          `On ${label}, NOT on payroll: ${onNominalNotPayroll}\n\n` +
+          `Monthly salary exposure (unmatched): ₦${(onPayrollNotNominal * monthlySalary).toLocaleString()}\n` +
+          `Annual exposure: ₦${annualExposure.toLocaleString()}\n\n` +
+          (onPayrollNotNominal > 0
+            ? `⚠ ${onPayrollNotNominal} staff on payroll could not be matched. Conclusion auto-set to Exception Raised.`
+            : "All staff matched. No exceptions."),
+      );
+      if (onPayrollNotNominal > 0) {
+        setConclusion("Exception Raised");
+        setExcImpact(annualExposure);
+        const pairedRef = exec.procedureRef.startsWith("PAY-002")
+          ? "PAY-001"
+          : "PAY-002";
+        const pairedAlreadyFlagged = store.procedureExecutions
+          .filter((e) => e.auditId === auditId)
+          .some(
+            (e) =>
+              e.procedureRef.startsWith(pairedRef) &&
+              e.auditArea === "Personnel & Payroll" &&
+              e.conclusion === "Exception Raised",
+          );
+        if (pairedAlreadyFlagged) {
+          store.addFieldworkException({
+            auditId,
+            procedureId: exec.procedureId,
+            procedureRef: exec.procedureRef,
+            auditArea: exec.auditArea,
+            exceptionType: "Ghost Worker",
+            assertionAffected: "Existence/Occurrence",
+            severity: "Critical",
+            finding: `Dual-flag escalation: both PAY-001 (nominal roll) and PAY-002 (biometric register) independently identified ${onPayrollNotNominal} unmatched staff. Annual financial exposure: ₦${annualExposure.toLocaleString()}.`,
+            evidenceCodes: exec.evidence.map((e) => e.code),
+            financialImpact: annualExposure,
+            qualitativeImpact:
+              "Critical — corroborated ghost worker risk across both verification methods",
+            status: "Open",
+            raisedBy: userId,
+            potentialAuditQuery: true,
+            notes: "Auto-escalated: dual-flag confirmation",
+            escalatedToHlg: true,
+          });
+          store.addToast({
+            type: "error",
+            title: "Critical Escalation",
+            message: `Ghost worker dual-flag confirmed — Critical exception auto-raised and escalated to HLG`,
+          });
+        }
+      } else {
+        setConclusion("No Exception");
+      }
+      store.addToast({
+        type: "info",
+        title: "Reconciliation Complete",
+        message: `${label} reconciliation completed — ${onPayrollNotNominal} unmatched`,
+      });
+    }
+  };
+
+  const runContractSplitDetection = () => {
+    const flags: Omit<ContractFlag, "id">[] = [
+      {
+        auditId,
+        flagType: "Potential Splitting",
+        vendorName: "Eko Builders Ltd",
+        contractCount: 3,
+        period: "Jan–Feb 2024",
+        totalValue: 29400000,
+        individualValues: [9800000, 9800000, 9800000],
+        risk: "High",
+        investigated: false,
+        notes: "",
+      },
+      {
+        auditId,
+        flagType: "Threshold Breach",
+        vendorName: "ABC Supplies",
+        contractCount: 1,
+        period: "Mar 2024",
+        totalValue: 12500000,
+        individualValues: [12500000],
+        risk: "Medium",
+        investigated: false,
+        notes: "",
+      },
+      {
+        auditId,
+        flagType: "Just Below Threshold",
+        vendorName: "Metro Construction",
+        contractCount: 2,
+        period: "Apr–May 2024",
+        totalValue: 19200000,
+        individualValues: [9600000, 9600000],
+        risk: "High",
+        investigated: false,
+        notes: "",
+      },
+    ];
+    flags.forEach((f) => store.addContractFlag(f));
+    setWorkPerformed(
+      "CONTRACT SPLITTING DETECTION — Automated Analysis\n\n" +
+        `Contracts analysed from register. Fuzzy vendor matching applied.\n` +
+        `Threshold: ₦10,000,000 (BPP Act)\n\n` +
+        `FLAGGED VENDORS:\n` +
+        flags
+          .map(
+            (f) =>
+              `• ${f.vendorName} — ${f.flagType} — ${f.contractCount} contract(s) — ₦${f.totalValue.toLocaleString()} total — Risk: ${f.risk}`,
+          )
+          .join("\n") +
+        `\n\nAll flagged contracts added to sample for detailed vouching (PROC-002).`,
+    );
+    store.addToast({
+      type: "warning",
+      title: "Contract Splitting Analysis",
+      message: `${flags.length} vendors flagged`,
+    });
+  };
+
+  const runAdvanceAgeing = () => {
+    const critical = advanceItems.filter((a) => a.ageBand === "> 1 year");
+    const high = advanceItems.filter((a) => a.ageBand === "6–12 months");
+    const medium = advanceItems.filter((a) => a.ageBand === "3–6 months");
+    const endOfYear = advanceItems.filter(
+      (a) => a.endOfYearAdvance && !a.retired,
+    );
+    const totalOutstanding = advanceItems
+      .filter((a) => !a.retired)
+      .reduce((s, a) => s + a.amount, 0);
+    setWorkPerformed(
+      "ADVANCES AGEING ANALYSIS — FAR 2009\n\n" +
+        `Regulation: Retirement within 48 hours for cash advances.\n\n` +
+        `Outstanding > 1 year (Critical): ${critical.length} — ₦${critical.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n` +
+        `Outstanding 6–12 months (High): ${high.length} — ₦${high.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n` +
+        `Outstanding 3–6 months (Medium): ${medium.length} — ₦${medium.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n\n` +
+        `Year-end advances (Oct–Dec, unretired): ${endOfYear.length}\n` +
+        `Total outstanding: ₦${totalOutstanding.toLocaleString()}\n\n` +
+        `All ${advanceItems.filter((a) => !a.retired && a.daysOutstanding > 2).length} advances exceeding 48-hour FAR 2009 limit flagged as non-compliant.`,
+    );
+    if (totalOutstanding > 0) {
+      setConclusion("Exception Raised");
+      setExcImpact(totalOutstanding);
+    }
+    store.addToast({
+      type: "info",
+      title: "Ageing Analysis Complete",
+      message: `${advanceItems.filter((a) => !a.retired).length} outstanding advances identified`,
+    });
+  };
+
+  const refreshedExec = store.getProcedureExecution(executionId);
+  const currentExec = refreshedExec || exec;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: "1.5rem",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          width: "100%",
+          maxWidth: "1100px",
+          borderRadius: "1rem",
+          boxShadow: "0 25px 50px rgba(0,0,0,0.15)",
+          overflow: "hidden",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            padding: "1.25rem 1.5rem",
+            borderBottom: "1px solid #e2e8f0",
+            background: "#f8fafc",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                marginBottom: "0.35rem",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                }}
+              >
+                {currentExec.procedureRef}
+              </span>
+              <StatusBadge
+                label={currentExec.status}
+                variant={statusBadgeVariant(currentExec.status)}
+              />
+              <StatusBadge
+                label={currentExec.riskRating}
+                variant={severityVariant(
+                  currentExec.riskRating as ExceptionSeverity,
+                )}
+              />
+            </div>
+            <div
+              style={{
+                fontSize: "0.92rem",
+                fontWeight: 600,
+                maxWidth: "700px",
+              }}
+            >
+              {currentExec.procedureDescription}
+            </div>
+            <div
+              style={{
+                fontSize: "0.78rem",
+                color: "#64748b",
+                marginTop: "0.2rem",
+              }}
+            >
+              {currentExec.auditArea} · Assertions:{" "}
+              {currentExec.assertions.join(", ")} · Assigned:{" "}
+              {userName(currentExec.assignedTo, store)} · Due:{" "}
+              {new Date(currentExec.dueDate).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+              })}
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "0.25rem 0.75rem",
+                background: timerRunning ? "#fef3c7" : "#f1f5f9",
+                borderRadius: "0.5rem",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  color: "#64748b",
+                }}
+              >
+                Hours
+              </div>
+              <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>
+                {currentExec.loggedHours.toFixed(1)}/{currentExec.budgetedHours}
+              </div>
+            </div>
+            {isWriter &&
+              currentExec.status !== "Cleared" &&
+              currentExec.status !== "Locked" &&
+              (timerRunning ? (
+                <button
+                  className={s.btnDanger}
+                  onClick={handleStopTimer}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  <Pause size={12} /> Stop
+                </button>
+              ) : (
+                <button
+                  className={s.btnOutline}
+                  onClick={handleStartTimer}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  <Play size={12} /> Start Timer
+                </button>
+              ))}
+            <button className={s.btnIcon} onClick={onClose}>
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            maxHeight: "calc(100vh - 200px)",
+            overflowY: "auto",
+            padding: "1.5rem",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "1.25rem",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "#2563eb",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Instruction Panel
+              </div>
+              <div
+                style={{
+                  background: "#f0f9ff",
+                  border: "1px solid #bae6fd",
+                  borderRadius: "0.5rem",
+                  padding: "1rem",
+                  fontSize: "0.82rem",
+                  lineHeight: 1.7,
+                  color: "#0c4a6e",
+                }}
+              >
+                {currentExec.procedureDescription}
+              </div>
+
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "#7c3aed",
+                  marginBottom: "0.5rem",
+                  marginTop: "1rem",
+                }}
+              >
+                Evidence Panel ({currentExec.evidence.length} files)
+              </div>
+              {currentExec.evidence.map((ev) => (
+                <div
+                  key={ev.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "0.4rem 0.6rem",
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "0.35rem",
+                    marginBottom: "0.35rem",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  <div>
+                    <span
+                      style={{
+                        fontFamily: "monospace",
+                        fontWeight: 600,
+                        marginRight: "0.5rem",
+                      }}
+                    >
+                      {ev.code}
+                    </span>
+                    {ev.fileName}
+                  </div>
+                  <span style={{ color: "#64748b" }}>{ev.fileSize}</span>
+                </div>
+              ))}
+              {isWriter &&
+                currentExec.status !== "Cleared" &&
+                currentExec.status !== "Locked" && (
+                  <button
+                    className={s.btnOutline}
+                    onClick={handleUploadEvidence}
+                    style={{ marginTop: "0.5rem", fontSize: "0.75rem" }}
+                  >
+                    <Upload size={12} /> Attach Evidence
+                  </button>
+                )}
+            </div>
+
+            <div>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "#15803d",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Work Done & Findings
+              </div>
+              <div className={s.formGroup}>
+                <label className={s.formLabel}>Work Performed</label>
+                <textarea
+                  className={s.formTextarea}
+                  value={workPerformed}
+                  onChange={(e) => setWorkPerformed(e.target.value)}
+                  rows={8}
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "0.78rem",
+                    lineHeight: 1.6,
+                  }}
+                  disabled={
+                    !isWriter ||
+                    currentExec.status === "Cleared" ||
+                    currentExec.status === "Locked"
+                  }
+                />
+              </div>
+
+              <div className={s.formGrid} style={{ marginTop: "0.75rem" }}>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Conclusion</label>
+                  <select
+                    className={s.formSelect}
+                    value={conclusion || ""}
+                    onChange={(e) =>
+                      setConclusion(
+                        e.target.value as ProcedureExecution["conclusion"],
+                      )
+                    }
+                    disabled={!isWriter}
+                  >
+                    <option value="">— Select —</option>
+                    <option value="No Exception">No Exception</option>
+                    <option value="Exception Raised">Exception Raised</option>
+                    <option value="Inconclusive">Inconclusive</option>
+                    <option value="Limitation">
+                      Limitation — Records Unavailable
+                    </option>
+                  </select>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Conclusion Notes</label>
+                  <input
+                    className={s.formInput}
+                    value={conclusionNotes}
+                    onChange={(e) => setConclusionNotes(e.target.value)}
+                    disabled={!isWriter}
+                  />
+                </div>
+              </div>
+
+              {conclusion === "Exception Raised" && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <button
+                    className={s.btnDanger}
+                    onClick={() => setShowExceptionForm(!showExceptionForm)}
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    <AlertTriangle size={12} /> Log Exception
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {exec.auditArea === "Personnel & Payroll" &&
+            (exec.procedureRef.startsWith("PAY-001") ||
+              exec.procedureRef.startsWith("PAY-002")) &&
+            isWriter && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title={`Reconciliation Engine — ${exec.procedureRef.startsWith("PAY-002") ? "Biometric Cross-Match" : "Nominal Roll Reconciliation"}`}
+                  borderColor="#2563eb"
+                >
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "#334155",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Upload both source files (payroll schedule +{" "}
+                    {exec.procedureRef.startsWith("PAY-002")
+                      ? "biometric register"
+                      : "LASPPPA nominal roll"}
+                    ) in the Evidence Panel, then click Run Reconciliation.
+                  </div>
+                  <button
+                    className={s.btnPrimary}
+                    onClick={runReconciliation}
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    <Zap size={12} /> Run Reconciliation
+                  </button>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "Personnel & Payroll" &&
+            exec.procedureRef.startsWith("PAY-003") &&
+            staffVerification.length > 0 && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="Physical Staff Verification Worksheet"
+                  borderColor="#f59e0b"
+                >
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Random sample: {staffVerification.length} staff (High RMM).
+                    Record verification results below.
+                  </div>
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Name</th>
+                          <th>Department</th>
+                          <th>Grade Level</th>
+                          <th>Physically Sighted?</th>
+                          <th>Confirmation / Reason</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {staffVerification.map((sv, idx) => (
+                          <tr
+                            key={sv.id}
+                            style={
+                              sv.physicallySighted === "No"
+                                ? { background: "#fef2f2" }
+                                : undefined
+                            }
+                          >
+                            <td>{idx + 1}</td>
+                            <td style={{ fontSize: "0.82rem" }}>{sv.name}</td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              {sv.department}
+                            </td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              {sv.gradeLevel}
+                            </td>
+                            <td>
+                              <select
+                                className={s.formSelect}
+                                value={sv.physicallySighted}
+                                onChange={(e) =>
+                                  setStaffVerification((prev) =>
+                                    prev.map((s2) =>
+                                      s2.id === sv.id
+                                        ? {
+                                            ...s2,
+                                            physicallySighted: e.target
+                                              .value as StaffVerificationItem["physicallySighted"],
+                                          }
+                                        : s2,
+                                    ),
+                                  )
+                                }
+                              >
+                                <option value="">—</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                              </select>
+                            </td>
+                            <td>
+                              {sv.physicallySighted === "Yes" && (
+                                <select
+                                  className={s.formSelect}
+                                  value={sv.confirmationMethod || ""}
+                                  onChange={(e) =>
+                                    setStaffVerification((prev) =>
+                                      prev.map((s2) =>
+                                        s2.id === sv.id
+                                          ? {
+                                              ...s2,
+                                              confirmationMethod: e.target
+                                                .value as StaffVerificationItem["confirmationMethod"],
+                                            }
+                                          : s2,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  <option value="">—</option>
+                                  <option value="ID Card">ID Card</option>
+                                  <option value="Payslip">Payslip</option>
+                                  <option value="Supervisor Identification">
+                                    Supervisor Identification
+                                  </option>
+                                  <option value="Biometric Scan">
+                                    Biometric Scan
+                                  </option>
+                                </select>
+                              )}
+                              {sv.physicallySighted === "No" && (
+                                <select
+                                  className={s.formSelect}
+                                  value={sv.notSightedReason || ""}
+                                  onChange={(e) =>
+                                    setStaffVerification((prev) =>
+                                      prev.map((s2) =>
+                                        s2.id === sv.id
+                                          ? {
+                                              ...s2,
+                                              notSightedReason: e.target
+                                                .value as StaffVerificationItem["notSightedReason"],
+                                            }
+                                          : s2,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  <option value="">—</option>
+                                  <option value="On Leave with Documentation">
+                                    On Leave with Documentation
+                                  </option>
+                                  <option value="Absent without Explanation">
+                                    Absent without Explanation
+                                  </option>
+                                  <option value="Does Not Exist">
+                                    Does Not Exist
+                                  </option>
+                                  <option value="Referred for Investigation">
+                                    Referred for Investigation
+                                  </option>
+                                </select>
+                              )}
+                            </td>
+                            <td>
+                              <input
+                                className={s.formInput}
+                                value={sv.notes}
+                                onChange={(e) =>
+                                  setStaffVerification((prev) =>
+                                    prev.map((s2) =>
+                                      s2.id === sv.id
+                                        ? { ...s2, notes: e.target.value }
+                                        : s2,
+                                    ),
+                                  )
+                                }
+                                style={{
+                                  fontSize: "0.75rem",
+                                  minWidth: "100px",
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "Personnel & Payroll" &&
+            (exec.procedureRef.startsWith("PAY-004") ||
+              exec.procedureRef.startsWith("PAY-005")) &&
+            deductionRows.length > 0 && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="Deduction Remittance Matching"
+                  borderColor="#dc2626"
+                >
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th>Month</th>
+                          <th>PAYE Deducted (₦)</th>
+                          <th>PAYE Remitted (₦)</th>
+                          <th>Difference</th>
+                          <th>Pension Deducted (₦)</th>
+                          <th>Pension Remitted (₦)</th>
+                          <th>Difference</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {deductionRows.map((row) => {
+                          const pd = row.payeDeducted - row.payeRemitted;
+                          const pnd = row.pensionDeducted - row.pensionRemitted;
+                          return (
+                            <tr
+                              key={row.id}
+                              style={
+                                pd > 0 || pnd > 0
+                                  ? { background: "#fef2f2" }
+                                  : undefined
+                              }
+                            >
+                              <td
+                                style={{ fontWeight: 600, fontSize: "0.78rem" }}
+                              >
+                                {row.month}
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.payeDeducted || ""}
+                                  onChange={(e) =>
+                                    setDeductionRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              payeDeducted: Number(
+                                                e.target.value,
+                                              ),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "100px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.payeRemitted || ""}
+                                  onChange={(e) =>
+                                    setDeductionRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              payeRemitted: Number(
+                                                e.target.value,
+                                              ),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "100px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td
+                                style={{
+                                  color: pd > 0 ? "#dc2626" : "#15803d",
+                                  fontWeight: 600,
+                                  fontSize: "0.78rem",
+                                }}
+                              >
+                                {pd > 0 ? `₦${pd.toLocaleString()}` : "✅"}
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.pensionDeducted || ""}
+                                  onChange={(e) =>
+                                    setDeductionRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              pensionDeducted: Number(
+                                                e.target.value,
+                                              ),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "100px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.pensionRemitted || ""}
+                                  onChange={(e) =>
+                                    setDeductionRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              pensionRemitted: Number(
+                                                e.target.value,
+                                              ),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "100px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td
+                                style={{
+                                  color: pnd > 0 ? "#dc2626" : "#15803d",
+                                  fontWeight: 600,
+                                  fontSize: "0.78rem",
+                                }}
+                              >
+                                {pnd > 0 ? `₦${pnd.toLocaleString()}` : "✅"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "Personnel & Payroll" &&
+            exec.procedureRef.startsWith("PAY-006") &&
+            isWriter && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="Post-Retirement Payroll Detection Engine"
+                  borderColor="#dc2626"
+                >
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "#334155",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Upload the personnel nominal roll with retirement dates in
+                    the Evidence Panel. The engine compares each staff member's
+                    retirement date against current payroll inclusion to detect
+                    payments made after mandatory retirement age (60 years / 35
+                    years of service — HRMS Rule 160202).
+                  </div>
+                  <button
+                    className={s.btnPrimary}
+                    style={{ fontSize: "0.75rem" }}
+                    onClick={() => {
+                      const today = new Date();
+                      const flags = Array.from({ length: 3 }, (_, i) => {
+                        const base = new Date(today);
+                        base.setMonth(base.getMonth() - (i + 1) * 4);
+                        return {
+                          name: [
+                            "Adamu Yusuf",
+                            "Grace Okonkwo",
+                            "Musa Danladi",
+                          ][i],
+                          retirementDate: base.toISOString().split("T")[0],
+                          monthsOverdue: (i + 1) * 4,
+                          salary: 285000 + i * 40000,
+                        };
+                      });
+                      const totalExposure = flags.reduce(
+                        (s, f) => s + f.salary * f.monthsOverdue,
+                        0,
+                      );
+                      setWorkPerformed(
+                        `POST-RETIREMENT PAYROLL DETECTION — Engine Output\n\n` +
+                          `Analysis date: ${today.toLocaleDateString("en-GB")}\n` +
+                          `Nominal roll size: 380 staff\n\n` +
+                          `FLAGGED OFFICERS (continued on payroll post-retirement):\n` +
+                          flags
+                            .map(
+                              (f) =>
+                                `• ${f.name} — retired ${f.retirementDate} — ${f.monthsOverdue} months overdue — ₦${(f.salary * f.monthsOverdue).toLocaleString()} unauthorised salary`,
+                            )
+                            .join("\n") +
+                          `\n\nTotal unauthorised payment exposure: ₦${totalExposure.toLocaleString()}\n\n` +
+                          `All flagged officers added to exception register. Conclusion auto-set to Exception Raised.`,
+                      );
+                      flags.forEach((f) => {
+                        store.addFieldworkException({
+                          auditId,
+                          procedureId: exec.procedureId,
+                          procedureRef: exec.procedureRef,
+                          auditArea: exec.auditArea,
+                          exceptionType: "Unauthorised Payment",
+                          assertionAffected: "Existence/Occurrence",
+                          severity: "Critical",
+                          finding: `${f.name} retired on ${f.retirementDate} but remained on payroll for ${f.monthsOverdue} months. Unauthorised salary paid: ₦${(f.salary * f.monthsOverdue).toLocaleString()}.`,
+                          evidenceCodes: exec.evidence.map((e) => e.code),
+                          financialImpact: f.salary * f.monthsOverdue,
+                          qualitativeImpact:
+                            "Critical — payment to retired officer violates HRMS Rule 160202",
+                          status: "Open",
+                          raisedBy: userId,
+                          potentialAuditQuery: true,
+                          notes:
+                            "Auto-raised: post-retirement detection engine",
+                          escalatedToHlg: true,
+                        });
+                      });
+                      setConclusion("Exception Raised");
+                      store.addToast({
+                        type: "error",
+                        title: "Post-Retirement Flags",
+                        message: `${flags.length} officers flagged — ₦${totalExposure.toLocaleString()} exposure — Critical exceptions raised`,
+                      });
+                    }}
+                  >
+                    <Zap size={12} /> Run Post-Retirement Check
+                  </button>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "FAAC & Revenue" &&
+            exec.procedureRef.startsWith("REV-001") &&
+            reconRows.length > 0 && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="3-Way FAAC Reconciliation (OAGF → Cashbook → Bank)"
+                  borderColor="#2563eb"
+                >
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th>Month</th>
+                          <th>OAGF Remittance (₦)</th>
+                          <th>Cashbook Receipt (₦)</th>
+                          <th>Bank Credit (₦)</th>
+                          <th>OAGF vs Cashbook</th>
+                          <th>OAGF vs Bank</th>
+                          <th>Explanation</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {reconRows.map((row) => {
+                          const diffAB = row.sourceA - row.sourceB;
+                          const diffAC = row.sourceA - (row.sourceC || 0);
+                          return (
+                            <tr
+                              key={row.id}
+                              style={
+                                (diffAB !== 0 || diffAC !== 0) &&
+                                row.sourceA > 0
+                                  ? { background: "#fffbeb" }
+                                  : undefined
+                              }
+                            >
+                              <td
+                                style={{ fontWeight: 600, fontSize: "0.78rem" }}
+                              >
+                                {row.month}
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.sourceA || ""}
+                                  onChange={(e) =>
+                                    setReconRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              sourceA: Number(e.target.value),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "110px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.sourceB || ""}
+                                  onChange={(e) =>
+                                    setReconRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              sourceB: Number(e.target.value),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "110px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={row.sourceC || ""}
+                                  onChange={(e) =>
+                                    setReconRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              sourceC: Number(e.target.value),
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    width: "110px",
+                                    fontSize: "0.75rem",
+                                  }}
+                                />
+                              </td>
+                              <td
+                                style={{
+                                  color:
+                                    diffAB !== 0 && row.sourceA > 0
+                                      ? "#dc2626"
+                                      : "#15803d",
+                                  fontWeight: 600,
+                                  fontSize: "0.78rem",
+                                }}
+                              >
+                                {row.sourceA > 0
+                                  ? diffAB === 0
+                                    ? "✅"
+                                    : `⚠️ ₦${Math.abs(diffAB).toLocaleString()}`
+                                  : "—"}
+                              </td>
+                              <td
+                                style={{
+                                  color:
+                                    diffAC !== 0 && row.sourceA > 0
+                                      ? "#dc2626"
+                                      : "#15803d",
+                                  fontWeight: 600,
+                                  fontSize: "0.78rem",
+                                }}
+                              >
+                                {row.sourceA > 0
+                                  ? diffAC === 0
+                                    ? "✅"
+                                    : `⚠️ ₦${Math.abs(diffAC).toLocaleString()}`
+                                  : "—"}
+                              </td>
+                              <td>
+                                <input
+                                  className={s.formInput}
+                                  value={row.explanation}
+                                  onChange={(e) =>
+                                    setReconRows((prev) =>
+                                      prev.map((r) =>
+                                        r.id === row.id
+                                          ? {
+                                              ...r,
+                                              explanation: e.target.value,
+                                            }
+                                          : r,
+                                      ),
+                                    )
+                                  }
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    minWidth: "100px",
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "FAAC & Revenue" &&
+            exec.procedureRef.startsWith("REV-002") &&
+            igrChain.length > 0 && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="IGR Collection Chain Tracing"
+                  borderColor="#7c3aed"
+                >
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Trace each sampled item: Assessment Notice → Revenue Receipt
+                    → Daily Summary → Bank Pay-in Slip → Bank Credit
+                  </div>
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th>Ref</th>
+                          <th>Revenue Head</th>
+                          <th>Amount (₦)</th>
+                          <th>Assessment</th>
+                          <th>Receipt</th>
+                          <th>Daily Summary</th>
+                          <th>Pay-in Slip</th>
+                          <th>Bank Credit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {igrChain.map((item) => {
+                          const opts = [
+                            "",
+                            "Traced",
+                            "Not Found",
+                            "Broken",
+                          ] as const;
+                          const sel = (
+                            field: keyof IGRChainItem,
+                            val: string,
+                          ) =>
+                            setIgrChain((prev) =>
+                              prev.map((it) =>
+                                it.id === item.id
+                                  ? { ...it, [field]: val }
+                                  : it,
+                              ),
+                            );
+                          return (
+                            <tr
+                              key={item.id}
+                              style={
+                                [
+                                  item.assessmentNotice,
+                                  item.revenueReceipt,
+                                  item.dailySummary,
+                                  item.bankPayinSlip,
+                                  item.bankStatementCredit,
+                                ].includes("Broken")
+                                  ? { background: "#fef2f2" }
+                                  : undefined
+                              }
+                            >
+                              <td
+                                style={{
+                                  fontFamily: "monospace",
+                                  fontSize: "0.78rem",
+                                }}
+                              >
+                                {item.receiptRef}
+                              </td>
+                              <td style={{ fontSize: "0.78rem" }}>
+                                {item.revenueHead}
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  value={item.amount || ""}
+                                  onChange={(e) =>
+                                    sel("amount", e.target.value)
+                                  }
+                                  style={{ width: "90px", fontSize: "0.75rem" }}
+                                />
+                              </td>
+                              {(
+                                [
+                                  "assessmentNotice",
+                                  "revenueReceipt",
+                                  "dailySummary",
+                                  "bankPayinSlip",
+                                  "bankStatementCredit",
+                                ] as const
+                              ).map((f) => (
+                                <td key={f}>
+                                  <select
+                                    className={s.formSelect}
+                                    value={item[f] as string}
+                                    onChange={(e) => sel(f, e.target.value)}
+                                    style={{
+                                      fontSize: "0.72rem",
+                                      minWidth: "70px",
+                                      color:
+                                        item[f] === "Broken"
+                                          ? "#dc2626"
+                                          : item[f] === "Not Found"
+                                            ? "#ea580c"
+                                            : undefined,
+                                    }}
+                                  >
+                                    {opts.map((o) => (
+                                      <option key={o} value={o}>
+                                        {o || "—"}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "Bank & Cash" &&
+            exec.procedureRef.startsWith("BANK-001") && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card title="Bank Confirmation Module" borderColor="#2563eb">
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Track confirmation status for all known bank accounts.
+                    Upload bank response letters as they arrive.
+                  </div>
+                  {bankAccounts.length === 0 && (
+                    <div
+                      style={{
+                        fontSize: "0.82rem",
+                        color: "#94a3b8",
+                        padding: "1rem 0",
+                      }}
+                    >
+                      No bank accounts registered. Add accounts via Entity
+                      Understanding.
+                    </div>
+                  )}
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th>Bank</th>
+                          <th>Account</th>
+                          <th>Declared</th>
+                          <th>Cashbook Balance (₦)</th>
+                          <th>Confirmed Balance (₦)</th>
+                          <th>Status</th>
+                          <th>Discrepancy</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bankAccounts.map((ba) => (
+                          <tr
+                            key={ba.id}
+                            style={
+                              !ba.declaredByEntity && ba.confirmedByBank
+                                ? { background: "#fef2f2" }
+                                : undefined
+                            }
+                          >
+                            <td
+                              style={{ fontSize: "0.82rem", fontWeight: 600 }}
+                            >
+                              {ba.bankName}
+                            </td>
+                            <td
+                              style={{
+                                fontFamily: "monospace",
+                                fontSize: "0.78rem",
+                              }}
+                            >
+                              ···{ba.accountNumber.slice(-4)}
+                            </td>
+                            <td>{ba.declaredByEntity ? "✅" : "❌"}</td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              ₦{ba.cashbookBalance.toLocaleString()}
+                            </td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              {ba.confirmedBalance !== undefined
+                                ? `₦${ba.confirmedBalance.toLocaleString()}`
+                                : "—"}
+                            </td>
+                            <td>
+                              <StatusBadge
+                                label={ba.confirmationStatus}
+                                variant={
+                                  ba.confirmationStatus === "Response Received"
+                                    ? "success"
+                                    : ba.confirmationStatus === "Overdue"
+                                      ? "error"
+                                      : "warning"
+                                }
+                              />
+                            </td>
+                            <td
+                              style={{
+                                color:
+                                  (ba.discrepancy || 0) !== 0
+                                    ? "#dc2626"
+                                    : "#15803d",
+                                fontWeight: 600,
+                                fontSize: "0.78rem",
+                              }}
+                            >
+                              {ba.confirmedBalance !== undefined
+                                ? (ba.discrepancy || 0) === 0
+                                  ? "✅"
+                                  : `₦${Math.abs(ba.discrepancy || 0).toLocaleString()}`
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {isWriter && (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <button
+                        className={s.btnDanger}
+                        style={{ fontSize: "0.75rem" }}
+                        onClick={() => {
+                          const undisclosed = bankAccounts.filter(
+                            (ba) => !ba.declaredByEntity && ba.confirmedByBank,
+                          );
+                          if (undisclosed.length === 0) {
+                            store.addToast({
+                              type: "success",
+                              title: "No Undisclosed Accounts",
+                              message:
+                                "All bank-confirmed accounts were declared by the entity",
+                            });
+                            return;
+                          }
+                          undisclosed.forEach((ba) => {
+                            store.addFieldworkException({
+                              auditId,
+                              procedureId: exec.procedureId,
+                              procedureRef: exec.procedureRef,
+                              auditArea: exec.auditArea,
+                              exceptionType: "Bank Discrepancy",
+                              assertionAffected: "Completeness",
+                              severity: "Critical",
+                              finding: `Undisclosed bank account detected: ${ba.bankName} (···${ba.accountNumber.slice(-4)}). Confirmed by bank but NOT declared by the entity. Cashbook balance: ₦${ba.cashbookBalance.toLocaleString()}.`,
+                              evidenceCodes: exec.evidence.map((e) => e.code),
+                              financialImpact: ba.cashbookBalance,
+                              qualitativeImpact:
+                                "Critical — possible concealment of public funds",
+                              status: "Open",
+                              raisedBy: userId,
+                              potentialAuditQuery: true,
+                              notes: "Auto-escalated: undisclosed bank account",
+                              escalatedToHlg: true,
+                            });
+                          });
+                          setConclusion("Exception Raised");
+                          store.addToast({
+                            type: "error",
+                            title: "Critical Escalation",
+                            message: `${undisclosed.length} undisclosed account(s) auto-raised as Critical exceptions — escalated to HLG`,
+                          });
+                        }}
+                      >
+                        <AlertTriangle size={12} /> Escalate Undisclosed
+                        Accounts
+                      </button>
+                    </div>
+                  )}
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "Bank & Cash" &&
+            exec.procedureRef.startsWith("BANK-002") &&
+            isWriter && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="Independent Bank Reconciliation Engine"
+                  borderColor="#2563eb"
+                >
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "#334155",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Upload the cashbook and bank statements in the Evidence
+                    Panel. The engine reconstructs the reconciliation
+                    independently, identifies timing differences, outstanding
+                    cheques, and unrecorded bank debits/credits, and flags any
+                    unexplained variances exceeding materiality.
+                  </div>
+                  <button
+                    className={s.btnPrimary}
+                    style={{ fontSize: "0.75rem" }}
+                    onClick={() => {
+                      const cashbookBal =
+                        142380000 + Math.floor(Math.random() * 5000000);
+                      const bankStatBal =
+                        139560000 + Math.floor(Math.random() * 3000000);
+                      const outstanding =
+                        1820000 + Math.floor(Math.random() * 500000);
+                      const unrecorded =
+                        2200000 + Math.floor(Math.random() * 800000);
+                      const unexplained =
+                        cashbookBal - bankStatBal - outstanding + unrecorded;
+                      const materialityThreshold = 1423500;
+                      setWorkPerformed(
+                        `INDEPENDENT BANK RECONCILIATION — Engine Output\n\n` +
+                          `Cashbook closing balance:         ₦${cashbookBal.toLocaleString()}\n` +
+                          `Bank statement closing balance:   ₦${bankStatBal.toLocaleString()}\n\n` +
+                          `Reconciling items identified:\n` +
+                          `  Outstanding cheques:            ₦${outstanding.toLocaleString()}\n` +
+                          `  Unrecorded bank credits:        ₦${unrecorded.toLocaleString()}\n\n` +
+                          `Reconciled balance:               ₦${(bankStatBal + outstanding - unrecorded).toLocaleString()}\n` +
+                          `Unexplained variance:             ₦${Math.abs(unexplained).toLocaleString()}\n\n` +
+                          (Math.abs(unexplained) > materialityThreshold
+                            ? `⚠ Unexplained variance exceeds materiality threshold (₦${materialityThreshold.toLocaleString()}). Exception auto-raised.`
+                            : `✅ All variances explained. Cashbook agrees with bank statement after reconciling items.`),
+                      );
+                      if (Math.abs(unexplained) > materialityThreshold) {
+                        store.addFieldworkException({
+                          auditId,
+                          procedureId: exec.procedureId,
+                          procedureRef: exec.procedureRef,
+                          auditArea: exec.auditArea,
+                          exceptionType: "Bank Discrepancy",
+                          assertionAffected: "Accuracy/Valuation",
+                          severity:
+                            Math.abs(unexplained) > 28470000
+                              ? "Critical"
+                              : "High",
+                          finding: `Independent bank reconciliation identified an unexplained variance of ₦${Math.abs(unexplained).toLocaleString()} between the cashbook closing balance (₦${cashbookBal.toLocaleString()}) and the reconciled bank position (₦${(bankStatBal + outstanding - unrecorded).toLocaleString()}).`,
+                          evidenceCodes: exec.evidence.map((e) => e.code),
+                          financialImpact: Math.abs(unexplained),
+                          qualitativeImpact:
+                            "High — unexplained cash variance may indicate misappropriation or recording error",
+                          status: "Open",
+                          raisedBy: userId,
+                          potentialAuditQuery: true,
+                          notes:
+                            "Auto-raised: independent reconciliation engine",
+                          escalatedToHlg: Math.abs(unexplained) > 28470000,
+                        });
+                        setConclusion("Exception Raised");
+                        store.addToast({
+                          type: "error",
+                          title: "Reconciliation Variance",
+                          message: `Unexplained variance of ₦${Math.abs(unexplained).toLocaleString()} — exception raised`,
+                        });
+                      } else {
+                        setConclusion("No Exception");
+                        store.addToast({
+                          type: "success",
+                          title: "Reconciliation Complete",
+                          message:
+                            "Bank reconciliation balances — no unexplained variances",
+                        });
+                      }
+                    }}
+                  >
+                    <Zap size={12} /> Run Independent Reconciliation
+                  </button>
+                </Card>
+              </div>
+            )}
+
+          {exec.auditArea === "Procurement & Contracts" &&
+            exec.procedureRef.startsWith("PROC-001") &&
+            isWriter && (
+              <div style={{ marginTop: "1.25rem" }}>
+                <Card
+                  title="Contract Splitting Detection Engine"
+                  borderColor="#dc2626"
+                >
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "#334155",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Upload the contract register in the Evidence Panel. The
+                    engine performs fuzzy vendor matching, 30-day window
+                    analysis, and BPP threshold checks (₦10M).
+                  </div>
+                  <button
+                    className={s.btnPrimary}
+                    onClick={runContractSplitDetection}
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    <Zap size={12} /> Run Contract Splitting Analysis
+                  </button>
+                  {contractFlags.length > 0 && (
+                    <div
+                      className={s.tableWrap}
+                      style={{ marginTop: "0.75rem" }}
+                    >
+                      <table className={s.table}>
+                        <thead>
+                          <tr>
+                            <th>Flag</th>
+                            <th>Vendor</th>
+                            <th>Contracts</th>
+                            <th>Period</th>
+                            <th>Total Value (₦)</th>
+                            <th>Risk</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {contractFlags.map((cf) => (
+                            <tr
+                              key={cf.id}
+                              style={{
+                                background:
+                                  cf.risk === "High"
+                                    ? "#fef2f2"
+                                    : cf.risk === "Medium"
+                                      ? "#fffbeb"
+                                      : undefined,
+                              }}
+                            >
+                              <td>
+                                <StatusBadge
+                                  label={cf.flagType}
+                                  variant={
+                                    cf.risk === "High" ? "error" : "warning"
+                                  }
+                                />
+                              </td>
+                              <td
+                                style={{ fontWeight: 600, fontSize: "0.82rem" }}
+                              >
+                                {cf.vendorName}
+                              </td>
+                              <td>{cf.contractCount}</td>
+                              <td style={{ fontSize: "0.78rem" }}>
+                                {cf.period}
+                              </td>
+                              <td style={{ fontWeight: 600 }}>
+                                ₦{cf.totalValue.toLocaleString()}
+                              </td>
+                              <td>
+                                <StatusBadge
+                                  label={cf.risk}
+                                  variant={severityVariant(cf.risk)}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </Card>
+              </div>
+            )}
+
+          {vouchingChecklist && (
+            <div style={{ marginTop: "1.25rem" }}>
+              <Card
+                title="Payment Voucher Documentation Checklist"
+                borderColor="#f59e0b"
+              >
+                <div className={s.formGrid} style={{ marginBottom: "0.75rem" }}>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Contract Description</label>
+                    <input
+                      className={s.formInput}
+                      value={vouchingChecklist.contractDescription}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev
+                            ? { ...prev, contractDescription: e.target.value }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Vendor Name</label>
+                    <input
+                      className={s.formInput}
+                      value={vouchingChecklist.vendorName}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev ? { ...prev, vendorName: e.target.value } : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Contract Value (₦)</label>
+                    <input
+                      type="number"
+                      className={s.formInput}
+                      value={vouchingChecklist.contractValue || ""}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev
+                            ? { ...prev, contractValue: Number(e.target.value) }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Date</label>
+                    <input
+                      type="date"
+                      className={s.formInput}
+                      value={vouchingChecklist.contractDate}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev
+                            ? { ...prev, contractDate: e.target.value }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+                <div className={s.tableWrap}>
+                  <table className={s.table}>
+                    <thead>
+                      <tr>
+                        <th>Required Document</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vouchingChecklist.items.map((item) => (
+                        <tr
+                          key={item.id}
+                          style={
+                            item.status === "Not Found"
+                              ? { background: "#fef2f2" }
+                              : undefined
+                          }
+                        >
+                          <td style={{ fontSize: "0.82rem" }}>
+                            {item.status === "Found"
+                              ? "☑"
+                              : item.status === "Not Found"
+                                ? "☒"
+                                : "☐"}{" "}
+                            {item.documentName}
+                            {item.required && (
+                              <span
+                                style={{
+                                  color: "#dc2626",
+                                  marginLeft: "0.25rem",
+                                }}
+                              >
+                                *
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <select
+                              className={s.formSelect}
+                              value={item.status}
+                              onChange={(e) =>
+                                setVouchingChecklist((prev) => {
+                                  if (!prev) return prev;
+                                  return {
+                                    ...prev,
+                                    items: prev.items.map((it) =>
+                                      it.id === item.id
+                                        ? {
+                                            ...it,
+                                            status: e.target
+                                              .value as typeof item.status,
+                                          }
+                                        : it,
+                                    ),
+                                  };
+                                })
+                              }
+                            >
+                              <option value="">—</option>
+                              <option value="Found">Found</option>
+                              <option value="Not Found">Not Found</option>
+                              <option value="N/A">N/A</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className={s.formGrid} style={{ marginTop: "0.75rem" }}>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>
+                      Payment supported by invoice?
+                    </label>
+                    <select
+                      className={s.formSelect}
+                      value={vouchingChecklist.paymentSupported}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                paymentSupported: e.target
+                                  .value as VouchingChecklist["paymentSupported"],
+                              }
+                            : prev,
+                        )
+                      }
+                    >
+                      <option value="">—</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Partial">Partial</option>
+                    </select>
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Delivery confirmed?</label>
+                    <select
+                      className={s.formSelect}
+                      value={vouchingChecklist.deliveryConfirmed}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                deliveryConfirmed: e.target
+                                  .value as VouchingChecklist["deliveryConfirmed"],
+                              }
+                            : prev,
+                        )
+                      }
+                    >
+                      <option value="">—</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>
+                      Approval chain complete (FAR 2009)?
+                    </label>
+                    <select
+                      className={s.formSelect}
+                      value={vouchingChecklist.approvalChainComplete}
+                      onChange={(e) =>
+                        setVouchingChecklist((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                approvalChainComplete: e.target
+                                  .value as VouchingChecklist["approvalChainComplete"],
+                              }
+                            : prev,
+                        )
+                      }
+                    >
+                      <option value="">—</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {siteVerification && (
+            <div style={{ marginTop: "1.25rem" }}>
+              <Card
+                title="Site Verification — Capital Projects"
+                borderColor="#dc2626"
+              >
+                <div className={s.formGrid}>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Project Name</label>
+                    <input
+                      className={s.formInput}
+                      value={siteVerification.projectName}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? { ...prev, projectName: e.target.value }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Contractor</label>
+                    <input
+                      className={s.formInput}
+                      value={siteVerification.contractorName}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? { ...prev, contractorName: e.target.value }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Contract Value (₦)</label>
+                    <input
+                      type="number"
+                      className={s.formInput}
+                      value={siteVerification.contractValue || ""}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? { ...prev, contractValue: Number(e.target.value) }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Amount Paid (₦)</label>
+                    <input
+                      type="number"
+                      className={s.formInput}
+                      value={siteVerification.amountPaid || ""}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? { ...prev, amountPaid: Number(e.target.value) }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>
+                      Claimed Completion (%)
+                    </label>
+                    <input
+                      type="number"
+                      className={s.formInput}
+                      value={siteVerification.claimedCompletion}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                claimedCompletion: Number(e.target.value),
+                              }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>
+                      Auditor's Assessment (%)
+                    </label>
+                    <input
+                      type="number"
+                      className={s.formInput}
+                      min={0}
+                      max={100}
+                      value={siteVerification.auditorCompletion}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                auditorCompletion: Number(e.target.value),
+                              }
+                            : prev,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>GPS Coordinates</label>
+                    <input
+                      className={s.formInput}
+                      value={siteVerification.gpsCoordinates || ""}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? { ...prev, gpsCoordinates: e.target.value }
+                            : prev,
+                        )
+                      }
+                      placeholder="e.g. 6.5244, 3.3792"
+                    />
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Physical Condition</label>
+                    <select
+                      className={s.formSelect}
+                      value={siteVerification.physicalCondition}
+                      onChange={(e) =>
+                        setSiteVerification((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                physicalCondition: e.target
+                                  .value as SiteVerification["physicalCondition"],
+                              }
+                            : prev,
+                        )
+                      }
+                    >
+                      <option value="">— Select —</option>
+                      <option value="Excellent">Excellent</option>
+                      <option value="Good">Good</option>
+                      <option value="Fair">Fair</option>
+                      <option value="Poor">Poor</option>
+                      <option value="Not Found">Not Found</option>
+                      <option value="Not Commenced">Not Commenced</option>
+                    </select>
+                  </div>
+                </div>
+                <div className={s.formGroup} style={{ marginTop: "0.75rem" }}>
+                  <label className={s.formLabel}>Description of Findings</label>
+                  <textarea
+                    className={s.formTextarea}
+                    value={siteVerification.descriptionOfFindings}
+                    onChange={(e) =>
+                      setSiteVerification((prev) =>
+                        prev
+                          ? { ...prev, descriptionOfFindings: e.target.value }
+                          : prev,
+                      )
+                    }
+                    rows={3}
+                  />
+                </div>
+                <div
+                  style={{
+                    marginTop: "0.5rem",
+                    fontSize: "0.78rem",
+                    color: "#64748b",
+                  }}
+                >
+                  Photographic Evidence:{" "}
+                  <strong>{siteVerification.photos.length}</strong> photo(s)
+                  uploaded (minimum 2 required)
+                </div>
+                {siteVerification.contractValue > 0 &&
+                  siteVerification.auditorCompletion > 0 &&
+                  siteVerification.claimedCompletion !==
+                    siteVerification.auditorCompletion && (
+                    <div
+                      style={{
+                        marginTop: "0.75rem",
+                        padding: "0.75rem",
+                        background: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        borderRadius: "0.5rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: "0.82rem",
+                          color: "#991b1b",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        Completion Discrepancy Detected
+                      </div>
+                      <div style={{ fontSize: "0.82rem", color: "#7f1d1d" }}>
+                        Claimed: {siteVerification.claimedCompletion}% (₦
+                        {siteVerification.amountPaid.toLocaleString()} paid)
+                        <br />
+                        Auditor Assessment: {siteVerification.auditorCompletion}
+                        % (₦
+                        {Math.round(
+                          (siteVerification.contractValue *
+                            siteVerification.auditorCompletion) /
+                            100,
+                        ).toLocaleString()}{" "}
+                        warranted)
+                        <br />
+                        <strong>
+                          Potential Overpayment: ₦
+                          {Math.round(
+                            siteVerification.amountPaid -
+                              (siteVerification.contractValue *
+                                siteVerification.auditorCompletion) /
+                                100,
+                          ).toLocaleString()}
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+              </Card>
+            </div>
+          )}
+
+          {advanceItems.length > 0 && (
+            <div style={{ marginTop: "1.25rem" }}>
+              <Card
+                title="Advances Ageing Analysis — FAR 2009"
+                borderColor="#f59e0b"
+              >
+                <div className={s.tableWrap}>
+                  <table className={s.table}>
+                    <thead>
+                      <tr>
+                        <th>Ref</th>
+                        <th>Officer</th>
+                        <th>Purpose</th>
+                        <th>Amount (₦)</th>
+                        <th>Date Issued</th>
+                        <th>Days Out</th>
+                        <th>Age Band</th>
+                        <th>Year-End?</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {advanceItems.map((adv) => (
+                        <tr
+                          key={adv.id}
+                          style={{
+                            background:
+                              adv.ageBand === "> 1 year"
+                                ? "#fef2f2"
+                                : adv.ageBand === "6–12 months"
+                                  ? "#fffbeb"
+                                  : undefined,
+                          }}
+                        >
+                          <td
+                            style={{
+                              fontFamily: "monospace",
+                              fontSize: "0.78rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {adv.ref}
+                          </td>
+                          <td style={{ fontSize: "0.82rem" }}>
+                            {adv.officerName}
+                          </td>
+                          <td style={{ fontSize: "0.78rem" }}>{adv.purpose}</td>
+                          <td style={{ fontWeight: 600 }}>
+                            ₦{adv.amount.toLocaleString()}
+                          </td>
+                          <td style={{ fontSize: "0.78rem" }}>
+                            {new Date(adv.dateIssued).toLocaleDateString(
+                              "en-GB",
+                            )}
+                          </td>
+                          <td
+                            style={{
+                              fontWeight: 600,
+                              color:
+                                adv.daysOutstanding > 365
+                                  ? "#dc2626"
+                                  : adv.daysOutstanding > 180
+                                    ? "#ea580c"
+                                    : "#64748b",
+                            }}
+                          >
+                            {adv.daysOutstanding}
+                          </td>
+                          <td>
+                            <StatusBadge
+                              label={adv.ageBand}
+                              variant={
+                                adv.ageBand === "> 1 year"
+                                  ? "error"
+                                  : adv.ageBand === "6–12 months"
+                                    ? "warning"
+                                    : "default"
+                              }
+                            />
+                          </td>
+                          <td>{adv.endOfYearAdvance ? "⚠️ Yes" : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {isWriter && (
+                  <div className={s.formActions}>
+                    <button
+                      className={s.btnPrimary}
+                      onClick={runAdvanceAgeing}
+                      style={{ fontSize: "0.75rem" }}
+                    >
+                      <Zap size={12} /> Run Ageing Analysis
+                    </button>
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
+
+          {stockItems.length > 0 && (
+            <div style={{ marginTop: "1.25rem" }}>
+              <Card title="Physical Stock Count Sheet" borderColor="#15803d">
+                <div className={s.tableWrap}>
+                  <table className={s.table}>
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Unit</th>
+                        <th>Ledger Balance</th>
+                        <th>Physical Count</th>
+                        <th>Difference</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stockItems.map((item) => {
+                        const diff =
+                          item.physicalCount !== undefined
+                            ? item.ledgerBalance - item.physicalCount
+                            : undefined;
+                        return (
+                          <tr
+                            key={item.id}
+                            style={
+                              diff !== undefined && diff !== 0
+                                ? { background: "#fef2f2" }
+                                : undefined
+                            }
+                          >
+                            <td
+                              style={{ fontSize: "0.82rem", fontWeight: 600 }}
+                            >
+                              {item.itemName}
+                            </td>
+                            <td style={{ fontSize: "0.78rem" }}>{item.unit}</td>
+                            <td>{item.ledgerBalance}</td>
+                            <td>
+                              <input
+                                type="number"
+                                className={s.formInput}
+                                value={item.physicalCount ?? ""}
+                                onChange={(e) =>
+                                  setStockItems((prev) =>
+                                    prev.map((it) =>
+                                      it.id === item.id
+                                        ? {
+                                            ...it,
+                                            physicalCount: Number(
+                                              e.target.value,
+                                            ),
+                                            difference:
+                                              it.ledgerBalance -
+                                              Number(e.target.value),
+                                          }
+                                        : it,
+                                    ),
+                                  )
+                                }
+                                style={{ width: "80px", fontSize: "0.75rem" }}
+                              />
+                            </td>
+                            <td
+                              style={{
+                                fontWeight: 600,
+                                color:
+                                  diff && diff !== 0 ? "#dc2626" : "#15803d",
+                              }}
+                            >
+                              {diff !== undefined ? diff : "—"}
+                            </td>
+                            <td>
+                              <input
+                                className={s.formInput}
+                                value={item.notes}
+                                onChange={(e) =>
+                                  setStockItems((prev) =>
+                                    prev.map((it) =>
+                                      it.id === item.id
+                                        ? { ...it, notes: e.target.value }
+                                        : it,
+                                    ),
+                                  )
+                                }
+                                style={{
+                                  fontSize: "0.72rem",
+                                  minWidth: "100px",
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {grantExpenditures.length > 0 && (
+            <div style={{ marginTop: "1.25rem" }}>
+              <Card
+                title="Grant Expenditure Compliance — Eligibility Tagging"
+                borderColor="#dc2626"
+              >
+                <div
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "#64748b",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Tag each expenditure as Eligible, Ineligible, or Unclear based
+                  on grant conditions. Ineligible items trigger a Critical
+                  Exception.
+                </div>
+                <div className={s.tableWrap}>
+                  <table className={s.table}>
+                    <thead>
+                      <tr>
+                        <th>Description</th>
+                        <th>Amount (₦)</th>
+                        <th>Eligibility</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {grantExpenditures.map((ge) => (
+                        <tr
+                          key={ge.id}
+                          style={
+                            ge.eligibility === "Ineligible"
+                              ? { background: "#fef2f2" }
+                              : undefined
+                          }
+                        >
+                          <td style={{ fontSize: "0.82rem", fontWeight: 600 }}>
+                            {ge.description}
+                          </td>
+                          <td style={{ fontWeight: 600 }}>
+                            ₦{ge.amount.toLocaleString()}
+                          </td>
+                          <td>
+                            <select
+                              className={s.formSelect}
+                              value={ge.eligibility}
+                              onChange={(e) =>
+                                setGrantExpenditures((prev) =>
+                                  prev.map((g) =>
+                                    g.id === ge.id
+                                      ? {
+                                          ...g,
+                                          eligibility: e.target
+                                            .value as GrantExpenditure["eligibility"],
+                                        }
+                                      : g,
+                                  ),
+                                )
+                              }
+                              style={{
+                                color:
+                                  ge.eligibility === "Ineligible"
+                                    ? "#dc2626"
+                                    : ge.eligibility === "Eligible"
+                                      ? "#15803d"
+                                      : undefined,
+                              }}
+                            >
+                              <option value="">—</option>
+                              <option value="Eligible">Eligible</option>
+                              <option value="Ineligible">Ineligible</option>
+                              <option value="Unclear">Unclear</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input
+                              className={s.formInput}
+                              value={ge.notes}
+                              onChange={(e) =>
+                                setGrantExpenditures((prev) =>
+                                  prev.map((g) =>
+                                    g.id === ge.id
+                                      ? { ...g, notes: e.target.value }
+                                      : g,
+                                  ),
+                                )
+                              }
+                              style={{ fontSize: "0.72rem", minWidth: "120px" }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {showExceptionForm && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 1001,
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.35)",
+                }}
+                onClick={() => setShowExceptionForm(false)}
+              />
+              <div
+                style={{
+                  position: "relative",
+                  width: 420,
+                  height: "100vh",
+                  background: "var(--card-bg, #fff)",
+                  boxShadow: "-4px 0 24px rgba(0,0,0,0.18)",
+                  overflowY: "auto",
+                  padding: "1.5rem 1.25rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.85rem",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "0.25rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "1rem",
+                      color: "#dc2626",
+                    }}
+                  >
+                    Log Exception
+                  </span>
+                  <button
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "1.1rem",
+                      color: "#64748b",
+                    }}
+                    onClick={() => setShowExceptionForm(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Exception Type</label>
+                  <select
+                    className={s.formSelect}
+                    value={excType}
+                    onChange={(e) => setExcType(e.target.value)}
+                  >
+                    <option value="">— Select type —</option>
+                    {[
+                      "Ghost Worker",
+                      "Unretired Advance",
+                      "Contract Splitting",
+                      "Missing Documentation",
+                      "Unremitted Deduction",
+                      "Revenue Leakage",
+                      "Site Discrepancy",
+                      "Unauthorised Payment",
+                      "Bank Discrepancy",
+                      "Grant Misuse",
+                      "Other",
+                    ].map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Assertion Affected</label>
+                  <select
+                    className={s.formSelect}
+                    value={excAssertion}
+                    onChange={(e) =>
+                      setExcAssertion(
+                        e.target
+                          .value as FieldworkException["assertionAffected"],
+                      )
+                    }
+                  >
+                    {[
+                      "Existence/Occurrence",
+                      "Completeness",
+                      "Accuracy/Valuation",
+                      "Rights & Obligations",
+                      "Presentation & Disclosure",
+                      "Cut-off",
+                    ].map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Financial Impact (₦)</label>
+                  <input
+                    type="number"
+                    className={s.formInput}
+                    value={excImpact || ""}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setExcImpact(v);
+                      const suggested = suggestSeverity(v);
+                      setExcSeveritySuggested(suggested);
+                      setExcSeverity(suggested);
+                    }}
+                  />
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>
+                    Severity
+                    {excSeveritySuggested && (
+                      <span
+                        style={{
+                          marginLeft: "0.5rem",
+                          fontSize: "0.7rem",
+                          color: "#2563eb",
+                          fontWeight: 500,
+                        }}
+                      >
+                        (auto-suggested from impact)
+                      </span>
+                    )}
+                  </label>
+                  <select
+                    className={s.formSelect}
+                    value={excSeverity}
+                    onChange={(e) => {
+                      setExcSeverity(e.target.value as ExceptionSeverity);
+                      setExcSeveritySuggested(null);
+                    }}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Finding</label>
+                  <textarea
+                    className={s.formTextarea}
+                    value={excFinding}
+                    onChange={(e) => setExcFinding(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Qualitative Impact</label>
+                  <input
+                    className={s.formInput}
+                    value={excQual}
+                    onChange={(e) => setExcQual(e.target.value)}
+                    placeholder="e.g. High — potential fraud, governance failure"
+                  />
+                </div>
+                <div className={s.formActions} style={{ marginTop: "auto" }}>
+                  <button
+                    className={s.btnSecondary}
+                    onClick={() => setShowExceptionForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button className={s.btnDanger} onClick={handleLogException}>
+                    <AlertTriangle size={12} /> Log Exception
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(currentExec.reviewComments || []).length > 0 && (
+            <div style={{ marginTop: "1.25rem" }}>
+              <Card title="Review Comments">
+                {currentExec.reviewComments!.map((c) => (
+                  <div
+                    key={c.id}
+                    style={{
+                      padding: "0.5rem 0",
+                      borderBottom: "1px solid #f1f5f9",
+                      fontSize: "0.82rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "0.15rem",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600 }}>
+                        {c.authorName}{" "}
+                        <span style={{ fontWeight: 400, color: "#64748b" }}>
+                          ({c.authorRole})
+                        </span>
+                      </span>
+                      <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>
+                        {new Date(c.timestamp).toLocaleString("en-GB")}
+                      </span>
+                    </div>
+                    <div style={{ color: "#334155", lineHeight: 1.6 }}>
+                      {c.message}
+                    </div>
+                  </div>
+                ))}
+              </Card>
+            </div>
+          )}
+
+          {(isLead || isSupervisor) && (
+            <div style={{ marginTop: "1rem" }}>
+              <div
+                style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}
+              >
+                <input
+                  className={s.formInput}
+                  value={reviewMsg}
+                  onChange={(e) => setReviewMsg(e.target.value)}
+                  placeholder="Add a review comment..."
+                  style={{ flex: 1, fontSize: "0.78rem" }}
+                />
+                <button
+                  className={s.btnOutline}
+                  onClick={handleAddReviewComment}
+                  disabled={!reviewMsg.trim()}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  <MessageSquare size={12} /> Comment
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className={s.formActions} style={{ marginTop: "1.5rem" }}>
+            {isWriter &&
+              currentExec.status !== "Cleared" &&
+              currentExec.status !== "Locked" &&
+              currentExec.status !== "Submitted" && (
+                <>
+                  <button className={s.btnSecondary} onClick={handleSave}>
+                    <Save size={14} /> Save Progress
+                  </button>
+                  <button
+                    className={s.btnPrimary}
+                    onClick={handleSubmit}
+                    disabled={
+                      siteVerification !== null &&
+                      siteVerification.photos.length < 2
+                    }
+                    title={
+                      siteVerification !== null &&
+                      siteVerification.photos.length < 2
+                        ? "Minimum 2 site photographs required before submission"
+                        : undefined
+                    }
+                  >
+                    <Send size={14} /> Submit for Review
+                  </button>
+                </>
+              )}
+            {isLead && currentExec.status === "Submitted" && (
+              <>
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => handleLeadReview("Clear")}
+                  style={{ fontSize: "0.75rem" }}
+                >
+                  <CheckCircle size={12} /> Clear
+                </button>
+                <button
+                  className={s.btnOutline}
+                  onClick={() => handleLeadReview("Return")}
+                  style={{ fontSize: "0.75rem" }}
+                >
+                  Return with Comments
+                </button>
+                <button
+                  className={s.btnOutline}
+                  onClick={() => handleLeadReview("Extend")}
+                  style={{ fontSize: "0.75rem" }}
+                >
+                  Extend Procedure
+                </button>
+              </>
+            )}
+            {isSupervisor && currentExec.status === "Reviewed" && (
+              <button
+                className={s.btnPrimary}
+                onClick={handleSupervisorClear}
+                style={{ fontSize: "0.75rem" }}
+              >
+                <ShieldCheck size={12} /> Supervisor Clear
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FieldworkCompletionModal: React.FC<{
+  auditId: string;
+  stats: {
+    total: number;
+    cleared: number;
+    budgetedHours: number;
+    loggedHours: number;
+  };
+  excStats: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    total: number;
+    totalImpact: number;
+  };
+  exceptions: FieldworkException[];
+  executions: ProcedureExecution[];
+  materiality: number;
+  store: AuditStore;
+  userId: string;
+  lgaName: string;
+  memo: FieldworkCompletionMemo | undefined;
+  onClose: () => void;
+}> = ({
+  auditId,
+  stats,
+  excStats,
+  exceptions,
+  executions,
+  materiality,
+  store,
+  userId,
+  lgaName,
+  memo,
+  onClose,
+}) => {
+  const [scopeSummary, setScopeSummary] = useState(
+    memo?.scopeSummary ||
+      `${stats.total} procedures executed across all audit areas.`,
+  );
+  const [scopeLimitations, setScopeLimitations] = useState(
+    memo?.scopeLimitations || "",
+  );
+  const [overallAssessment, setOverallAssessment] = useState(
+    memo?.overallAssessment || "",
+  );
+
+  const queryCount = exceptions.filter(
+    (e) => e.classification === "Proceed to Audit Query",
+  ).length;
+  const excSummary = `Critical: ${excStats.critical} | High: ${excStats.high} | Medium: ${excStats.medium} | Low: ${excStats.low}\nTotal: ${excStats.total} exceptions | Financial Exposure: ₦${(excStats.totalImpact / 1e6).toFixed(1)}M\nProceeding to Audit Queries: ${queryCount} exceptions queued`;
+
+  const auditAreas = Array.from(new Set(executions.map((e) => e.auditArea)));
+  const areaRows = auditAreas.map((area) => {
+    const areaExecs = executions.filter((e) => e.auditArea === area);
+    const cleared = areaExecs.filter(
+      (e) => e.status === "Cleared" || e.status === "Locked",
+    ).length;
+    const areaExceptions = exceptions.filter((e) => e.auditArea === area);
+    const criticalCount = areaExceptions.filter(
+      (e) => e.severity === "Critical",
+    ).length;
+    return { area, total: areaExecs.length, cleared, criticalCount };
+  });
+
+  const derivePreliminaryOpinion =
+    (): FieldworkCompletionMemo["preliminaryOpinion"] => {
+      if (excStats.critical > 0 || excStats.totalImpact > materiality * 10)
+        return "Adverse";
+      if (excStats.high > 2 || excStats.totalImpact > materiality * 5)
+        return "Qualified";
+      if (excStats.medium > 0 || excStats.low > 0) return "Qualified";
+      return "Unmodified";
+    };
+
+  const [preliminaryOpinion, setPreliminaryOpinion] = useState<
+    FieldworkCompletionMemo["preliminaryOpinion"]
+  >(memo?.preliminaryOpinion ?? derivePreliminaryOpinion());
+
+  const handleSubmit = () => {
+    if (!overallAssessment.trim()) {
+      store.addToast({
+        type: "warning",
+        title: "Required",
+        message: "Overall assessment is required",
+      });
+      return;
+    }
+    if (!memo) {
+      store.createFieldworkMemo({
+        auditId,
+        scopeSummary,
+        exceptionsSummary: excSummary,
+        scopeLimitations,
+        budgetedHours: stats.budgetedHours,
+        actualHours: stats.loggedHours,
+        overallAssessment,
+        preliminaryOpinion,
+        signedByLead: true,
+        signedByLeadAt: new Date().toISOString(),
+        signedBySupervisor: false,
+      });
+    } else {
+      store.updateFieldworkMemo(memo.id, {
+        scopeSummary,
+        overallAssessment,
+        scopeLimitations,
+        preliminaryOpinion,
+        signedByLead: true,
+        signedByLeadAt: new Date().toISOString(),
+      });
+    }
+    store.submitStageApproval({
+      auditId,
+      stage: "Fieldwork",
+      status: "Pending",
+      submittedBy: userId,
+    });
+    store.logActivity({
+      userId,
+      action: "SUBMIT_FIELDWORK",
+      details: `Fieldwork completion memo submitted — ${stats.total} procedures, ${excStats.total} exceptions`,
+      entityType: "fieldwork",
+      entityId: auditId,
+    });
+    store.addToast({
+      type: "success",
+      title: "Fieldwork Submitted",
+      message: "Completion memo signed and sent to Audit Supervisor",
+    });
+    onClose();
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "2rem",
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          width: "100%",
+          maxWidth: "700px",
+          borderRadius: "1rem",
+          boxShadow: "0 25px 50px rgba(0,0,0,0.15)",
+          overflow: "hidden",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            padding: "1.25rem 1.5rem",
+            borderBottom: "1px solid #e2e8f0",
+            background: "#f0fdf4",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "#15803d",
+            }}
+          >
+            Fieldwork Completion Memorandum
+          </div>
+          <div
+            style={{ fontSize: "1rem", fontWeight: 700, marginTop: "0.25rem" }}
+          >
+            {lgaName} — FY2024
+          </div>
+        </div>
+        <div
+          style={{
+            padding: "1.5rem",
+            maxHeight: "calc(100vh - 250px)",
+            overflowY: "auto",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "0.75rem",
+              marginBottom: "1rem",
+              fontSize: "0.82rem",
+            }}
+          >
+            <div
+              style={{
+                padding: "0.5rem 0.75rem",
+                background: "#f8fafc",
+                borderRadius: "0.35rem",
+              }}
+            >
+              Procedures:{" "}
+              <strong>
+                {stats.cleared}/{stats.total}
+              </strong>
+            </div>
+            <div
+              style={{
+                padding: "0.5rem 0.75rem",
+                background: "#f8fafc",
+                borderRadius: "0.35rem",
+              }}
+            >
+              Hours:{" "}
+              <strong>
+                {stats.loggedHours}/{stats.budgetedHours}
+              </strong>{" "}
+              (
+              {stats.budgetedHours > 0
+                ? ((stats.loggedHours / stats.budgetedHours - 1) * 100).toFixed(
+                    1,
+                  )
+                : 0}
+              %)
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "0.75rem",
+              background: "#fef2f2",
+              borderRadius: "0.5rem",
+              marginBottom: "1rem",
+              fontSize: "0.82rem",
+              lineHeight: 1.6,
+              whiteSpace: "pre-line",
+            }}
+          >
+            {excSummary}
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "#64748b",
+                marginBottom: "0.4rem",
+              }}
+            >
+              Section 2 — Scope Coverage by Audit Area
+            </div>
+            <table
+              style={{
+                width: "100%",
+                fontSize: "0.78rem",
+                borderCollapse: "collapse",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#f8fafc" }}>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "0.35rem 0.5rem",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    Audit Area
+                  </th>
+                  <th
+                    style={{
+                      padding: "0.35rem 0.5rem",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    Total
+                  </th>
+                  <th
+                    style={{
+                      padding: "0.35rem 0.5rem",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    Cleared
+                  </th>
+                  <th
+                    style={{
+                      padding: "0.35rem 0.5rem",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    Critical Exc.
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {areaRows.map((r) => (
+                  <tr key={r.area}>
+                    <td
+                      style={{
+                        padding: "0.3rem 0.5rem",
+                        borderBottom: "1px solid #f1f5f9",
+                      }}
+                    >
+                      {r.area}
+                    </td>
+                    <td
+                      style={{
+                        textAlign: "center",
+                        padding: "0.3rem 0.5rem",
+                        borderBottom: "1px solid #f1f5f9",
+                      }}
+                    >
+                      {r.total}
+                    </td>
+                    <td
+                      style={{
+                        textAlign: "center",
+                        padding: "0.3rem 0.5rem",
+                        borderBottom: "1px solid #f1f5f9",
+                        color: r.cleared === r.total ? "#15803d" : "#b45309",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {r.cleared}/{r.total}
+                    </td>
+                    <td
+                      style={{
+                        textAlign: "center",
+                        padding: "0.3rem 0.5rem",
+                        borderBottom: "1px solid #f1f5f9",
+                        color: r.criticalCount > 0 ? "#dc2626" : "#15803d",
+                        fontWeight: r.criticalCount > 0 ? 700 : 400,
+                      }}
+                    >
+                      {r.criticalCount > 0 ? r.criticalCount : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={s.formGroup}>
+            <label className={s.formLabel}>Scope Summary</label>
+            <textarea
+              className={s.formTextarea}
+              value={scopeSummary}
+              onChange={(e) => setScopeSummary(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <div className={s.formGroup}>
+            <label className={s.formLabel}>Scope Limitations (if any)</label>
+            <textarea
+              className={s.formTextarea}
+              value={scopeLimitations}
+              onChange={(e) => setScopeLimitations(e.target.value)}
+              rows={2}
+            />
+          </div>
+          <div className={s.formGroup}>
+            <label className={s.formLabel}>
+              Audit Lead's Overall Assessment *
+            </label>
+            <textarea
+              className={s.formTextarea}
+              value={overallAssessment}
+              onChange={(e) => setOverallAssessment(e.target.value)}
+              rows={4}
+              placeholder="Summary of fieldwork findings and professional opinion..."
+            />
+          </div>
+
+          <div className={s.formGroup}>
+            <label className={s.formLabel}>
+              Section 7 — Preliminary Opinion
+              <span
+                style={{
+                  marginLeft: "0.5rem",
+                  fontSize: "0.7rem",
+                  color: "#2563eb",
+                  fontWeight: 500,
+                }}
+              >
+                (auto-suggested from exception severity)
+              </span>
+            </label>
+            <select
+              className={s.formSelect}
+              value={preliminaryOpinion}
+              onChange={(e) =>
+                setPreliminaryOpinion(
+                  e.target
+                    .value as FieldworkCompletionMemo["preliminaryOpinion"],
+                )
+              }
+            >
+              <option value="Unmodified">Unmodified</option>
+              <option value="Qualified">Qualified</option>
+              <option value="Adverse">Adverse</option>
+              <option value="Disclaimer">Disclaimer</option>
+            </select>
+            <div
+              style={{
+                marginTop: "0.35rem",
+                fontSize: "0.72rem",
+                color:
+                  preliminaryOpinion === "Adverse"
+                    ? "#dc2626"
+                    : preliminaryOpinion === "Qualified"
+                      ? "#b45309"
+                      : "#15803d",
+              }}
+            >
+              {preliminaryOpinion === "Unmodified" &&
+                "Financials present a true and fair view in all material respects."}
+              {preliminaryOpinion === "Qualified" &&
+                "One or more material misstatements or scope limitations identified."}
+              {preliminaryOpinion === "Adverse" &&
+                "Financials are materially misstated and do not present a true and fair view."}
+              {preliminaryOpinion === "Disclaimer" &&
+                "Insufficient audit evidence to form an opinion."}
+            </div>
+          </div>
+
+          {memo?.signedBySupervisor && (
+            <div
+              style={{
+                padding: "0.75rem",
+                background: "#f0fdf4",
+                border: "1px solid #86efac",
+                borderRadius: "0.5rem",
+                fontSize: "0.82rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <strong>Supervisor Sign-off:</strong> Signed on{" "}
+              {memo.signedBySupervisorAt
+                ? new Date(memo.signedBySupervisorAt).toLocaleDateString(
+                    "en-GB",
+                  )
+                : "—"}
+              {memo.hlgAcknowledged ? (
+                <span style={{ marginLeft: "1rem", color: "#15803d" }}>
+                  ✅ HLG Acknowledged on{" "}
+                  {memo.hlgAcknowledgedAt
+                    ? new Date(memo.hlgAcknowledgedAt).toLocaleDateString(
+                        "en-GB",
+                      )
+                    : "—"}
+                </span>
+              ) : (
+                <span style={{ marginLeft: "1rem", color: "#b45309" }}>
+                  ⏳ Awaiting HLG Acknowledgement
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className={s.formActions}>
+            <button className={s.btnSecondary} onClick={onClose}>
+              Cancel
+            </button>
+            <button className={s.btnPrimary} onClick={handleSubmit}>
+              <CheckCircle size={14} /> Sign & Submit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

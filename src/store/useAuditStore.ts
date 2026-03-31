@@ -9,6 +9,7 @@ import type {
   Workpaper,
   AuditReport,
   AuditProgramme,
+  AuditProgrammeSection,
   ActivityLog,
   Zone,
   LGA,
@@ -37,6 +38,29 @@ import type {
   Notification,
   ProgrammeTemplate,
   CouncilType,
+  AuditJournal,
+  AuditComment,
+  FinancialStatementItem,
+  CompletionChecklistItem,
+  AuditWorkpaper,
+  EntityProfile,
+  IndependenceDeclaration,
+  PreliminaryAnalytic,
+  AuditStrategy,
+  AnalyticFlag,
+  DocumentRequisition,
+  ProcedureExecution,
+  ProcedureExecutionStatus,
+  ProcedureEvidence,
+  FieldworkException,
+  ExceptionClassification,
+  ReviewComment,
+  BankAccount,
+  ContractFlag,
+  VouchingChecklist,
+  SiteVerification,
+  FieldworkCompletionMemo,
+  FieldworkWorkingPaper,
 } from "../types";
 import {
   ZONES,
@@ -64,7 +88,63 @@ import {
   SEED_STAGE_APPROVALS,
   SEED_NOTIFICATIONS,
   PROGRAMME_TEMPLATES,
+  SEED_AUDIT_JOURNALS,
+  SEED_AUDIT_COMMENTS,
+  SEED_FINANCIAL_STATEMENTS,
+  SEED_COMPLETION_CHECKLIST,
+  SEED_AUDIT_WORKPAPERS,
 } from "../mock/data";
+import { getSuggestedProcedures } from "../utils/auditLogic";
+
+/* ─── Helpers for building section metadata ─── */
+const RISK_KEY_RISKS: Record<string, string[]> = {
+  "Revenue & Receipts": [
+    "Revenue recognition at inappropriate times (cut-off errors)",
+    "Fictitious revenue (existence)",
+    "Unrecorded receipts (completeness)",
+    "Manipulation of revenue figures to meet targets (fraud)",
+  ],
+  "Expenditure & Payments": [
+    "Expenditure recorded without proper authorisation",
+    "Fictitious or inflated payment vouchers",
+    "Misclassification of expenditure heads",
+    "Unrecorded liabilities at period end",
+  ],
+  "Payroll & Personnel Costs": [
+    "Ghost workers on the payroll",
+    "Incorrect salary computation or grade placement",
+    "Unauthorised payroll changes",
+    "Non-remittance of statutory deductions",
+  ],
+  "Bank & Cash Management": [
+    "Unauthorised bank accounts",
+    "Stale or fraudulent reconciling items",
+    "Cash handling irregularities",
+    "Inadequate controls over bank signatories",
+  ],
+  "Procurement & Contracts": [
+    "Non-compliance with Public Procurement Act",
+    "Contract splitting to avoid thresholds",
+    "Conflict of interest in contract award",
+    "Overpayment for goods/services not delivered",
+  ],
+  "Fixed Assets & Capital Projects": [
+    "Unrecorded or fictitious assets",
+    "Assets not physically verified",
+    "Improper disposal without authorisation",
+    "Capital projects not completed as per contract",
+  ],
+};
+
+const buildDefaultKeyRisks = (sectionTitle: string): string[] =>
+  RISK_KEY_RISKS[sectionTitle] ?? [
+    "Risk of material misstatement in this area",
+    "Potential non-compliance with applicable regulations",
+    "Fraud risk: manipulation or misrepresentation",
+  ];
+
+const buildDefaultDocNotes = (sectionTitle: string): string =>
+  `Document all procedures performed for ${sectionTitle}. Retain copies of key supporting documents (sample selections, confirmations, reconciliations). Cross-reference all evidence to the relevant workpaper.`;
 
 interface ToastMessage {
   id: string;
@@ -83,7 +163,7 @@ interface ModalState {
   variant?: "danger" | "warning" | "info";
 }
 
-interface AuditStore {
+export interface AuditStore {
   notifications: Notification[];
   addNotification: (
     notif: Omit<Notification, "id" | "isRead" | "timestamp">,
@@ -124,6 +204,24 @@ interface AuditStore {
   lessonsLearned: LessonLearned[];
   qualityReviews: QualityReview[];
   exitConferences: ExitConference[];
+  auditJournals: AuditJournal[];
+  auditComments: AuditComment[];
+  financialStatements: FinancialStatementItem[];
+  completionChecklist: CompletionChecklistItem[];
+  auditWorkpapers: AuditWorkpaper[];
+  entityProfiles: EntityProfile[];
+  independenceDeclarations: IndependenceDeclaration[];
+  preliminaryAnalytics: PreliminaryAnalytic[];
+  auditStrategies: AuditStrategy[];
+  documentRequisitions: DocumentRequisition[];
+  procedureExecutions: ProcedureExecution[];
+  fieldworkExceptions: FieldworkException[];
+  bankAccounts: BankAccount[];
+  contractFlags: ContractFlag[];
+  vouchingChecklists: VouchingChecklist[];
+  siteVerifications: SiteVerification[];
+  fieldworkMemos: FieldworkCompletionMemo[];
+  fieldworkWorkingPapers: FieldworkWorkingPaper[];
   toasts: ToastMessage[];
   modal: ModalState;
 
@@ -283,6 +381,28 @@ interface AuditStore {
     scope: string,
   ) => void;
 
+  /* ─── Audit Work Programme Deliverables ─── */
+  addAuditJournal: (journal: Omit<AuditJournal, "id" | "createdAt">) => void;
+  updateAuditJournal: (id: string, updates: Partial<AuditJournal>) => void;
+  getAuditJournals: (auditId: string) => AuditJournal[];
+
+  addAuditComment: (comment: Omit<AuditComment, "id" | "createdAt">) => void;
+  updateAuditComment: (id: string, updates: Partial<AuditComment>) => void;
+  getAuditComments: (auditId: string) => AuditComment[];
+
+  updateFinancialStatement: (
+    id: string,
+    updates: Partial<FinancialStatementItem>,
+  ) => void;
+  getAuditFinancialStatements: (auditId: string) => FinancialStatementItem[];
+
+  toggleCompletionItem: (id: string, userId: string) => void;
+  getAuditCompletionChecklist: (auditId: string) => CompletionChecklistItem[];
+
+  addAuditWorkpaper: (wp: Omit<AuditWorkpaper, "id">) => void;
+  updateAuditWorkpaper: (id: string, updates: Partial<AuditWorkpaper>) => void;
+  getAuditWorkpaperIndex: (auditId: string) => AuditWorkpaper[];
+
   /* ─── Post-Audit Actions ─── */
   addFollowUp: (item: Omit<FollowUpItem, "id" | "createdAt">) => void;
   updateFollowUp: (id: string, updates: Partial<FollowUpItem>) => void;
@@ -296,6 +416,113 @@ interface AuditStore {
   getAuditExitConference: (auditId: string) => ExitConference | undefined;
 
   computeAuditProgress: (auditId: string) => number;
+
+  saveEntityProfile: (profile: Omit<EntityProfile, "id" | "createdAt">) => void;
+  getEntityProfile: (auditId: string) => EntityProfile | undefined;
+  addIndependenceDeclaration: (
+    decl: Omit<IndependenceDeclaration, "id">,
+  ) => void;
+  getIndependenceDeclarations: (auditId: string) => IndependenceDeclaration[];
+  addPreliminaryAnalytic: (
+    analytic: Omit<PreliminaryAnalytic, "id" | "createdAt">,
+  ) => void;
+  getAuditAnalytics: (auditId: string) => PreliminaryAnalytic[];
+  generatePreliminaryAnalytics: (auditId: string, preparedBy: string) => void;
+  updateAnalyticNote: (id: string, note: string) => void;
+  saveAuditStrategy: (
+    strategy: Omit<AuditStrategy, "id" | "createdAt">,
+  ) => void;
+  getAuditStrategy: (auditId: string) => AuditStrategy | undefined;
+  updateAuditStrategy: (id: string, updates: Partial<AuditStrategy>) => void;
+  generateProgrammeFromRisks: (auditId: string, preparedBy: string) => void;
+
+  generateRequisitions: (auditId: string) => void;
+  addDocumentRequisition: (req: Omit<DocumentRequisition, "id">) => void;
+  updateRequisitionStatus: (
+    id: string,
+    status: DocumentRequisition["status"],
+    fileName?: string,
+    fileUrl?: string,
+  ) => void;
+  getAuditRequisitions: (auditId: string) => DocumentRequisition[];
+
+  initProcedureExecutions: (auditId: string) => void;
+  getProcedureExecutions: (auditId: string) => ProcedureExecution[];
+  getProcedureExecution: (id: string) => ProcedureExecution | undefined;
+  updateProcedureExecution: (
+    id: string,
+    updates: Partial<ProcedureExecution>,
+  ) => void;
+  addProcedureEvidence: (
+    executionId: string,
+    evidence: Omit<ProcedureEvidence, "id" | "code">,
+  ) => void;
+  addProcedureTimeEntry: (executionId: string, minutes: number) => void;
+  submitProcedureForReview: (executionId: string) => void;
+  reviewProcedure: (
+    executionId: string,
+    reviewerId: string,
+    action: "Clear" | "Return" | "Extend",
+    comments?: string,
+  ) => void;
+  clearProcedure: (executionId: string, supervisorId: string) => void;
+
+  addFieldworkException: (
+    exc: Omit<FieldworkException, "id" | "ref" | "raisedAt">,
+  ) => void;
+  updateFieldworkException: (
+    id: string,
+    updates: Partial<FieldworkException>,
+  ) => void;
+  classifyException: (
+    id: string,
+    classification: ExceptionClassification,
+  ) => void;
+  escalateExceptionToHlg: (id: string) => void;
+  getAuditFieldworkExceptions: (auditId: string) => FieldworkException[];
+
+  addBankAccount: (account: Omit<BankAccount, "id">) => void;
+  updateBankAccount: (id: string, updates: Partial<BankAccount>) => void;
+  getAuditBankAccounts: (auditId: string) => BankAccount[];
+
+  addContractFlag: (flag: Omit<ContractFlag, "id">) => void;
+  getAuditContractFlags: (auditId: string) => ContractFlag[];
+
+  addVouchingChecklist: (checklist: Omit<VouchingChecklist, "id">) => void;
+  updateVouchingChecklist: (
+    id: string,
+    updates: Partial<VouchingChecklist>,
+  ) => void;
+  getExecutionVouchingChecklist: (
+    executionId: string,
+  ) => VouchingChecklist | undefined;
+
+  addSiteVerification: (sv: Omit<SiteVerification, "id">) => void;
+  updateSiteVerification: (
+    id: string,
+    updates: Partial<SiteVerification>,
+  ) => void;
+  getExecutionSiteVerification: (
+    executionId: string,
+  ) => SiteVerification | undefined;
+
+  createFieldworkMemo: (
+    memo: Omit<FieldworkCompletionMemo, "id" | "createdAt">,
+  ) => void;
+  updateFieldworkMemo: (
+    id: string,
+    updates: Partial<FieldworkCompletionMemo>,
+  ) => void;
+  getAuditFieldworkMemo: (
+    auditId: string,
+  ) => FieldworkCompletionMemo | undefined;
+
+  generateWorkingPaper: (executionId: string) => void;
+  updateFieldworkWorkingPaper: (
+    id: string,
+    updates: Partial<FieldworkWorkingPaper>,
+  ) => void;
+  getAuditFieldworkWorkingPapers: (auditId: string) => FieldworkWorkingPaper[];
 }
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -380,6 +607,24 @@ export const useAuditStore = create(
       lessonsLearned: [],
       qualityReviews: [],
       exitConferences: [],
+      auditJournals: [...SEED_AUDIT_JOURNALS],
+      auditComments: [...SEED_AUDIT_COMMENTS],
+      financialStatements: [...SEED_FINANCIAL_STATEMENTS],
+      completionChecklist: [...SEED_COMPLETION_CHECKLIST],
+      auditWorkpapers: [...SEED_AUDIT_WORKPAPERS],
+      entityProfiles: [],
+      independenceDeclarations: [],
+      preliminaryAnalytics: [],
+      auditStrategies: [],
+      documentRequisitions: [],
+      procedureExecutions: [],
+      fieldworkExceptions: [],
+      bankAccounts: [],
+      contractFlags: [],
+      vouchingChecklists: [],
+      siteVerifications: [],
+      fieldworkMemos: [],
+      fieldworkWorkingPapers: [],
       toasts: [],
       modal: { isOpen: false, title: "", message: "" },
 
@@ -1464,6 +1709,19 @@ Lagos State
             })),
         );
 
+        /* Build risk-area sections from template */
+        const sections: AuditProgrammeSection[] = template.sections.map(
+          (sec) => ({
+            id: `sec-${uid()}`,
+            title: sec.title,
+            auditObjectives: [sec.objective],
+            riskLevel: sec.riskLevel,
+            keyRisks: buildDefaultKeyRisks(sec.title),
+            documentationNotes: buildDefaultDocNotes(sec.title),
+            sortOrder: sec.sortOrder,
+          }),
+        );
+
         const programme: AuditProgramme = {
           id: `prog-${uid()}`,
           auditId,
@@ -1472,6 +1730,7 @@ Lagos State
           scope,
           methodology: template.methodology,
           riskAreas: template.sections.map((s) => s.title),
+          sections,
           procedures,
           status: "Draft",
           preparedBy,
@@ -1484,6 +1743,102 @@ Lagos State
           message: `Created from "${template.name}" template with ${procedures.length} procedures`,
         });
       },
+
+      /* ─── Audit Work Programme Deliverables ─── */
+      addAuditJournal: (data) => {
+        const journal: AuditJournal = {
+          ...data,
+          id: `aj-${uid()}`,
+          createdAt: now(),
+        };
+        set((s) => ({ auditJournals: [...s.auditJournals, journal] }));
+        get().addToast({
+          type: "success",
+          title: "Audit Journal Added",
+          message: journal.journalNumber,
+        });
+      },
+
+      updateAuditJournal: (id, updates) =>
+        set((s) => ({
+          auditJournals: s.auditJournals.map((j) =>
+            j.id === id ? { ...j, ...updates } : j,
+          ),
+        })),
+
+      getAuditJournals: (auditId) =>
+        get().auditJournals.filter((j) => j.auditId === auditId),
+
+      addAuditComment: (data) => {
+        const comment: AuditComment = {
+          ...data,
+          id: `ac-${uid()}`,
+          createdAt: now(),
+        };
+        set((s) => ({ auditComments: [...s.auditComments, comment] }));
+        get().addToast({
+          type: "success",
+          title: "Audit Comment Added",
+          message: comment.referenceNumber,
+        });
+      },
+
+      updateAuditComment: (id, updates) =>
+        set((s) => ({
+          auditComments: s.auditComments.map((c) =>
+            c.id === id ? { ...c, ...updates } : c,
+          ),
+        })),
+
+      getAuditComments: (auditId) =>
+        get().auditComments.filter((c) => c.auditId === auditId),
+
+      updateFinancialStatement: (id, updates) =>
+        set((s) => ({
+          financialStatements: s.financialStatements.map((f) =>
+            f.id === id ? { ...f, ...updates } : f,
+          ),
+        })),
+
+      getAuditFinancialStatements: (auditId) =>
+        get().financialStatements.filter((f) => f.auditId === auditId),
+
+      toggleCompletionItem: (id, userId) =>
+        set((s) => ({
+          completionChecklist: s.completionChecklist.map((c) =>
+            c.id === id
+              ? {
+                  ...c,
+                  completed: !c.completed,
+                  completedBy: !c.completed ? userId : undefined,
+                  completedAt: !c.completed ? now() : undefined,
+                }
+              : c,
+          ),
+        })),
+
+      getAuditCompletionChecklist: (auditId) =>
+        get().completionChecklist.filter((c) => c.auditId === auditId),
+
+      addAuditWorkpaper: (data) => {
+        const wp: AuditWorkpaper = { ...data, id: `awp-${uid()}` };
+        set((s) => ({ auditWorkpapers: [...s.auditWorkpapers, wp] }));
+        get().addToast({
+          type: "success",
+          title: "Workpaper Indexed",
+          message: wp.reference,
+        });
+      },
+
+      updateAuditWorkpaper: (id, updates) =>
+        set((s) => ({
+          auditWorkpapers: s.auditWorkpapers.map((w) =>
+            w.id === id ? { ...w, ...updates } : w,
+          ),
+        })),
+
+      getAuditWorkpaperIndex: (auditId) =>
+        get().auditWorkpapers.filter((w) => w.auditId === auditId),
 
       /* ─── Post-Audit Actions ─── */
       addFollowUp: (data) => {
@@ -1563,6 +1918,839 @@ Lagos State
 
       getAuditExitConference: (auditId) =>
         get().exitConferences.find((c) => c.auditId === auditId),
+
+      saveEntityProfile: (data) => {
+        set((s) => {
+          const existing = s.entityProfiles.find(
+            (p) => p.auditId === data.auditId,
+          );
+          const profile: EntityProfile = {
+            ...data,
+            id: existing ? existing.id : `ep-${uid()}`,
+            createdAt: existing ? existing.createdAt : now(),
+          };
+          return {
+            entityProfiles: existing
+              ? s.entityProfiles.map((p) =>
+                  p.auditId === data.auditId ? profile : p,
+                )
+              : [...s.entityProfiles, profile],
+          };
+        });
+        get().addToast({ type: "success", title: "Entity Profile Saved" });
+      },
+
+      getEntityProfile: (auditId) =>
+        get().entityProfiles.find((p) => p.auditId === auditId),
+
+      addIndependenceDeclaration: (data) => {
+        const decl: IndependenceDeclaration = { ...data, id: `ind-${uid()}` };
+        set((s) => ({
+          independenceDeclarations: [...s.independenceDeclarations, decl],
+        }));
+        get().addToast({
+          type: "success",
+          title: "Independence Declaration Filed",
+        });
+        get().logActivity({
+          userId: data.auditorId,
+          action: "INDEPENDENCE_DECLARATION",
+          details: `${data.auditorName} filed independence declaration`,
+          entityType: "audit",
+          entityId: data.auditId,
+        });
+      },
+
+      getIndependenceDeclarations: (auditId) =>
+        get().independenceDeclarations.filter((d) => d.auditId === auditId),
+
+      addPreliminaryAnalytic: (data) => {
+        const analytic: PreliminaryAnalytic = {
+          ...data,
+          id: `pa-${uid()}`,
+          createdAt: now(),
+        };
+        set((s) => ({
+          preliminaryAnalytics: [...s.preliminaryAnalytics, analytic],
+        }));
+      },
+
+      getAuditAnalytics: (auditId) =>
+        get().preliminaryAnalytics.filter((a) => a.auditId === auditId),
+
+      generatePreliminaryAnalytics: (auditId, preparedBy) => {
+        const existing = get().preliminaryAnalytics.filter(
+          (a) => a.auditId === auditId,
+        );
+        if (existing.length > 0) return;
+
+        const computeFlag = (variance: number): AnalyticFlag => {
+          if (variance > 15) return "Investigate";
+          if (variance > 5) return "Adverse";
+          if (variance < -5) return "Favorable";
+          return "Neutral";
+        };
+
+        const metrics: Omit<PreliminaryAnalytic, "id" | "createdAt">[] = [
+          {
+            auditId,
+            category: "Revenue",
+            metric: "FAAC Allocation",
+            priorYear: 2_850_000_000,
+            currentYear: 3_120_000_000,
+            variance: 270_000_000,
+            variancePercent: 9.47,
+            flag: "Neutral",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Revenue",
+            metric: "Internally Generated Revenue (IGR)",
+            priorYear: 680_000_000,
+            currentYear: 540_000_000,
+            variance: -140_000_000,
+            variancePercent: -20.59,
+            flag: "Investigate",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Revenue",
+            metric: "Grants & Transfers",
+            priorYear: 320_000_000,
+            currentYear: 410_000_000,
+            variance: 90_000_000,
+            variancePercent: 28.13,
+            flag: "Investigate",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Expenditure",
+            metric: "Personnel Costs",
+            priorYear: 1_750_000_000,
+            currentYear: 1_920_000_000,
+            variance: 170_000_000,
+            variancePercent: 9.71,
+            flag: "Adverse",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Expenditure",
+            metric: "Overhead Costs",
+            priorYear: 450_000_000,
+            currentYear: 620_000_000,
+            variance: 170_000_000,
+            variancePercent: 37.78,
+            flag: "Investigate",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Expenditure",
+            metric: "Capital Expenditure",
+            priorYear: 980_000_000,
+            currentYear: 850_000_000,
+            variance: -130_000_000,
+            variancePercent: -13.27,
+            flag: "Favorable",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Balance Sheet",
+            metric: "Total Assets",
+            priorYear: 5_200_000_000,
+            currentYear: 5_450_000_000,
+            variance: 250_000_000,
+            variancePercent: 4.81,
+            flag: "Neutral",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Balance Sheet",
+            metric: "Total Liabilities",
+            priorYear: 1_100_000_000,
+            currentYear: 1_580_000_000,
+            variance: 480_000_000,
+            variancePercent: 43.64,
+            flag: "Investigate",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Balance Sheet",
+            metric: "Cash & Bank Balances",
+            priorYear: 420_000_000,
+            currentYear: 180_000_000,
+            variance: -240_000_000,
+            variancePercent: -57.14,
+            flag: "Investigate",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Ratio",
+            metric: "Personnel Cost / Total Revenue",
+            priorYear: 45,
+            currentYear: 47,
+            variance: 2,
+            variancePercent: 4.44,
+            flag: "Neutral",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Ratio",
+            metric: "IGR / Total Revenue",
+            priorYear: 18,
+            currentYear: 13,
+            variance: -5,
+            variancePercent: -27.78,
+            flag: "Investigate",
+            preparedBy,
+          },
+          {
+            auditId,
+            category: "Ratio",
+            metric: "Capital Execution Rate",
+            priorYear: 72,
+            currentYear: 58,
+            variance: -14,
+            variancePercent: -19.44,
+            flag: "Adverse",
+            preparedBy,
+          },
+        ];
+
+        metrics.forEach((m) => {
+          m.flag = computeFlag(Math.abs(m.variancePercent));
+          get().addPreliminaryAnalytic(m);
+        });
+
+        get().addToast({
+          type: "success",
+          title: "Analytics Generated",
+          message: `${metrics.length} preliminary analytics computed`,
+        });
+        get().logActivity({
+          userId: preparedBy,
+          action: "GENERATE_ANALYTICS",
+          details: "Preliminary analytical procedures computed",
+          entityType: "audit",
+          entityId: auditId,
+        });
+      },
+
+      updateAnalyticNote: (id, note) =>
+        set((s) => ({
+          preliminaryAnalytics: s.preliminaryAnalytics.map((a) =>
+            a.id === id ? { ...a, investigationNote: note } : a,
+          ),
+        })),
+
+      saveAuditStrategy: (data) => {
+        set((s) => {
+          const existing = s.auditStrategies.find(
+            (st) => st.auditId === data.auditId,
+          );
+          const strategy: AuditStrategy = {
+            ...data,
+            id: existing ? existing.id : `strat-${uid()}`,
+            createdAt: existing ? existing.createdAt : now(),
+          };
+          return {
+            auditStrategies: existing
+              ? s.auditStrategies.map((st) =>
+                  st.auditId === data.auditId ? strategy : st,
+                )
+              : [...s.auditStrategies, strategy],
+          };
+        });
+        get().addToast({ type: "success", title: "Audit Strategy Saved" });
+      },
+
+      getAuditStrategy: (auditId) =>
+        get().auditStrategies.find((st) => st.auditId === auditId),
+
+      updateAuditStrategy: (id, updates) =>
+        set((s) => ({
+          auditStrategies: s.auditStrategies.map((st) =>
+            st.id === id ? { ...st, ...updates } : st,
+          ),
+        })),
+
+      generateProgrammeFromRisks: (auditId, preparedBy) => {
+        const s = get();
+        const risks = s.riskMatrices.filter((r) => r.auditId === auditId);
+        const mat = s.materiality.find((m) => m.auditId === auditId);
+        if (risks.length === 0) {
+          get().addToast({
+            type: "error",
+            title: "Cannot Generate Programme",
+            message: "Add risk matrix entries first",
+          });
+          return;
+        }
+        const existing = s.programmes.find((p) => p.auditId === auditId);
+        if (existing) {
+          get().addToast({
+            type: "info",
+            title: "Programme Exists",
+            message: "A programme already exists for this audit",
+          });
+          return;
+        }
+
+        const sections: AuditProgrammeSection[] = risks.map((risk, i) => ({
+          id: `sec-${uid()}`,
+          title: risk.area,
+          auditObjectives: [`Obtain reasonable assurance over ${risk.area}`],
+          riskLevel: risk.overallRisk,
+          riskMatrixRef: risk.id,
+          keyRisks: buildDefaultKeyRisks(risk.area),
+          documentationNotes: buildDefaultDocNotes(risk.area),
+          sortOrder: i + 1,
+        }));
+
+        const procedures: ProgrammeProcedure[] = risks.flatMap((risk) => {
+          const suggested = getSuggestedProcedures(risk.area);
+          return suggested.map((proc) => ({
+            id: `proc-${uid()}`,
+            area: risk.area,
+            procedure: proc,
+            status: "Not Started" as const,
+          }));
+        });
+
+        const programme: AuditProgramme = {
+          id: `prog-${uid()}`,
+          auditId,
+          objectives:
+            "Express an opinion on the financial statements and ensure compliance with applicable laws and regulations",
+          scope: risks.map((r) => r.area).join(", "),
+          methodology:
+            "Risk-based audit approach combining substantive and control testing",
+          materialityReference: mat
+            ? `Overall Materiality: ₦${mat.overallMateriality.toLocaleString()}`
+            : undefined,
+          riskAreas: risks.map((r) => r.area),
+          sections,
+          procedures,
+          status: "Draft",
+          preparedBy,
+        };
+
+        set((st) => ({ programmes: [...st.programmes, programme] }));
+        get().addToast({
+          type: "success",
+          title: "Programme Auto-Generated",
+          message: `${procedures.length} procedures from ${risks.length} risk areas`,
+        });
+        get().logActivity({
+          userId: preparedBy,
+          action: "GENERATE_PROGRAMME",
+          details: `Auto-generated audit programme from risk matrix`,
+          entityType: "audit",
+          entityId: auditId,
+        });
+      },
+
+      generateRequisitions: (auditId) => {
+        const s = get();
+        const prog = s.programmes.find((p) => p.auditId === auditId);
+        if (!prog) return;
+        const existing = s.documentRequisitions.filter(
+          (r) => r.auditId === auditId,
+        );
+        if (existing.length > 0) return;
+        const docMap: Record<
+          string,
+          { doc: string; area: string; procIds: string[] }
+        > = {};
+        const REQ_DOCS: Record<string, string[]> = {
+          "Payroll & Personnel Costs": [
+            "Nominal roll — Current FY",
+            "Payroll schedules — all months",
+            "Biometric register extract",
+            "PAYE deduction schedules",
+            "LIRS payment receipts",
+            "Pension deduction schedules",
+            "PFA remittance confirmations",
+          ],
+          "Revenue & Receipts": [
+            "FAAC remittance advice — all months",
+            "IGR collection schedule by revenue head",
+            "Revenue cashbook / ledger",
+          ],
+          "Bank & Cash Management": [
+            "Bank statements — all accounts FY",
+            "Entity account listing (declared)",
+            "Cashbook — all accounts",
+          ],
+          "Procurement & Contracts": [
+            "Contract register FY",
+            "Payment vouchers — full year",
+            "Tender board minutes",
+          ],
+          "Fixed Assets & Capital Projects": [
+            "Fixed asset register",
+            "Capital project contract files",
+            "Interim Payment Certificates",
+          ],
+          "Advances & Imprest": ["Advances register FY"],
+          "Stores & Inventory": ["Stores ledger / inventory listing"],
+          "Grants (UBEC / PHC)": [
+            "Grant award letters / disbursement schedules",
+            "Grant account bank statements",
+            "Grant expenditure listing",
+          ],
+        };
+        prog.procedures.forEach((proc) => {
+          const area = proc.area;
+          const docs = REQ_DOCS[area] || [];
+          docs.forEach((doc) => {
+            const key = `${area}::${doc}`;
+            if (!docMap[key]) docMap[key] = { doc, area, procIds: [] };
+            docMap[key].procIds.push(proc.id);
+          });
+        });
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + 7);
+        const deadlineStr = deadline.toISOString().split("T")[0];
+        let idx = 1;
+        const reqs: DocumentRequisition[] = Object.values(docMap).map(
+          (entry) => ({
+            id: uid(),
+            auditId,
+            ref: `REQ-${String(idx++).padStart(3, "0")}`,
+            documentName: entry.doc,
+            auditArea: entry.area,
+            neededBy: deadlineStr,
+            status: "Pending" as const,
+            linkedProcedureIds: entry.procIds,
+          }),
+        );
+        set((st) => ({
+          documentRequisitions: [...st.documentRequisitions, ...reqs],
+        }));
+      },
+
+      addDocumentRequisition: (req) =>
+        set((s) => ({
+          documentRequisitions: [
+            ...s.documentRequisitions,
+            { ...req, id: uid() },
+          ],
+        })),
+
+      updateRequisitionStatus: (id, status, fileName, fileUrl) =>
+        set((s) => ({
+          documentRequisitions: s.documentRequisitions.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  status,
+                  ...(status === "Issued" ? { issuedAt: now() } : {}),
+                  ...(status === "Received"
+                    ? {
+                        receivedAt: now(),
+                        receivedFileName: fileName,
+                        receivedFileUrl: fileUrl,
+                      }
+                    : {}),
+                }
+              : r,
+          ),
+        })),
+
+      getAuditRequisitions: (auditId) =>
+        get().documentRequisitions.filter((r) => r.auditId === auditId),
+
+      initProcedureExecutions: (auditId) => {
+        const s = get();
+        const prog = s.programmes.find((p) => p.auditId === auditId);
+        if (!prog) return;
+        const existing = s.procedureExecutions.filter(
+          (pe) => pe.auditId === auditId,
+        );
+        if (existing.length > 0) return;
+        const risks = s.riskMatrices.filter((r) => r.auditId === auditId);
+        const riskMap: Record<string, RiskMatrix> = {};
+        risks.forEach((r) => {
+          riskMap[r.area] = r;
+        });
+        const reqs = s.documentRequisitions.filter(
+          (r) => r.auditId === auditId,
+        );
+        const refCounters: Record<string, number> = {};
+        const executions: ProcedureExecution[] = prog.procedures.map((proc) => {
+          const areaPrefix =
+            proc.area.replace(/[^A-Z]/g, "").slice(0, 4) || "GEN";
+          refCounters[areaPrefix] = (refCounters[areaPrefix] || 0) + 1;
+          const ref = `${areaPrefix}-${String(refCounters[areaPrefix]).padStart(3, "0")}`;
+          const linkedReqs = reqs.filter((r) =>
+            r.linkedProcedureIds.includes(proc.id),
+          );
+          const allReceived =
+            linkedReqs.length === 0 ||
+            linkedReqs.every((r) => r.status === "Received");
+          const risk = riskMap[proc.area];
+          const budgetedHours =
+            risk?.overallRisk === "Critical"
+              ? 8
+              : risk?.overallRisk === "High"
+                ? 6
+                : risk?.overallRisk === "Medium"
+                  ? 4
+                  : 2;
+          return {
+            id: uid(),
+            auditId,
+            programmeId: prog.id,
+            procedureId: proc.id,
+            procedureRef: ref,
+            procedureDescription: proc.procedure,
+            auditArea: proc.area,
+            assertions: proc.assertion ? [proc.assertion] : [],
+            riskRating: risk?.overallRisk || ("Medium" as const),
+            assignedTo: proc.assignedTo || "",
+            dueDate: new Date(Date.now() + 14 * 86400000)
+              .toISOString()
+              .split("T")[0],
+            status: (allReceived
+              ? "Not Started"
+              : "Locked") as ProcedureExecutionStatus,
+            budgetedHours,
+            timeEntries: [],
+            loggedHours: 0,
+            evidence: [],
+            workPerformed: "",
+            exceptionIds: [],
+            createdAt: now(),
+          };
+        });
+        set((st) => ({
+          procedureExecutions: [...st.procedureExecutions, ...executions],
+        }));
+      },
+
+      getProcedureExecutions: (auditId) =>
+        get().procedureExecutions.filter((pe) => pe.auditId === auditId),
+
+      getProcedureExecution: (id) =>
+        get().procedureExecutions.find((pe) => pe.id === id),
+
+      updateProcedureExecution: (id, updates) =>
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((pe) =>
+            pe.id === id ? { ...pe, ...updates } : pe,
+          ),
+        })),
+
+      addProcedureEvidence: (executionId, evidence) => {
+        const pe = get().procedureExecutions.find((p) => p.id === executionId);
+        if (!pe) return;
+        const areaCode =
+          pe.auditArea.replace(/[^A-Z]/g, "").slice(0, 4) || "GEN";
+        const evIdx = pe.evidence.length + 1;
+        const code = `EV-${areaCode}-${pe.procedureRef.split("-")[1] || "000"}-${String.fromCharCode(64 + evIdx)}`;
+        const newEv: ProcedureEvidence = {
+          ...evidence,
+          id: uid(),
+          code,
+        } as ProcedureEvidence;
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((p) =>
+            p.id === executionId
+              ? { ...p, evidence: [...p.evidence, newEv] }
+              : p,
+          ),
+        }));
+      },
+
+      addProcedureTimeEntry: (executionId, minutes) =>
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((pe) =>
+            pe.id === executionId
+              ? {
+                  ...pe,
+                  timeEntries: [
+                    ...pe.timeEntries,
+                    { id: uid(), startedAt: now(), minutes },
+                  ],
+                  loggedHours: pe.loggedHours + minutes / 60,
+                }
+              : pe,
+          ),
+        })),
+
+      submitProcedureForReview: (executionId) =>
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((pe) =>
+            pe.id === executionId
+              ? { ...pe, status: "Submitted" as const, submittedAt: now() }
+              : pe,
+          ),
+        })),
+
+      reviewProcedure: (executionId, reviewerId, action, comments) =>
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((pe) => {
+            if (pe.id !== executionId) return pe;
+            const comment: ReviewComment | undefined = comments
+              ? {
+                  id: uid(),
+                  authorId: reviewerId,
+                  authorName:
+                    s.users.find((u) => u.id === reviewerId)?.name ||
+                    reviewerId,
+                  authorRole:
+                    s.users.find((u) => u.id === reviewerId)?.role ||
+                    "AUDIT_LEAD",
+                  message: comments,
+                  timestamp: now(),
+                  resolved: false,
+                }
+              : undefined;
+            const existingComments = pe.reviewComments || [];
+            if (action === "Clear")
+              return {
+                ...pe,
+                status: "Reviewed" as const,
+                reviewedBy: reviewerId,
+                reviewedAt: now(),
+                reviewComments: comment
+                  ? [...existingComments, comment]
+                  : existingComments,
+              };
+            if (action === "Return")
+              return {
+                ...pe,
+                status: "In Progress" as const,
+                reviewComments: comment
+                  ? [...existingComments, comment]
+                  : existingComments,
+              };
+            return {
+              ...pe,
+              status: "In Progress" as const,
+              reviewComments: comment
+                ? [...existingComments, comment]
+                : existingComments,
+            };
+          }),
+        })),
+
+      clearProcedure: (executionId, supervisorId) =>
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((pe) =>
+            pe.id === executionId
+              ? {
+                  ...pe,
+                  status: "Cleared" as const,
+                  clearedBy: supervisorId,
+                  clearedAt: now(),
+                }
+              : pe,
+          ),
+        })),
+
+      addFieldworkException: (exc) => {
+        const s = get();
+        const count =
+          s.fieldworkExceptions.filter((e) => e.auditId === exc.auditId)
+            .length + 1;
+        const audit = s.audits.find((a) => a.id === exc.auditId);
+        const lgaName =
+          s.lgas
+            .find((l) => l.id === audit?.lgaId)
+            ?.name?.replace(/\s/g, "")
+            .slice(0, 4)
+            .toUpperCase() || "AUD";
+        const ref = `EXC-${lgaName}-${audit?.year || "2024"}-${String(count).padStart(3, "0")}`;
+        const newExc: FieldworkException = {
+          ...exc,
+          id: uid(),
+          ref,
+          raisedAt: now(),
+        };
+        set((st) => ({
+          fieldworkExceptions: [...st.fieldworkExceptions, newExc],
+          procedureExecutions: st.procedureExecutions.map((pe) =>
+            pe.id === exc.procedureId
+              ? {
+                  ...pe,
+                  exceptionIds: [...pe.exceptionIds, newExc.id],
+                  status: "Exception Raised" as const,
+                }
+              : pe,
+          ),
+        }));
+      },
+
+      updateFieldworkException: (id, updates) =>
+        set((s) => ({
+          fieldworkExceptions: s.fieldworkExceptions.map((e) =>
+            e.id === id ? { ...e, ...updates } : e,
+          ),
+        })),
+
+      classifyException: (id, classification) =>
+        set((s) => ({
+          fieldworkExceptions: s.fieldworkExceptions.map((e) =>
+            e.id === id
+              ? { ...e, classification, status: "Classified" as const }
+              : e,
+          ),
+        })),
+
+      escalateExceptionToHlg: (id) =>
+        set((s) => ({
+          fieldworkExceptions: s.fieldworkExceptions.map((e) =>
+            e.id === id
+              ? {
+                  ...e,
+                  escalatedToHlg: true,
+                  escalatedAt: now(),
+                  status: "Escalated" as const,
+                }
+              : e,
+          ),
+        })),
+
+      getAuditFieldworkExceptions: (auditId) =>
+        get().fieldworkExceptions.filter((e) => e.auditId === auditId),
+
+      addBankAccount: (account) =>
+        set((s) => ({
+          bankAccounts: [...s.bankAccounts, { ...account, id: uid() }],
+        })),
+
+      updateBankAccount: (id, updates) =>
+        set((s) => ({
+          bankAccounts: s.bankAccounts.map((b) =>
+            b.id === id ? { ...b, ...updates } : b,
+          ),
+        })),
+
+      getAuditBankAccounts: (auditId) =>
+        get().bankAccounts.filter((b) => b.auditId === auditId),
+
+      addContractFlag: (flag) =>
+        set((s) => ({
+          contractFlags: [...s.contractFlags, { ...flag, id: uid() }],
+        })),
+
+      getAuditContractFlags: (auditId) =>
+        get().contractFlags.filter((f) => f.auditId === auditId),
+
+      addVouchingChecklist: (checklist) =>
+        set((s) => ({
+          vouchingChecklists: [
+            ...s.vouchingChecklists,
+            { ...checklist, id: uid() },
+          ],
+        })),
+
+      updateVouchingChecklist: (id, updates) =>
+        set((s) => ({
+          vouchingChecklists: s.vouchingChecklists.map((v) =>
+            v.id === id ? { ...v, ...updates } : v,
+          ),
+        })),
+
+      getExecutionVouchingChecklist: (executionId) =>
+        get().vouchingChecklists.find(
+          (v) => v.procedureExecutionId === executionId,
+        ),
+
+      addSiteVerification: (sv) =>
+        set((s) => ({
+          siteVerifications: [...s.siteVerifications, { ...sv, id: uid() }],
+        })),
+
+      updateSiteVerification: (id, updates) =>
+        set((s) => ({
+          siteVerifications: s.siteVerifications.map((v) =>
+            v.id === id ? { ...v, ...updates } : v,
+          ),
+        })),
+
+      getExecutionSiteVerification: (executionId) =>
+        get().siteVerifications.find(
+          (v) => v.procedureExecutionId === executionId,
+        ),
+
+      createFieldworkMemo: (memo) =>
+        set((s) => ({
+          fieldworkMemos: [
+            ...s.fieldworkMemos,
+            { ...memo, id: uid(), createdAt: now() },
+          ],
+        })),
+
+      updateFieldworkMemo: (id, updates) =>
+        set((s) => ({
+          fieldworkMemos: s.fieldworkMemos.map((m) =>
+            m.id === id ? { ...m, ...updates } : m,
+          ),
+        })),
+
+      getAuditFieldworkMemo: (auditId) =>
+        get().fieldworkMemos.find((m) => m.auditId === auditId),
+
+      generateWorkingPaper: (executionId) => {
+        const s = get();
+        const pe = s.procedureExecutions.find((p) => p.id === executionId);
+        if (!pe) return;
+        const existing = s.fieldworkWorkingPapers.find(
+          (wp) => wp.procedureExecutionId === executionId,
+        );
+        if (existing) return;
+        const areaCode =
+          pe.auditArea.replace(/[^A-Z]/g, "").slice(0, 3) || "GEN";
+        const wpRef = `WP-${areaCode}-${pe.procedureRef.split("-")[1] || "000"}`;
+        const exceptions = s.fieldworkExceptions.filter((e) =>
+          pe.exceptionIds.includes(e.id),
+        );
+        const wp: FieldworkWorkingPaper = {
+          id: uid(),
+          auditId: pe.auditId,
+          procedureExecutionId: executionId,
+          reference: wpRef,
+          title: pe.procedureDescription,
+          auditArea: pe.auditArea,
+          procedureDescription: pe.procedureDescription,
+          workPerformed: pe.workPerformed,
+          evidenceCodes: pe.evidence.map((ev) => ev.code),
+          sampleDetails: pe.sampleSize
+            ? `Population: ${pe.populationSize}, Sample: ${pe.sampleSize}, Method: ${pe.samplingMethod || "N/A"}`
+            : undefined,
+          resultsAndAnalysis: pe.conclusionNotes || "",
+          conclusion: pe.conclusion || "No Exception",
+          exceptionRefs: exceptions.map((e) => e.ref),
+          preparedBy: pe.assignedTo,
+          preparedAt: now(),
+          reviewStatus: "Prepared",
+        };
+        set((st) => ({
+          fieldworkWorkingPapers: [...st.fieldworkWorkingPapers, wp],
+        }));
+      },
+
+      updateFieldworkWorkingPaper: (id, updates) =>
+        set((s) => ({
+          fieldworkWorkingPapers: s.fieldworkWorkingPapers.map((wp) =>
+            wp.id === id ? { ...wp, ...updates } : wp,
+          ),
+        })),
+
+      getAuditFieldworkWorkingPapers: (auditId) =>
+        get().fieldworkWorkingPapers.filter((wp) => wp.auditId === auditId),
 
       computeAuditProgress: (auditId) => {
         const s = get();
