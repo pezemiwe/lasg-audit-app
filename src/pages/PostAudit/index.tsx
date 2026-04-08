@@ -67,7 +67,7 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-/* â”€â”€â”€ Star Rating Component â”€â”€â”€ */
+/* ─── Star Rating Component ─── */
 const StarRating: React.FC<{
   value: number;
   onChange: (v: number) => void;
@@ -206,7 +206,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     (c) => c.auditId === selectedAuditId,
   );
 
-  /* â”€â”€â”€ Follow-Up Form â”€â”€â”€ */
+  /* ─── Follow-Up Form ─── */
   const [showFollowUpForm, setShowFollowUpForm] = useState(false);
   const allFindings = auditReports.flatMap((r) => r.findings);
   const [fuFindingId, setFuFindingId] = useState("");
@@ -267,7 +267,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     });
   };
 
-  /* â”€â”€â”€ Exit Conference Form â”€â”€â”€ */
+  /* ─── Exit Conference Form ─── */
   const [showExitForm, setShowExitForm] = useState(false);
   const [ecDate, setEcDate] = useState("");
   const [ecAttendees, setEcAttendees] = useState("");
@@ -317,7 +317,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     setShowExitForm(false);
   };
 
-  /* â”€â”€â”€ Lesson Learned Form â”€â”€â”€ */
+  /* ─── Lesson Learned Form ─── */
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [llCategory, setLlCategory] = useState<LessonCategory>(
     "Process Improvement",
@@ -358,7 +358,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     setLlAction("");
   };
 
-  /* â”€â”€â”€ Quality Review Form â”€â”€â”€ */
+  /* ─── Quality Review Form ─── */
   const [showQualityForm, setShowQualityForm] = useState(false);
   const [qrOverall, setQrOverall] = useState<QualityRating>(3);
   const [qrPlanning, setQrPlanning] = useState<QualityRating>(3);
@@ -400,7 +400,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     setShowQualityForm(false);
   };
 
-  /* â”€â”€â”€ KPI Calculations â”€â”€â”€ */
+  /* ─── KPI Calculations ─── */
   const totalFollowUps = auditFollowUps.length;
   const verifiedCount = auditFollowUps.filter(
     (f) => f.status === "Verified",
@@ -412,7 +412,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
   const implementationRate =
     totalFollowUps > 0 ? Math.round((verifiedCount / totalFollowUps) * 100) : 0;
 
-  /* â”€â”€â”€ Render â”€â”€â”€ */
+  /* ─── Render ─── */
   if (!user) return null;
 
   if (eligibleAudits.length === 0) {
@@ -514,7 +514,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
         </div>
       )}
 
-      {/* â”€â”€â”€ KPIs â”€â”€â”€ */}
+      {/* ─── KPIs ─── */}
       <div className={s.kpiRow}>
         <div className={s.kpiCard}>
           <Target className={s.kpiIconBlue} />
@@ -1078,7 +1078,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                       value={fuFindingId}
                       onChange={(e) => setFuFindingId(e.target.value)}
                     >
-                      <option value="">â€” select finding â€”</option>
+                      <option value="">âselect finding</option>
                       {allFindings.map((f) => (
                         <option key={f.id} value={f.id}>
                           [{f.severity}] {f.title}
@@ -1093,7 +1093,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                       value={fuResponsible}
                       onChange={(e) => setFuResponsible(e.target.value)}
                     >
-                      <option value="">â€” select â€”</option>
+                      <option value="">select</option>
                       <option value="LGA Management">LGA Management</option>
                       <option value="Finance Department">
                         Finance Department
@@ -1205,7 +1205,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                           </td>
                           <td>
                             {fu.implementationNotes || (
-                              <span style={{ color: "#9ca3af" }}>â€”</span>
+                              <span style={{ color: "#9ca3af" }}>-</span>
                             )}
                             {fu.verifiedBy && (
                               <small
@@ -1656,7 +1656,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                         color: "#6b7280",
                       }}
                     >
-                      Submitted by {userName(lesson.submittedBy)} â€¢{" "}
+                      Submitted by {userName(lesson.submittedBy)} ”¢{" "}
                       {new Date(lesson.submittedAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -1813,7 +1813,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                       Overall Quality Rating
                     </div>
                     <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
-                      Reviewed by {userName(auditQualityReview.reviewedBy)} â€¢{" "}
+                      Reviewed by {userName(auditQualityReview.reviewedBy)} ”¢{" "}
                       {new Date(
                         auditQualityReview.reviewedAt,
                       ).toLocaleDateString()}
@@ -1948,19 +1948,19 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                 <div className={s.detailRow}>
                   <span className={s.detailLabel}>LGA</span>
                   <span className={s.detailValue}>
-                    {selectedLga?.name || "â€”"}
+                    {selectedLga?.name || "-"}
                   </span>
                 </div>
                 <div className={s.detailRow}>
                   <span className={s.detailLabel}>Audit Type</span>
                   <span className={s.detailValue}>
-                    {selectedAudit?.type || "â€”"}
+                    {selectedAudit?.type || "-"}
                   </span>
                 </div>
                 <div className={s.detailRow}>
                   <span className={s.detailLabel}>Year</span>
                   <span className={s.detailValue}>
-                    {selectedAudit?.year || "â€”"}
+                    {selectedAudit?.year || "-"}
                   </span>
                 </div>
                 <div className={s.detailRow}>
@@ -1975,7 +1975,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
                   <span className={s.detailLabel}>Status</span>
                   <span className={s.detailValue}>
                     <StatusBadge
-                      label={selectedAudit?.status || "â€”"}
+                      label={selectedAudit?.status || "-"}
                       variant={
                         selectedAudit?.status === "Completed"
                           ? "success"

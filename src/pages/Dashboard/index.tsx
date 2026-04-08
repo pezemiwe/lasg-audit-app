@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
       (f) => f.severity === "High" && f.status !== "Resolved",
     );
 
-    // Group Risks by LGA
+    // Group Risks by Council (LGA/LCDA)
     const riskByLga = LGAS.map((lga) => {
       const lgaAudits = audits
         .filter((a) => a.lgaId === lga.id)
@@ -121,8 +121,15 @@ const Dashboard: React.FC = () => {
             </div>
             <div>
               <div className={s.kpiLabel}>Total Coverage</div>
-              <div className={s.kpiValue}>{LGAS.length} LGAs</div>
-              <div className={s.kpiMeta}>Across 5 administrative zones</div>
+              <div className={s.kpiValue}>{LGAS.length} Councils</div>
+              <div className={s.kpiMeta}>
+                {
+                  LGAS.filter((l) => !l.councilType || l.councilType === "LGA")
+                    .length
+                }{" "}
+                LGAs + {LGAS.filter((l) => l.councilType === "LCDA").length}{" "}
+                LCDAs across 5 zones
+              </div>
             </div>
           </div>
           <div className={s.kpiCard}>
@@ -184,7 +191,7 @@ const Dashboard: React.FC = () => {
             <div className={s.cardHeader}>
               <h3 className={s.cardTitle}>Priority Attention Areas</h3>
               <span style={{ fontSize: "0.8rem", color: "#666" }}>
-                LGA Risk Scorecard
+                Council Risk Scorecard
               </span>
             </div>
             <div className={s.cardBody}>
@@ -211,7 +218,8 @@ const Dashboard: React.FC = () => {
                     >
                       <div>
                         <div style={{ fontWeight: 600, color: "#881337" }}>
-                          {lga.name} LGA
+                          {lga.name}{" "}
+                          {lga.councilType === "LCDA" ? "LCDA" : "LGA"}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "#9f1239" }}>
                           {ZONES.find((z) => z.id === lga.zoneId)?.name} Zone
@@ -374,7 +382,24 @@ const Dashboard: React.FC = () => {
                   <div>
                     <div className={s.zoneName}>{zone.name} Zone</div>
                     <div className={s.zoneLgaCount}>
-                      {zone.lgas.length} LGA{zone.lgas.length > 1 ? "s" : ""}
+                      {
+                        zoneLgas.filter(
+                          (l) => !l.councilType || l.councilType === "LGA",
+                        ).length
+                      }{" "}
+                      LGA
+                      {zoneLgas.filter(
+                        (l) => !l.councilType || l.councilType === "LGA",
+                      ).length !== 1
+                        ? "s"
+                        : ""}
+                      ,{" "}
+                      {zoneLgas.filter((l) => l.councilType === "LCDA").length}{" "}
+                      LCDA
+                      {zoneLgas.filter((l) => l.councilType === "LCDA")
+                        .length !== 1
+                        ? "s"
+                        : ""}
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -477,8 +502,14 @@ const Dashboard: React.FC = () => {
               Zone: {myZone?.name || "Unassigned"}
             </h1>
             <p className={s.pageSubtitle}>
-              Supervising {myLGAs.length} LGA{myLGAs.length > 1 ? "s" : ""} —
-              audit oversight and team allocation
+              Supervising {myLGAs.length} Council{myLGAs.length > 1 ? "s" : ""}{" "}
+              (
+              {
+                myLGAs.filter((l) => !l.councilType || l.councilType === "LGA")
+                  .length
+              }{" "}
+              LGAs, {myLGAs.filter((l) => l.councilType === "LCDA").length}{" "}
+              LCDAs) — audit oversight and team allocation
             </p>
           </div>
           <span className={s.pageBadge}>
@@ -542,10 +573,10 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className={s.gridTwoCols}>
-          {/* LGA List */}
+          {/* Council List */}
           <div className={s.card}>
             <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>LGA Audit Status</h3>
+              <h3 className={s.cardTitle}>Council Audit Status</h3>
             </div>
             <div className={s.listTable}>
               {myLGAs.map((lga) => (
@@ -1204,7 +1235,8 @@ const Dashboard: React.FC = () => {
           <div>
             <h1 className={s.pageTitle}>My Assignments</h1>
             <p className={s.pageSubtitle}>
-              LGA: <strong>{myLGA?.name || "Not assigned"}</strong> — assigned
+              Council: <strong>{myLGA?.name || "Not assigned"}</strong>
+              {myLGA?.councilType === "LCDA" ? " (LCDA)" : " (LGA)"} — assigned
               audit tasks and deliverables
             </p>
           </div>
@@ -1552,7 +1584,9 @@ const Dashboard: React.FC = () => {
     case "TEAM_AUDITOR":
       return renderTeamAuditorDashboard();
     case "HEAD_OF_LOCAL_GOVERNMENT": {
-      const lgaName = LGAS.find((l) => l.id === user.lgaId)?.name || "Your LGA";
+      const lgaObj = LGAS.find((l) => l.id === user.lgaId);
+      const lgaName = lgaObj?.name || "Your Council";
+      const lgaLabel = lgaObj?.councilType === "LCDA" ? "LCDA" : "LGA";
       const myDocs = documentUploads.filter((d) => d.lgaId === user.lgaId);
       const docsUploaded = myDocs.filter(
         (d) => d.status !== "Not Uploaded",
@@ -1568,7 +1602,9 @@ const Dashboard: React.FC = () => {
         <div>
           <div className={s.pageHeader}>
             <div>
-              <h1 className={s.pageTitle}>{lgaName} LGA Dashboard</h1>
+              <h1 className={s.pageTitle}>
+                {lgaName} {lgaLabel} Dashboard
+              </h1>
               <p className={s.pageSubtitle}>
                 Manage audit notifications, document submissions, and mandate
                 compliance

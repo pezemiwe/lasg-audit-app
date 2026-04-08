@@ -4,32 +4,32 @@ import type { Zone } from "../../types/landing";
 const zones: Zone[] = [
   {
     name: "Ikeja Division",
-    lgas: "Agege, Alimosho, Ifako-Ijaiye, Ikeja, Kosofe, Mushin, Oshodi-Isolo, Somolu",
-    count: 8,
+    lgas: "Agege, Alimosho, Ifako-Ijaiye, Ikeja, Kosofe, Mushin, Oshodi-Isolo, Somolu + 15 LCDAs",
+    count: 23,
     themeClass: "zd-1",
   },
   {
     name: "Lagos Division",
-    lgas: "Lagos Island, Lagos Mainland, Apapa, Surulere, Eti-Osa",
-    count: 5,
+    lgas: "Lagos Island, Lagos Mainland, Apapa, Surulere, Eti-Osa + 7 LCDAs",
+    count: 12,
     themeClass: "zd-2",
   },
   {
     name: "Ikorodu Division",
-    lgas: "Ikorodu",
-    count: 1,
+    lgas: "Ikorodu + 5 LCDAs",
+    count: 6,
     themeClass: "zd-3",
   },
   {
     name: "Badagry Division",
-    lgas: "Ajeromi-Ifelodun, Amuwo-Odofin, Ojo, Badagry",
-    count: 4,
+    lgas: "Ajeromi-Ifelodun, Amuwo-Odofin, Ojo, Badagry + 6 LCDAs",
+    count: 10,
     themeClass: "zd-4",
   },
   {
     name: "Epe Division",
-    lgas: "Epe, Ibeju-Lekki",
-    count: 2,
+    lgas: "Epe, Ibeju-Lekki + 4 LCDAs",
+    count: 6,
     themeClass: "zd-5",
   },
 ];
@@ -48,7 +48,7 @@ const Zones: React.FC = () => {
           </div>
           <p className="body-txt">
             Our audit network spans across all 5 administrative divisions,
-            ensuring every LGA maintains the highest fiscal standards.
+            ensuring every council maintains the highest fiscal standards.
           </p>
           <div className="flow-chain">
             <div className="fc-step rv d1">
@@ -88,7 +88,7 @@ const Zones: React.FC = () => {
                   <h4 className="zone-name">{zone.name}</h4>
                   <p className="zone-lgas-txt">{zone.lgas}</p>
                 </div>
-                <div className="zone-count-pill">{zone.count} LGAs</div>
+                <div className="zone-count-pill">{zone.count} Councils</div>
               </div>
             ))}
           </div>

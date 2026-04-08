@@ -10,6 +10,7 @@ import type {
   Workpaper,
   AuditReport,
   AuditProgramme,
+  AuditProgrammeSection,
   ActivityLog,
   RiskMatrix,
   MaterialityThreshold,
@@ -21,6 +22,12 @@ import type {
   QuestionnaireResponse,
   DocumentUpload,
   StageApproval,
+  ProgrammeTemplate,
+  AuditJournal,
+  AuditComment,
+  FinancialStatementItem,
+  CompletionChecklistItem,
+  AuditWorkpaper,
 } from "../types";
 
 export const ZONES: Zone[] = [
@@ -37,31 +44,70 @@ export const ZONES: Zone[] = [
       "lga-6",
       "lga-7",
       "lga-8",
+      "lcda-1",
+      "lcda-2",
+      "lcda-3",
+      "lcda-4",
+      "lcda-5",
+      "lcda-6",
+      "lcda-7",
+      "lcda-8",
+      "lcda-9",
+      "lcda-10",
+      "lcda-11",
+      "lcda-12",
+      "lcda-13",
+      "lcda-14",
+      "lcda-15",
     ],
   },
   {
     id: "zone-4",
     name: "Badagry",
     supervisorIds: ["user-sup-badagry"],
-    lgas: ["lga-9", "lga-10", "lga-11", "lga-12"],
+    lgas: [
+      "lga-9",
+      "lga-10",
+      "lga-11",
+      "lga-12",
+      "lcda-28",
+      "lcda-29",
+      "lcda-30",
+      "lcda-31",
+      "lcda-32",
+      "lcda-33",
+    ],
   },
   {
     id: "zone-3",
     name: "Ikorodu",
     supervisorIds: ["user-sup-ikorodu", "user-sup-8"],
-    lgas: ["lga-13"],
+    lgas: ["lga-13", "lcda-23", "lcda-24", "lcda-25", "lcda-26", "lcda-27"],
   },
   {
     id: "zone-2",
     name: "Lagos Island",
     supervisorIds: ["user-sup-lagos", "user-sup-7"],
-    lgas: ["lga-14", "lga-15", "lga-16", "lga-17", "lga-18"],
+    lgas: [
+      "lga-14",
+      "lga-15",
+      "lga-16",
+      "lga-17",
+      "lga-18",
+      "lcda-16",
+      "lcda-17",
+      "lcda-18",
+      "lcda-19",
+      "lcda-20",
+      "lcda-21",
+      "lcda-22",
+    ],
   },
   {
     id: "zone-5",
     name: "Epe",
     supervisorIds: ["user-sup-epe"],
-    lgas: ["lga-19", "lga-20"],
+    lgas: ["lga-19", "lga-20", "lcda-34", "lcda-35", "lcda-36", "lcda-37"],
   },
 ];
 
@@ -229,6 +275,388 @@ export const LGAS: LGA[] = [
     contactName: "Hon. Abdullah Sesan",
     contactEmail: "ibejulekki@lasg.gov.ng",
     contactPhone: "+234 801 234 5020",
+  },
+
+  /* ─── LCDAs (37 Local Council Development Areas) ─── */
+
+  // Zone 1 — Ikeja (15 LCDAs)
+  {
+    id: "lcda-1",
+    name: "Orile-Agege",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-3",
+    contactName: "Hon. Taiwo Adebisi",
+    contactEmail: "orileagege@lasg.gov.ng",
+    contactPhone: "+234 801 234 6001",
+  },
+  {
+    id: "lcda-2",
+    name: "Agbado/Oke-Odo",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-2",
+    contactName: "Alh. Saheed Oguntayo",
+    contactEmail: "agbado@lasg.gov.ng",
+    contactPhone: "+234 801 234 6002",
+  },
+  {
+    id: "lcda-3",
+    name: "Ayobo-Ipaja",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-2",
+    contactName: "Hon. Lateef Adeniyi",
+    contactEmail: "ayobo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6003",
+  },
+  {
+    id: "lcda-4",
+    name: "Egbe-Idimu",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-2",
+    contactName: "Mrs. Bose Aregbesola",
+    contactEmail: "egbeidimu@lasg.gov.ng",
+    contactPhone: "+234 801 234 6004",
+  },
+  {
+    id: "lcda-5",
+    name: "Igando-Ikotun",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-2",
+    contactName: "Hon. Akeem Adesanya",
+    contactEmail: "igando@lasg.gov.ng",
+    contactPhone: "+234 801 234 6005",
+  },
+  {
+    id: "lcda-6",
+    name: "Mosan-Okunola",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-2",
+    contactName: "Chief Olusola Bankole",
+    contactEmail: "mosan@lasg.gov.ng",
+    contactPhone: "+234 801 234 6006",
+  },
+  {
+    id: "lcda-7",
+    name: "Ojokoro",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-8",
+    contactName: "Hon. Hammed Idowu",
+    contactEmail: "ojokoro@lasg.gov.ng",
+    contactPhone: "+234 801 234 6007",
+  },
+  {
+    id: "lcda-8",
+    name: "Ojodu",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-1",
+    contactName: "Dr. Folarin Ogunsanwo",
+    contactEmail: "ojodu@lasg.gov.ng",
+    contactPhone: "+234 801 234 6008",
+  },
+  {
+    id: "lcda-9",
+    name: "Onigbongbo",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-1",
+    contactName: "Mrs. Yetunde Arobieke",
+    contactEmail: "onigbongbo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6009",
+  },
+  {
+    id: "lcda-10",
+    name: "Agboyi-Ketu",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-6",
+    contactName: "Hon. Dele Oshinowo",
+    contactEmail: "agboyiketu@lasg.gov.ng",
+    contactPhone: "+234 801 234 6010",
+  },
+  {
+    id: "lcda-11",
+    name: "Ikosi-Isheri",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-6",
+    contactName: "Alh. Abdulrazaq Balogun",
+    contactEmail: "ikosiisheri@lasg.gov.ng",
+    contactPhone: "+234 801 234 6011",
+  },
+  {
+    id: "lcda-12",
+    name: "Odi-Olowo/Ojuwoye",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-4",
+    contactName: "Hon. Rasak Ajala",
+    contactEmail: "odiolowo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6012",
+  },
+  {
+    id: "lcda-13",
+    name: "Ejigbo",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-5",
+    contactName: "Mrs. Monsurat Olowu",
+    contactEmail: "ejigbo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6013",
+  },
+  {
+    id: "lcda-14",
+    name: "Isolo",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-5",
+    contactName: "Hon. Shamsudeen Olaleye",
+    contactEmail: "isolo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6014",
+  },
+  {
+    id: "lcda-15",
+    name: "Bariga",
+    zoneId: "zone-1",
+    councilType: "LCDA",
+    parentLgaId: "lga-7",
+    contactName: "Hon. Kolade Alabi",
+    contactEmail: "bariga@lasg.gov.ng",
+    contactPhone: "+234 801 234 6015",
+  },
+
+  // Zone 2 — Lagos Island (7 LCDAs)
+  {
+    id: "lcda-16",
+    name: "Apapa-Iganmu",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-16",
+    contactName: "Engr. Olumuyiwa Gbadegesin",
+    contactEmail: "apapaiganmu@lasg.gov.ng",
+    contactPhone: "+234 801 234 6016",
+  },
+  {
+    id: "lcda-17",
+    name: "Iru/Victoria Island",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-17",
+    contactName: "Hon. Mobolaji Johnson",
+    contactEmail: "iruvictoria@lasg.gov.ng",
+    contactPhone: "+234 801 234 6017",
+  },
+  {
+    id: "lcda-18",
+    name: "Ikoyi-Obalende",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-17",
+    contactName: "Chief Funsho Martins",
+    contactEmail: "ikoyiobalende@lasg.gov.ng",
+    contactPhone: "+234 801 234 6018",
+  },
+  {
+    id: "lcda-19",
+    name: "Lagos Island East",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-14",
+    contactName: "Alh. Kamal Bashua",
+    contactEmail: "lagosislandeast@lasg.gov.ng",
+    contactPhone: "+234 801 234 6019",
+  },
+  {
+    id: "lcda-20",
+    name: "Yaba",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-15",
+    contactName: "Dr. Jide Soyombo",
+    contactEmail: "yaba@lasg.gov.ng",
+    contactPhone: "+234 801 234 6020",
+  },
+  {
+    id: "lcda-21",
+    name: "Coker-Aguda",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-18",
+    contactName: "Hon. Abdulahi Raji",
+    contactEmail: "cokeraguda@lasg.gov.ng",
+    contactPhone: "+234 801 234 6021",
+  },
+  {
+    id: "lcda-22",
+    name: "Itire-Ikate",
+    zoneId: "zone-2",
+    councilType: "LCDA",
+    parentLgaId: "lga-18",
+    contactName: "Mrs. Kudirat Ahmed",
+    contactEmail: "itireikate@lasg.gov.ng",
+    contactPhone: "+234 801 234 6022",
+  },
+
+  // Zone 3 — Ikorodu (5 LCDAs)
+  {
+    id: "lcda-23",
+    name: "Igbogbo-Bayeku",
+    zoneId: "zone-3",
+    councilType: "LCDA",
+    parentLgaId: "lga-13",
+    contactName: "Hon. Olusesan Daini",
+    contactEmail: "igbogbo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6023",
+  },
+  {
+    id: "lcda-24",
+    name: "Ijede",
+    zoneId: "zone-3",
+    councilType: "LCDA",
+    parentLgaId: "lga-13",
+    contactName: "Alh. Mufutau Bello",
+    contactEmail: "ijede@lasg.gov.ng",
+    contactPhone: "+234 801 234 6024",
+  },
+  {
+    id: "lcda-25",
+    name: "Imota",
+    zoneId: "zone-3",
+    councilType: "LCDA",
+    parentLgaId: "lga-13",
+    contactName: "Hon. Idris Aregbe",
+    contactEmail: "imota@lasg.gov.ng",
+    contactPhone: "+234 801 234 6025",
+  },
+  {
+    id: "lcda-26",
+    name: "Ikorodu North",
+    zoneId: "zone-3",
+    councilType: "LCDA",
+    parentLgaId: "lga-13",
+    contactName: "Chief Adeola Banjo",
+    contactEmail: "ikorodunorth@lasg.gov.ng",
+    contactPhone: "+234 801 234 6026",
+  },
+  {
+    id: "lcda-27",
+    name: "Ikorodu West",
+    zoneId: "zone-3",
+    councilType: "LCDA",
+    parentLgaId: "lga-13",
+    contactName: "Mrs. Mojirade Kadiri",
+    contactEmail: "ikoroduwest@lasg.gov.ng",
+    contactPhone: "+234 801 234 6027",
+  },
+
+  // Zone 4 — Badagry (6 LCDAs)
+  {
+    id: "lcda-28",
+    name: "Ifelodun",
+    zoneId: "zone-4",
+    councilType: "LCDA",
+    parentLgaId: "lga-12",
+    contactName: "Hon. Shehu Danjuma",
+    contactEmail: "ifelodun@lasg.gov.ng",
+    contactPhone: "+234 801 234 6028",
+  },
+  {
+    id: "lcda-29",
+    name: "Oriade",
+    zoneId: "zone-4",
+    councilType: "LCDA",
+    parentLgaId: "lga-11",
+    contactName: "Chief Sunday Adeola",
+    contactEmail: "oriade@lasg.gov.ng",
+    contactPhone: "+234 801 234 6029",
+  },
+  {
+    id: "lcda-30",
+    name: "Badagry West",
+    zoneId: "zone-4",
+    councilType: "LCDA",
+    parentLgaId: "lga-9",
+    contactName: "Hon. Joseph Akintunde",
+    contactEmail: "badagrywest@lasg.gov.ng",
+    contactPhone: "+234 801 234 6030",
+  },
+  {
+    id: "lcda-31",
+    name: "Olorunda",
+    zoneId: "zone-4",
+    councilType: "LCDA",
+    parentLgaId: "lga-9",
+    contactName: "Mrs. Kehinde Bamgbose",
+    contactEmail: "olorunda@lasg.gov.ng",
+    contactPhone: "+234 801 234 6031",
+  },
+  {
+    id: "lcda-32",
+    name: "Iba",
+    zoneId: "zone-4",
+    councilType: "LCDA",
+    parentLgaId: "lga-10",
+    contactName: "Engr. Wahab Olatunji",
+    contactEmail: "iba@lasg.gov.ng",
+    contactPhone: "+234 801 234 6032",
+  },
+  {
+    id: "lcda-33",
+    name: "Oto-Awori",
+    zoneId: "zone-4",
+    councilType: "LCDA",
+    parentLgaId: "lga-10",
+    contactName: "Alh. Ismail Akinpelu",
+    contactEmail: "otoawori@lasg.gov.ng",
+    contactPhone: "+234 801 234 6033",
+  },
+
+  // Zone 5 — Epe (4 LCDAs)
+  {
+    id: "lcda-34",
+    name: "Eredo",
+    zoneId: "zone-5",
+    councilType: "LCDA",
+    parentLgaId: "lga-19",
+    contactName: "Hon. Adebayo Afuye",
+    contactEmail: "eredo@lasg.gov.ng",
+    contactPhone: "+234 801 234 6034",
+  },
+  {
+    id: "lcda-35",
+    name: "Ikosi-Ejinrin",
+    zoneId: "zone-5",
+    councilType: "LCDA",
+    parentLgaId: "lga-19",
+    contactName: "Chief Adekunle Ayoka",
+    contactEmail: "ikosiejinrin@lasg.gov.ng",
+    contactPhone: "+234 801 234 6035",
+  },
+  {
+    id: "lcda-36",
+    name: "Lekki",
+    zoneId: "zone-5",
+    councilType: "LCDA",
+    parentLgaId: "lga-20",
+    contactName: "Mrs. Ronke Shobowale",
+    contactEmail: "lekki@lasg.gov.ng",
+    contactPhone: "+234 801 234 6036",
+  },
+  {
+    id: "lcda-37",
+    name: "Ibeju",
+    zoneId: "zone-5",
+    councilType: "LCDA",
+    parentLgaId: "lga-20",
+    contactName: "Hon. Tajudeen Olorunlogbon",
+    contactEmail: "ibeju@lasg.gov.ng",
+    contactPhone: "+234 801 234 6037",
   },
 ];
 
@@ -595,9 +1023,9 @@ export const SEED_MANDATES: Mandate[] = [
     title: "Annual Audit of Local Government Accounts — FY 2025",
     auditYear: 2025,
     scope:
-      "Comprehensive audit of all 20 Local Government Areas covering financial statements, compliance, and performance indicators",
+      "Comprehensive audit of all 57 Councils (20 LGAs and 37 LCDAs) covering financial statements, compliance, and performance indicators",
     objectives:
-      "To provide independent assurance on the accuracy of financial statements, compliance with applicable laws and regulations, and the economy, efficiency and effectiveness of LGA operations",
+      "To provide independent assurance on the accuracy of financial statements, compliance with applicable laws and regulations, and the economy, efficiency and effectiveness of Council operations",
     timelines: "March 2026 – September 2026",
     startDate: "2026-03-01",
     endDate: "2026-09-30",
@@ -1201,6 +1629,87 @@ export const SEED_REPORTS: AuditReport[] = [
   },
 ];
 
+/* ─── Risk-area sections for seed programme ─── */
+const SEED_SECTIONS: AuditProgrammeSection[] = [
+  {
+    id: "sec-revenue",
+    title: "Revenue",
+    auditObjectives: [
+      "To ensure that revenue is accurately recorded, exists, and is complete.",
+      "To confirm that revenue recognition is in accordance with IPSAS and applicable accounting standards.",
+      "To verify that cut-off procedures are appropriate.",
+      "To assess the risk of material misstatement due to fraud or error.",
+    ],
+    riskLevel: "High",
+    keyRisks: [
+      "Revenue recognition at inappropriate times (cut-off errors)",
+      "Fictitious sales/receipts (existence)",
+      "Unrecorded revenue (completeness)",
+      "Manipulation of revenue to meet targets (fraud risk)",
+    ],
+    documentationNotes:
+      "Document all procedures performed, evidence obtained, and conclusions reached. Retain copies of revenue schedules, bank tellers, receipt books, and reconciliation workpapers.",
+    sortOrder: 1,
+  },
+  {
+    id: "sec-payroll",
+    title: "Payroll",
+    auditObjectives: [
+      "To confirm that payroll expenditure relates only to bona fide employees.",
+      "To verify that salaries are accurately computed and properly authorised.",
+      "To ensure statutory deductions are correctly calculated and remitted.",
+    ],
+    riskLevel: "Critical",
+    keyRisks: [
+      "Ghost workers on the payroll",
+      "Incorrect salary computation or grade placement",
+      "Unauthorised payroll changes (additions, promotions, terminations)",
+      "Non-remittance of statutory deductions (PAYE, Pension, NHF)",
+    ],
+    documentationNotes:
+      "Document all payroll testing. Retain nominal roll / payroll reconciliation, sample personnel files, biometric cross-reference, and statutory deduction verification schedules.",
+    sortOrder: 2,
+  },
+  {
+    id: "sec-assets",
+    title: "Assets",
+    auditObjectives: [
+      "To verify the existence, completeness, and proper valuation of fixed assets.",
+      "To confirm that capital project expenditure is properly authorised and accounted for.",
+      "To ensure asset disposals are properly approved and proceeds recorded.",
+    ],
+    riskLevel: "Medium",
+    keyRisks: [
+      "Unrecorded or fictitious assets",
+      "Assets not physically verified or without identification tags",
+      "Improper disposal without authorisation",
+      "Capital projects not completed as per contract specifications",
+    ],
+    documentationNotes:
+      "Retain asset register extracts, physical verification reports, photographs, disposal approval documents, and asset reconciliation schedules.",
+    sortOrder: 3,
+  },
+  {
+    id: "sec-expenditure",
+    title: "Expenditure",
+    auditObjectives: [
+      "To verify that all expenditure is properly authorised and supported by adequate documentation.",
+      "To confirm expenditure is correctly classified and within approved budget provisions.",
+      "To assess completeness of liabilities at period end.",
+    ],
+    riskLevel: "High",
+    keyRisks: [
+      "Expenditure recorded without proper authorisation",
+      "Fictitious or inflated payment vouchers",
+      "Misclassification of expenditure heads",
+      "Unrecorded liabilities at period end (completeness)",
+    ],
+    documentationNotes:
+      "Retain payment voucher samples, LPOs, quotations, budget variance analysis, post-period payment listings, and creditors schedules.",
+    sortOrder: 4,
+  },
+];
+
 export const SEED_PROGRAMMES: AuditProgramme[] = [
   {
     id: "prog-1",
@@ -1209,42 +1718,219 @@ export const SEED_PROGRAMMES: AuditProgramme[] = [
       "To express an opinion on the financial statements of Ikeja LGA for FY 2025",
     scope:
       "All financial transactions, assets, liabilities and equity for the period 1 January to 31 December 2025",
-    riskAreas: [
-      "Revenue recognition",
-      "Payroll fraud",
-      "Capital project cost overruns",
-      "Procurement compliance",
-    ],
+    riskAreas: ["Revenue", "Payroll", "Assets", "Expenditure"],
+    sections: SEED_SECTIONS,
     procedures: [
+      /* ── Revenue procedures ── */
       {
-        id: "proc-1",
+        id: "proc-r1",
         area: "Revenue",
-        procedure: "Substantive testing of revenue",
+        procedure:
+          "Obtain and review the schedule of all IGR sources; agree totals to the trial balance and financial statements.",
+        assertion: "Completeness",
+        natureOfTest: "Substantive",
+        expectedEvidence:
+          "Revenue schedule, trial balance, financial statements",
+        sampleSize: "100% of sources",
         assignedTo: "user-auditor-1",
         status: "In Progress",
         evidenceUploaded: true,
+        workpaperRef: "WP-REV-01",
       },
       {
-        id: "proc-2",
+        id: "proc-r2",
+        area: "Revenue",
+        procedure:
+          "Select a sample of revenue receipts and trace from point of collection through to bank lodgement.",
+        assertion: "Existence/Occurrence",
+        natureOfTest: "Substantive",
+        expectedEvidence: "Receipt books, bank tellers, bank statements",
+        sampleSize: "30-50 transactions",
+        assignedTo: "user-auditor-1",
+        status: "In Progress",
+        evidenceUploaded: false,
+        workpaperRef: "WP-REV-02",
+      },
+      {
+        id: "proc-r3",
+        area: "Revenue",
+        procedure:
+          "Perform analytical review comparing current period revenue to prior year and budget estimates; investigate variances >10%.",
+        assertion: "Accuracy/Valuation",
+        natureOfTest: "Analytical",
+        expectedEvidence: "Comparative revenue analysis workpaper",
+        assignedTo: "user-auditor-1",
+        status: "Not Started",
+        workpaperRef: "WP-REV-03",
+      },
+      {
+        id: "proc-r4",
+        area: "Revenue",
+        procedure:
+          "Test design and operating effectiveness of controls over revenue collection, receipting, and bank lodgement.",
+        assertion: "Completeness",
+        natureOfTest: "Control",
+        expectedEvidence: "Walkthrough documentation, control test results",
+        assignedTo: "user-auditor-1",
+        status: "Not Started",
+        workpaperRef: "WP-REV-04",
+      },
+      {
+        id: "proc-r5",
+        area: "Revenue",
+        procedure:
+          "Review revenue disclosures in the financial statements for compliance with applicable IPSAS standards.",
+        assertion: "Presentation & Disclosure",
+        natureOfTest: "Inspection",
+        expectedEvidence: "Financial statements, disclosure checklist",
+        assignedTo: "user-auditor-1",
+        status: "Not Started",
+        workpaperRef: "WP-REV-05",
+      },
+      /* ── Payroll procedures ── */
+      {
+        id: "proc-p1",
         area: "Payroll",
-        procedure: "Payroll analytics",
+        procedure:
+          "Reconcile the nominal roll to the payroll register; identify discrepancies between HR records and payroll listing.",
+        assertion: "Existence/Occurrence",
+        natureOfTest: "Substantive",
+        expectedEvidence:
+          "Nominal roll, payroll register, reconciliation schedule",
         assignedTo: "user-auditor-2",
         status: "In Progress",
         evidenceUploaded: false,
+        workpaperRef: "WP-PAY-01",
       },
       {
-        id: "proc-3",
-        area: "Assets",
-        procedure: "Physical verification of assets",
-        assignedTo: "user-auditor-1",
-        status: "Not Started",
-      },
-      {
-        id: "proc-4",
-        area: "Expenditure",
-        procedure: "Vouching expenditure samples",
+        id: "proc-p2",
+        area: "Payroll",
+        procedure:
+          "Cross-reference payroll data with biometric attendance records; flag personnel on payroll but absent from biometric system.",
+        assertion: "Existence/Occurrence",
+        natureOfTest: "Analytical",
+        expectedEvidence:
+          "Biometric data export, payroll listing, exception report",
         assignedTo: "user-auditor-2",
         status: "Not Started",
+        workpaperRef: "WP-PAY-02",
+      },
+      {
+        id: "proc-p3",
+        area: "Payroll",
+        procedure:
+          "Select sample of personnel files and verify: (a) valid appointment letters, (b) correct grade level, (c) accurate salary computation.",
+        assertion: "Accuracy/Valuation",
+        natureOfTest: "Substantive",
+        expectedEvidence: "Personnel files, salary structure table",
+        sampleSize: "25-40 personnel files",
+        assignedTo: "user-auditor-2",
+        status: "Not Started",
+        workpaperRef: "WP-PAY-03",
+      },
+      {
+        id: "proc-p4",
+        area: "Payroll",
+        procedure:
+          "Verify statutory deductions (PAYE, Pension, NHF) are correctly computed and remitted within statutory timelines.",
+        assertion: "Accuracy/Valuation",
+        natureOfTest: "Substantive",
+        expectedEvidence:
+          "Deduction schedules, remittance receipts, PFA confirmations",
+        assignedTo: "user-auditor-2",
+        status: "Not Started",
+        workpaperRef: "WP-PAY-04",
+      },
+      /* ── Assets procedures ── */
+      {
+        id: "proc-a1",
+        area: "Assets",
+        procedure:
+          "Obtain the asset register and agree totals to financial statements; test a sample of asset additions and disposals.",
+        assertion: "Completeness",
+        natureOfTest: "Substantive",
+        expectedEvidence:
+          "Asset register, financial statements, purchase invoices",
+        sampleSize: "20-30 assets",
+        assignedTo: "user-auditor-1",
+        status: "Not Started",
+        workpaperRef: "WP-AST-01",
+      },
+      {
+        id: "proc-a2",
+        area: "Assets",
+        procedure:
+          "Physically verify a sample of high-value assets; confirm existence, condition, location, and identification tags.",
+        assertion: "Existence/Occurrence",
+        natureOfTest: "Inspection",
+        expectedEvidence: "Physical verification report, asset tag photos",
+        sampleSize: "20 assets",
+        assignedTo: "user-auditor-1",
+        status: "Not Started",
+        workpaperRef: "WP-AST-02",
+      },
+      {
+        id: "proc-a3",
+        area: "Assets",
+        procedure:
+          "Review asset disposal procedures for proper authorisation, competitive bidding, and proceeds tracing to council accounts.",
+        assertion: "Rights & Obligations",
+        natureOfTest: "Substantive",
+        expectedEvidence:
+          "Disposal approval, tender documents, receipt vouchers",
+        assignedTo: "user-auditor-1",
+        status: "Not Started",
+        workpaperRef: "WP-AST-03",
+      },
+      /* ── Expenditure procedures ── */
+      {
+        id: "proc-e1",
+        area: "Expenditure",
+        procedure:
+          "Select sample of payment vouchers and verify: (a) proper authorisation, (b) adequate supporting documents, (c) correct budget classification.",
+        assertion: "Existence/Occurrence",
+        natureOfTest: "Substantive",
+        expectedEvidence: "Payment vouchers, LPOs, quotations, approval memos",
+        sampleSize: "50-80 vouchers",
+        assignedTo: "user-auditor-2",
+        status: "Not Started",
+        workpaperRef: "WP-EXP-01",
+      },
+      {
+        id: "proc-e2",
+        area: "Expenditure",
+        procedure:
+          "Perform budget vs actual analysis across all expenditure heads; investigate variances exceeding 15% or any budget overruns.",
+        assertion: "Accuracy/Valuation",
+        natureOfTest: "Analytical",
+        expectedEvidence: "Budget variance analysis workpaper",
+        assignedTo: "user-auditor-2",
+        status: "Not Started",
+        workpaperRef: "WP-EXP-02",
+      },
+      {
+        id: "proc-e3",
+        area: "Expenditure",
+        procedure:
+          "Test controls over the expenditure cycle: segregation of requisition, approval, payment, and recording functions.",
+        assertion: "Rights & Obligations",
+        natureOfTest: "Control",
+        expectedEvidence: "Walkthrough notes, organisational chart",
+        assignedTo: "user-auditor-2",
+        status: "Not Started",
+        workpaperRef: "WP-EXP-03",
+      },
+      {
+        id: "proc-e4",
+        area: "Expenditure",
+        procedure:
+          "Search for unrecorded liabilities by examining post-period payments and outstanding commitments at year end.",
+        assertion: "Completeness",
+        natureOfTest: "Substantive",
+        expectedEvidence: "Post-period payment list, creditors schedule",
+        assignedTo: "user-auditor-2",
+        status: "Not Started",
+        workpaperRef: "WP-EXP-04",
       },
     ],
     status: "Approved",
@@ -1252,6 +1938,1273 @@ export const SEED_PROGRAMMES: AuditProgramme[] = [
     submittedAt: "2026-02-28T10:00:00Z",
     approvedBy: "user-sup-ikeja",
     approvedAt: "2026-03-01T09:00:00Z",
+  },
+];
+
+/* ─── Standardised Audit Work Programme Templates ─── */
+
+export const PROGRAMME_TEMPLATES: ProgrammeTemplate[] = [
+  {
+    id: "tpl-financial",
+    name: "Financial Audit Programme",
+    auditType: "Financial",
+    description:
+      "Standardised audit work programme for the financial audit of LGA/LCDA accounts in accordance with ISSAI, ISA and IPSAS standards.",
+    methodology:
+      "Risk-based audit approach combining tests of controls with substantive procedures. Emphasis on assertion-level testing, analytical procedures, and corroborative inquiry per ISA 500/530.",
+    sections: [
+      {
+        title: "Revenue & Receipts",
+        objective:
+          "To confirm that all revenue is completely and accurately recorded, properly classified, and lodged intact to designated bank accounts.",
+        riskLevel: "High",
+        sortOrder: 1,
+        procedures: [
+          {
+            area: "Revenue & Receipts",
+            procedure:
+              "Obtain and review the schedule of all IGR sources; agree totals to the trial balance and financial statements.",
+            assertion: "Completeness",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Revenue schedule, trial balance, financial statements",
+            sampleSize: "100% of sources",
+          },
+          {
+            area: "Revenue & Receipts",
+            procedure:
+              "Select a sample of revenue receipts and trace from point of collection through to bank lodgement, verifying amounts and timeliness.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Receipt books, bank tellers, bank statements",
+            sampleSize: "30-50 transactions",
+          },
+          {
+            area: "Revenue & Receipts",
+            procedure:
+              "Perform analytical review comparing current period revenue to prior year and budget estimates; investigate significant variances (>10%).",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence: "Comparative revenue analysis workpaper",
+          },
+          {
+            area: "Revenue & Receipts",
+            procedure:
+              "Test the design and operating effectiveness of controls over revenue collection, receipting, and bank lodgement processes.",
+            assertion: "Completeness",
+            natureOfTest: "Control",
+            expectedEvidence: "Walkthrough documentation, control test results",
+          },
+          {
+            area: "Revenue & Receipts",
+            procedure:
+              "Confirm revenue sharing allocations (FAAC, VAT, Statutory) by obtaining independent confirmation from JAAC and reconciling to council records.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Substantive",
+            expectedEvidence: "JAAC allocation letters, bank credit advices",
+          },
+        ],
+      },
+      {
+        title: "Expenditure & Payments",
+        objective:
+          "To verify that all expenditure is properly authorised, supported by adequate documentation, correctly classified, and within approved budget provisions.",
+        riskLevel: "High",
+        sortOrder: 2,
+        procedures: [
+          {
+            area: "Expenditure & Payments",
+            procedure:
+              "Select sample of payment vouchers and verify: (a) proper authorisation per approval hierarchy, (b) adequate supporting documents, (c) correct budget classification.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Payment vouchers, LPOs, quotations, approval memos",
+            sampleSize: "50-80 vouchers",
+          },
+          {
+            area: "Expenditure & Payments",
+            procedure:
+              "Perform budget vs actual analysis across all expenditure heads; investigate variances exceeding 15% or any budget overruns.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence: "Budget variance analysis workpaper",
+          },
+          {
+            area: "Expenditure & Payments",
+            procedure:
+              "Test controls over the expenditure cycle: segregation of requisition, approval, payment, and recording functions.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Control",
+            expectedEvidence: "Walkthrough notes, organisational chart",
+          },
+          {
+            area: "Expenditure & Payments",
+            procedure:
+              "Search for unrecorded liabilities by examining post-period payments and outstanding commitments at year end.",
+            assertion: "Completeness",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Post-period payment list, creditors schedule",
+          },
+          {
+            area: "Expenditure & Payments",
+            procedure:
+              "Vouch all expenditure items above materiality threshold to original source documents and confirm delivery of goods/services.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Delivery notes, completion certificates, inspection reports",
+            sampleSize: "All items above N5M",
+          },
+        ],
+      },
+      {
+        title: "Payroll & Personnel Costs",
+        objective:
+          "To confirm that payroll expenditure relates only to bona fide employees, is accurately computed, properly authorised, and correctly classified.",
+        riskLevel: "Critical",
+        sortOrder: 3,
+        procedures: [
+          {
+            area: "Payroll & Personnel Costs",
+            procedure:
+              "Reconcile the nominal roll to the payroll register; identify any discrepancies between HR records and payroll listing.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Nominal roll, payroll register, reconciliation schedule",
+          },
+          {
+            area: "Payroll & Personnel Costs",
+            procedure:
+              "Cross-reference payroll data with biometric attendance records; flag personnel appearing on payroll but absent from biometric system.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Analytical",
+            expectedEvidence:
+              "Biometric data export, payroll listing, exception report",
+          },
+          {
+            area: "Payroll & Personnel Costs",
+            procedure:
+              "Select sample of personnel files and verify: (a) valid appointment letters, (b) correct grade level and step, (c) accurate salary computation.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Personnel files, salary structure table",
+            sampleSize: "25-40 personnel files",
+          },
+          {
+            area: "Payroll & Personnel Costs",
+            procedure:
+              "Test controls over payroll changes (new hires, terminations, promotions, pay adjustments) for proper authorisation.",
+            assertion: "Completeness",
+            natureOfTest: "Control",
+            expectedEvidence: "Change authorisation forms, board resolutions",
+          },
+          {
+            area: "Payroll & Personnel Costs",
+            procedure:
+              "Verify statutory deductions (PAYE, Pension, NHF) are correctly computed and remitted to appropriate agencies within statutory timelines.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Deduction schedules, remittance receipts, PFA confirmations",
+          },
+        ],
+      },
+      {
+        title: "Bank & Cash Management",
+        objective:
+          "To confirm that all bank accounts are properly authorised, balances are accurately stated, and cash handling procedures are adequate.",
+        riskLevel: "High",
+        sortOrder: 4,
+        procedures: [
+          {
+            area: "Bank & Cash Management",
+            procedure:
+              "Obtain list of all bank accounts; confirm each account is properly authorised and obtain independent bank confirmations for all accounts.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Bank mandate list, bank confirmation letters",
+          },
+          {
+            area: "Bank & Cash Management",
+            procedure:
+              "Re-perform bank reconciliation for all accounts as at year end; investigate all reconciling items older than 30 days.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Bank statements, cashbooks, reconciliation statements",
+          },
+          {
+            area: "Bank & Cash Management",
+            procedure:
+              "Conduct surprise cash count of treasury and imprest holders; reconcile physical cash to records.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Inspection",
+            expectedEvidence: "Cash count certificate, imprest register",
+          },
+          {
+            area: "Bank & Cash Management",
+            procedure:
+              "Test controls over bank signatories, transfer limits, and dual authorisation requirements.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Control",
+            expectedEvidence: "Bank mandate, signatory list, transaction logs",
+          },
+        ],
+      },
+      {
+        title: "Procurement & Contracts",
+        objective:
+          "To verify that procurement activities comply with the Public Procurement Act, due process requirements are met, and value for money is achieved.",
+        riskLevel: "High",
+        sortOrder: 5,
+        procedures: [
+          {
+            area: "Procurement & Contracts",
+            procedure:
+              "Select sample of contracts and verify: (a) competitive bidding where required, (b) due process certification, (c) Tenders Board approval.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Bid documents, evaluation reports, due process certificates",
+            sampleSize: "All contracts above N5M + sample below",
+          },
+          {
+            area: "Procurement & Contracts",
+            procedure:
+              "Review contract register for completeness; verify all awarded contracts are captured with correct values and contractor details.",
+            assertion: "Completeness",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Contract register, award letters",
+          },
+          {
+            area: "Procurement & Contracts",
+            procedure:
+              "Test for contract splitting by analysing related contracts awarded to same vendor or for similar scope within close timeframes.",
+            assertion: "Presentation & Disclosure",
+            natureOfTest: "Analytical",
+            expectedEvidence:
+              "Contract analysis workpaper, vendor payment history",
+          },
+          {
+            area: "Procurement & Contracts",
+            procedure:
+              "For capital projects, conduct physical inspection of selected projects; compare with contract specifications and milestone claims.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Observation",
+            expectedEvidence:
+              "Site inspection reports, photographs, engineers' certificates",
+            sampleSize: "5-10 projects",
+          },
+        ],
+      },
+      {
+        title: "Fixed Assets & Capital Projects",
+        objective:
+          "To verify the existence, completeness, and proper valuation of fixed assets, and that capital project expenditure is properly authorised and accounted for.",
+        riskLevel: "Medium",
+        sortOrder: 6,
+        procedures: [
+          {
+            area: "Fixed Assets & Capital Projects",
+            procedure:
+              "Obtain the asset register and agree totals to the financial statements; test a sample of asset additions and disposals during the period.",
+            assertion: "Completeness",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Asset register, financial statements, purchase invoices, disposal approvals",
+            sampleSize: "20-30 assets",
+          },
+          {
+            area: "Fixed Assets & Capital Projects",
+            procedure:
+              "Physically verify a sample of high-value assets from the register; confirm existence, condition, location, and identification tags.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Inspection",
+            expectedEvidence: "Physical verification report, asset tag photos",
+            sampleSize: "20 assets",
+          },
+          {
+            area: "Fixed Assets & Capital Projects",
+            procedure:
+              "Test completeness by selecting assets observed during site visits not found in register (reverse testing).",
+            assertion: "Completeness",
+            natureOfTest: "Observation",
+            expectedEvidence: "Reverse verification schedule",
+          },
+          {
+            area: "Fixed Assets & Capital Projects",
+            procedure:
+              "Review asset disposal procedures for proper authorisation, competitive bidding, and proceeds tracing to council accounts.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Disposal approval, tender documents, receipt vouchers",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tpl-compliance",
+    name: "Compliance Audit Programme",
+    auditType: "Compliance",
+    description:
+      "Standardised programme for assessing compliance with applicable laws, regulations, and internal policies governing LGA/LCDA operations.",
+    methodology:
+      "Criteria-based audit approach testing compliance with the Constitution (S.7), Local Government Law, Public Finance Management Act, Public Procurement Act, Financial Regulations, and applicable circulars.",
+    sections: [
+      {
+        title: "Financial Regulations Compliance",
+        objective:
+          "To assess compliance with Financial Regulations, Treasury Circulars, and extant financial management directives.",
+        riskLevel: "High",
+        sortOrder: 1,
+        procedures: [
+          {
+            area: "Financial Regulations Compliance",
+            procedure:
+              "Obtain and review copies of all applicable financial regulations and circulars; confirm awareness and availability at council level.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Inquiry",
+            expectedEvidence:
+              "Copies of regulations, staff acknowledgement records",
+          },
+          {
+            area: "Financial Regulations Compliance",
+            procedure:
+              "Test a sample of financial transactions for compliance with: approval thresholds, documentation requirements, and recording timelines.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Transaction files, approval records",
+            sampleSize: "40-60 transactions",
+          },
+          {
+            area: "Financial Regulations Compliance",
+            procedure:
+              "Review the operation of the internal audit function: reporting lines, scope of work, and follow-up on recommendations.",
+            assertion: "Completeness",
+            natureOfTest: "Inquiry",
+            expectedEvidence:
+              "Internal audit reports, terms of reference, organogram",
+          },
+          {
+            area: "Financial Regulations Compliance",
+            procedure:
+              "Assess the maintenance of proper books of accounts including cashbooks, ledgers, and votes book as required by regulations.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Inspection",
+            expectedEvidence: "Accounting records, cashbooks, vote book",
+          },
+        ],
+      },
+      {
+        title: "Procurement Law Compliance",
+        objective:
+          "To evaluate adherence to the Public Procurement Act and Bureau of Public Procurement guidelines.",
+        riskLevel: "Critical",
+        sortOrder: 2,
+        procedures: [
+          {
+            area: "Procurement Law Compliance",
+            procedure:
+              "Map the council's procurement process against the requirements of the Public Procurement Act; document all deviations.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Process mapping document, PPA requirements checklist",
+          },
+          {
+            area: "Procurement Law Compliance",
+            procedure:
+              "Verify that all procurement above the threshold was competitively tendered and received Due Process certification prior to award.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Tender documents, due process certificates, award letters",
+            sampleSize: "All contracts above threshold",
+          },
+          {
+            area: "Procurement Law Compliance",
+            procedure:
+              "Examine the composition and minutes of the Tenders Board to confirm proper constitution and decision-making procedures.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Inspection",
+            expectedEvidence: "Tenders Board minutes, membership list",
+          },
+          {
+            area: "Procurement Law Compliance",
+            procedure:
+              "Test for prohibited practices: sole sourcing without justification, contract splitting, conflict of interest declarations.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Analytical",
+            expectedEvidence:
+              "Vendor analysis, COI declarations, contract timeline analysis",
+          },
+        ],
+      },
+      {
+        title: "Human Resource & Payroll Compliance",
+        objective:
+          "To confirm that staff recruitment, posting, promotion, and payroll processes comply with Public Service Rules and establishment guidelines.",
+        riskLevel: "High",
+        sortOrder: 3,
+        procedures: [
+          {
+            area: "HR & Payroll Compliance",
+            procedure:
+              "Verify that recruitment follows established procedures: advertisement, interview panel, offer/acceptance documentation.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Recruitment files, advertisement clippings, panel reports",
+            sampleSize: "All hires in audit period",
+          },
+          {
+            area: "HR & Payroll Compliance",
+            procedure:
+              "Test pension and PAYE remittance compliance: correct computation, timely deduction, and prompt remittance to statutory agencies.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Deduction schedules, remittance receipts, penalty notices",
+          },
+          {
+            area: "HR & Payroll Compliance",
+            procedure:
+              "Review promotions and grade-level changes for compliance with Public Service Rules and approval requirements.",
+            assertion: "Rights & Obligations",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Promotion letters, board minutes, establishment records",
+          },
+        ],
+      },
+      {
+        title: "Statutory Reporting & Accountability",
+        objective:
+          "To assess whether the council meets its statutory obligation to prepare and submit financial statements and respond to audit queries.",
+        riskLevel: "Medium",
+        sortOrder: 4,
+        procedures: [
+          {
+            area: "Statutory Reporting & Accountability",
+            procedure:
+              "Confirm that annual financial statements are prepared within the statutory time frame and conform to the prescribed format.",
+            assertion: "Presentation & Disclosure",
+            natureOfTest: "Inspection",
+            expectedEvidence: "Financial statements, submission receipts",
+          },
+          {
+            area: "Statutory Reporting & Accountability",
+            procedure:
+              "Review status of prior-year audit recommendations and Public Accounts Committee (PAC) directives; document implementation status.",
+            assertion: "Completeness",
+            natureOfTest: "Substantive",
+            expectedEvidence:
+              "Prior audit reports, PAC directives, status tracker",
+          },
+          {
+            area: "Statutory Reporting & Accountability",
+            procedure:
+              "Verify that quarterly returns to the State Ministry of Local Government are prepared and submitted as required.",
+            assertion: "Cut-off",
+            natureOfTest: "Inspection",
+            expectedEvidence: "Quarterly returns, submission acknowledgements",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tpl-performance",
+    name: "Performance Audit Programme",
+    auditType: "Performance",
+    description:
+      "Standardised programme for evaluating the economy, efficiency, and effectiveness of council programmes, projects, and service delivery.",
+    methodology:
+      "Value-for-money approach applying the 3Es framework (Economy, Efficiency, Effectiveness) per ISSAI 3000/3100 standards. Combines quantitative analysis with qualitative assessment of outcomes.",
+    sections: [
+      {
+        title: "Economy Assessment",
+        objective:
+          "To evaluate whether council resources were acquired at the lowest cost consistent with the required quality and quantity.",
+        riskLevel: "High",
+        sortOrder: 1,
+        procedures: [
+          {
+            area: "Economy Assessment",
+            procedure:
+              "Compare unit costs of goods and services procured against market benchmarks and prices obtained by comparable councils.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence: "Price comparison schedule, market survey data",
+          },
+          {
+            area: "Economy Assessment",
+            procedure:
+              "Analyse personnel costs as a percentage of total expenditure; benchmark against recommended ratios and comparable councils.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence: "Personnel cost analysis workpaper",
+          },
+          {
+            area: "Economy Assessment",
+            procedure:
+              "Review major contract awards for evidence of competitive pricing and cost negotiation.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Substantive",
+            expectedEvidence: "Bid comparison sheets, negotiation records",
+            sampleSize: "10 largest contracts",
+          },
+        ],
+      },
+      {
+        title: "Efficiency Assessment",
+        objective:
+          "To assess whether outputs (services, projects) are maximised relative to the resources (inputs) consumed.",
+        riskLevel: "Medium",
+        sortOrder: 2,
+        procedures: [
+          {
+            area: "Efficiency Assessment",
+            procedure:
+              "Calculate and analyse key efficiency ratios: revenue collection cost ratio, administrative cost ratio, project completion rate.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence: "Ratio analysis workpaper, financial data",
+          },
+          {
+            area: "Efficiency Assessment",
+            procedure:
+              "Review project timelines and budgets for selected capital projects; calculate time and cost overruns as a percentage.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence:
+              "Project files, milestone reports, variation orders",
+            sampleSize: "5-10 projects",
+          },
+          {
+            area: "Efficiency Assessment",
+            procedure:
+              "Assess the utilisation of council assets (vehicles, equipment, buildings) through usage logs and maintenance records.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Inspection",
+            expectedEvidence:
+              "Vehicle logbooks, equipment usage records, maintenance logs",
+          },
+        ],
+      },
+      {
+        title: "Effectiveness Assessment",
+        objective:
+          "To evaluate whether programmes and projects achieved their intended outcomes and delivered value to the community.",
+        riskLevel: "High",
+        sortOrder: 3,
+        procedures: [
+          {
+            area: "Effectiveness Assessment",
+            procedure:
+              "Identify key performance indicators (KPIs) for major council programmes; compare actual results against targets and prior-year performance.",
+            assertion: "Accuracy/Valuation",
+            natureOfTest: "Analytical",
+            expectedEvidence:
+              "Programme KPI reports, budget targets, prior-year data",
+          },
+          {
+            area: "Effectiveness Assessment",
+            procedure:
+              "Conduct beneficiary assessment for selected community projects through interviews and site visits.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Inquiry",
+            expectedEvidence:
+              "Interview notes, beneficiary feedback forms, site visit reports",
+            sampleSize: "3-5 community projects",
+          },
+          {
+            area: "Effectiveness Assessment",
+            procedure:
+              "Review service delivery standards and citizen complaint records; assess responsiveness and resolution rates.",
+            assertion: "Completeness",
+            natureOfTest: "Inspection",
+            expectedEvidence:
+              "Complaint registers, resolution records, service charters",
+          },
+          {
+            area: "Effectiveness Assessment",
+            procedure:
+              "Evaluate the quality and sustainability of completed capital projects through physical inspection and engineering assessment.",
+            assertion: "Existence/Occurrence",
+            natureOfTest: "Observation",
+            expectedEvidence:
+              "Inspection reports, photographs, engineering certificates",
+            sampleSize: "5-8 projects",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+/* ─── Audit Journals (Big Four Deliverable) ─── */
+
+export const SEED_AUDIT_JOURNALS: AuditJournal[] = [
+  {
+    id: "aj-1",
+    auditId: "audit-1",
+    journalNumber: "AJE-001",
+    type: "Adjusting",
+    description:
+      "To correct under-accrual of salary arrears for Q4 2025 — 47 staff members with confirmed outstanding entitlements per HR records.",
+    entries: [
+      {
+        account: "Personnel Costs — Salary Arrears",
+        debit: 15_450_000,
+        credit: 0,
+      },
+      {
+        account: "Accrued Liabilities — Staff Costs",
+        debit: 0,
+        credit: 15_450_000,
+      },
+    ],
+    netEffect: 15_450_000,
+    affectedArea: "Payroll & Personnel Costs",
+    preparedBy: "user-auditor-1",
+    reviewedBy: "user-lead-1",
+    status: "Agreed",
+    createdAt: "2026-03-10T09:00:00Z",
+    workpaperRef: "WP-PAY-03",
+  },
+  {
+    id: "aj-2",
+    auditId: "audit-1",
+    journalNumber: "AJE-002",
+    type: "Adjusting",
+    description:
+      "To write down impaired capital project costs — Community Health Centre project abandoned at 35% completion.",
+    entries: [
+      {
+        account: "Impairment Loss — Capital Projects",
+        debit: 28_700_000,
+        credit: 0,
+      },
+      {
+        account: "Work-in-Progress — Capital Projects",
+        debit: 0,
+        credit: 28_700_000,
+      },
+    ],
+    netEffect: 28_700_000,
+    affectedArea: "Fixed Assets & Capital Projects",
+    preparedBy: "user-auditor-2",
+    reviewedBy: "user-lead-1",
+    status: "Proposed",
+    createdAt: "2026-03-11T10:30:00Z",
+    workpaperRef: "WP-AST-05",
+  },
+  {
+    id: "aj-3",
+    auditId: "audit-1",
+    journalNumber: "RJE-001",
+    type: "Reclassifying",
+    description:
+      "To reclassify capital grant incorrectly posted to recurrent revenue — SUBEB Education Grant FY2025.",
+    entries: [
+      { account: "Recurrent Revenue — Grants", debit: 42_000_000, credit: 0 },
+      { account: "Capital Revenue — Grants", debit: 0, credit: 42_000_000 },
+    ],
+    netEffect: 0,
+    affectedArea: "Revenue & Receipts",
+    preparedBy: "user-auditor-1",
+    status: "Posted",
+    createdAt: "2026-03-12T14:00:00Z",
+    workpaperRef: "WP-REV-02",
+  },
+  {
+    id: "aj-4",
+    auditId: "audit-1",
+    journalNumber: "AJE-003",
+    type: "Adjusting",
+    description:
+      "To record unrecorded creditors identified from post-year-end payment testing (12 invoices dated prior to year end).",
+    entries: [
+      {
+        account: "Works & Maintenance Expenditure",
+        debit: 8_350_000,
+        credit: 0,
+      },
+      {
+        account: "Accounts Payable — Trade Creditors",
+        debit: 0,
+        credit: 8_350_000,
+      },
+    ],
+    netEffect: 8_350_000,
+    affectedArea: "Expenditure & Payments",
+    preparedBy: "user-auditor-2",
+    status: "Draft",
+    createdAt: "2026-03-13T11:00:00Z",
+  },
+  {
+    id: "aj-5",
+    auditId: "audit-1",
+    journalNumber: "PJE-001",
+    type: "Passed",
+    description:
+      "Unadjusted difference: Minor classification variance in stationery vs office supplies below clearly trivial threshold.",
+    entries: [
+      { account: "Office Supplies", debit: 125_000, credit: 0 },
+      { account: "Stationery Expense", debit: 0, credit: 125_000 },
+    ],
+    netEffect: 0,
+    affectedArea: "Expenditure & Payments",
+    preparedBy: "user-lead-1",
+    status: "Waived",
+    createdAt: "2026-03-14T09:30:00Z",
+    workpaperRef: "WP-EXP-08",
+  },
+];
+
+/* ─── Audit Comments / Management Letter Points (Big Four Deliverable) ─── */
+
+export const SEED_AUDIT_COMMENTS: AuditComment[] = [
+  {
+    id: "ac-1",
+    auditId: "audit-1",
+    referenceNumber: "MC-2025-001",
+    title: "Inadequate Bank Reconciliation Procedures",
+    observation:
+      "Bank reconciliation statements for 3 of 7 council bank accounts were not prepared for 4 consecutive months (August–November 2025). Outstanding items on remaining reconciliations included stale cheques older than 6 months totalling ₦12.4M.",
+    criteria:
+      "Financial Regulation 1606 requires monthly reconciliation of all bank accounts. ISA 330 mandates testing of reconciliation controls.",
+    cause:
+      "Vacancy in treasury reconciliation officer position since June 2025 with no interim cover arranged.",
+    effect:
+      "Increased risk of undetected errors or misappropriation in bank transactions. ₦12.4M in stale items may represent unrealisable amounts.",
+    recommendation:
+      "Management should (1) immediately fill the reconciliation officer vacancy, (2) complete all outstanding reconciliations within 30 days, (3) investigate and write off confirmed stale items with proper approval.",
+    managementResponse:
+      "Noted. Recruitment process initiated. All reconciliations will be brought up to date by end of Q1 2026.",
+    severity: "High",
+    status: "Agreed",
+    responsibleParty: "Treasurer",
+    targetDate: "2026-06-30",
+    preparedBy: "user-auditor-1",
+    reviewedBy: "user-lead-1",
+    createdAt: "2026-03-08T10:00:00Z",
+  },
+  {
+    id: "ac-2",
+    auditId: "audit-1",
+    referenceNumber: "MC-2025-002",
+    title: "Non-Compliance with Procurement Due Process",
+    observation:
+      "8 out of 15 contracts sampled (53%) above ₦5M threshold lacked Due Process certification from the Bureau of Public Procurement prior to award. Total value of non-compliant contracts: ₦187M.",
+    criteria:
+      "Public Procurement Act 2007, Sections 16 & 28 require prior certification for all contracts above threshold.",
+    cause:
+      "Pressure to meet project delivery timelines led to bypassing the certification process. Lack of internal monitoring mechanism for procurement compliance.",
+    effect:
+      "Council exposed to legal liability. Value for money not assured for ₦187M in expenditure. Potential for fraud or collusion.",
+    recommendation:
+      "Management should (1) enforce mandatory Due Process certification as a pre-condition for payment, (2) implement a procurement compliance checklist in the ERP system, (3) conduct compliance training for all procurement officers.",
+    severity: "Critical",
+    status: "Discussed",
+    responsibleParty: "Head of Procurement",
+    targetDate: "2026-07-31",
+    preparedBy: "user-auditor-2",
+    reviewedBy: "user-lead-1",
+    createdAt: "2026-03-09T14:00:00Z",
+  },
+  {
+    id: "ac-3",
+    auditId: "audit-1",
+    referenceNumber: "MC-2025-003",
+    title: "Weak Controls Over IGR Collection",
+    observation:
+      "Manual receipt books still in use for 40% of IGR collection points. No reconciliation between receipt books and bank deposits at 6 out of 10 revenue collection points.",
+    criteria:
+      "Lagos State Revenue Administration Law requires electronic receipting. Financial Regulation 406 requires daily reconciliation of collections.",
+    cause:
+      "Incomplete rollout of the automated revenue collection platform. Budget constraints delayed procurement of POS devices at satellite offices.",
+    effect:
+      "Revenue leakage estimated at ₦15-25M annually based on analytical comparison with comparable councils. ₦8.2M variance between receipts issued and bank lodgements remains unexplained.",
+    recommendation:
+      "Complete the electronic receipting rollout across all collection points. Investigate the ₦8.2M unexplained variance and hold responsible officers accountable.",
+    severity: "High",
+    status: "Agreed",
+    responsibleParty: "Revenue Manager",
+    targetDate: "2026-09-30",
+    preparedBy: "user-lead-1",
+    createdAt: "2026-03-10T09:00:00Z",
+  },
+  {
+    id: "ac-4",
+    auditId: "audit-1",
+    referenceNumber: "MC-2025-004",
+    title: "Ghost Worker Indicators in Payroll Data",
+    observation:
+      "Biometric cross-reference analysis identified 12 employees on the payroll who have no biometric attendance records for 6+ consecutive months. Combined annual salary cost: ₦18.6M. Additionally, 3 employees have identical bank account numbers for salary remittance.",
+    criteria:
+      "Civil Service Rules require regular attendance monitoring. ISA 240 requires assessment of fraud indicators.",
+    cause:
+      "Biometric attendance system not linked to payroll processing. Manual payroll preparation without automated validation checks.",
+    effect:
+      "Potential payroll fraud exposure of up to ₦18.6M per annum. Identical bank accounts may indicate ghost workers or diversion of funds.",
+    recommendation:
+      "Immediately suspend salary payments for flagged employees pending physical verification. Integrate biometric system with payroll module. Refer findings to anti-corruption unit for investigation.",
+    managementResponse:
+      "Payments suspended for investigation. Full verification exercise to be conducted within 60 days.",
+    severity: "Critical",
+    status: "Reported",
+    responsibleParty: "Head of HR / Internal Audit",
+    targetDate: "2026-05-31",
+    preparedBy: "user-auditor-2",
+    reviewedBy: "user-lead-1",
+    createdAt: "2026-03-11T11:00:00Z",
+  },
+  {
+    id: "ac-5",
+    auditId: "audit-1",
+    referenceNumber: "MC-2025-005",
+    title: "Fixed Asset Register Deficiencies",
+    observation:
+      "Asset register last updated in March 2024. Physical verification revealed 23 assets not in register (reverse testing) and 15 register items could not be physically located. No depreciation schedule maintained.",
+    criteria:
+      "IPSAS 17 requires maintenance of complete and accurate asset registers with systematic depreciation. Financial Regulation 2601 requires annual asset verification.",
+    cause:
+      "No dedicated asset management officer. Last comprehensive asset verification conducted 3 years ago.",
+    effect:
+      "Financial statements may be materially misstated for property, plant and equipment. Risk of asset theft or misuse undetected.",
+    recommendation:
+      "Commission a comprehensive asset verification and update the register. Appoint a dedicated asset management officer. Implement depreciation policy per IPSAS 17.",
+    severity: "Medium",
+    status: "Draft",
+    responsibleParty: "Stores Officer / Accounting",
+    preparedBy: "user-auditor-1",
+    createdAt: "2026-03-12T15:00:00Z",
+  },
+];
+
+/* ─── Financial Statements Tracking (Big Four Deliverable) ─── */
+
+export const SEED_FINANCIAL_STATEMENTS: FinancialStatementItem[] = [
+  {
+    id: "fs-1",
+    auditId: "audit-1",
+    statementType: "Statement of Financial Position",
+    status: "Adjusted",
+    draftReceivedDate: "2026-02-15",
+    adjustmentsCount: 3,
+    adjustmentsAmount: 52_500_000,
+    reviewedBy: "user-lead-1",
+    notes:
+      "3 adjustments agreed: salary arrears accrual (₦15.45M), project impairment (₦28.7M), unrecorded creditors (₦8.35M).",
+  },
+  {
+    id: "fs-2",
+    auditId: "audit-1",
+    statementType: "Statement of Financial Performance",
+    status: "Adjusted",
+    draftReceivedDate: "2026-02-15",
+    adjustmentsCount: 2,
+    adjustmentsAmount: 57_450_000,
+    reviewedBy: "user-lead-1",
+    notes:
+      "Revenue reclassification (₦42M) and expenditure accrual adjustments applied.",
+  },
+  {
+    id: "fs-3",
+    auditId: "audit-1",
+    statementType: "Cash Flow Statement",
+    status: "Under Review",
+    draftReceivedDate: "2026-02-20",
+    adjustmentsCount: 0,
+    adjustmentsAmount: 0,
+    notes:
+      "Awaiting final adjustments to the income statement before cash flow can be finalised.",
+  },
+  {
+    id: "fs-4",
+    auditId: "audit-1",
+    statementType: "Statement of Changes in Net Assets/Equity",
+    status: "Received",
+    draftReceivedDate: "2026-02-20",
+    adjustmentsCount: 0,
+    adjustmentsAmount: 0,
+    notes: "Draft received; to be reviewed once adjustments are finalised.",
+  },
+  {
+    id: "fs-5",
+    auditId: "audit-1",
+    statementType: "Notes to the Financial Statements",
+    status: "Under Review",
+    draftReceivedDate: "2026-02-25",
+    adjustmentsCount: 1,
+    adjustmentsAmount: 0,
+    reviewedBy: "user-auditor-1",
+    notes:
+      "Disclosure of related party transactions incomplete. Additional note required for contingent liabilities (pending litigation).",
+  },
+  {
+    id: "fs-6",
+    auditId: "audit-1",
+    statementType: "Budget vs Actual Comparison",
+    status: "Final",
+    draftReceivedDate: "2026-02-10",
+    adjustmentsCount: 0,
+    adjustmentsAmount: 0,
+    reviewedBy: "user-lead-1",
+    finalDate: "2026-03-05",
+    notes:
+      "Budget comparison statement agrees to approved estimates and actual figures. Significant variances in capital expenditure (62% utilisation) documented.",
+  },
+];
+
+/* ─── Completion Checklist (Big Four Standard) ─── */
+
+export const SEED_COMPLETION_CHECKLIST: CompletionChecklistItem[] = [
+  {
+    id: "cc-1",
+    auditId: "audit-1",
+    section: "Going Concern",
+    item: "Assess entity's ability to continue as going concern for 12 months from reporting date",
+    completed: true,
+    completedBy: "user-lead-1",
+    completedAt: "2026-03-12T10:00:00Z",
+    reference: "WP-PLAN-01",
+  },
+  {
+    id: "cc-2",
+    auditId: "audit-1",
+    section: "Going Concern",
+    item: "Obtain management's going concern assessment and supporting budgets/forecasts",
+    completed: true,
+    completedBy: "user-lead-1",
+    completedAt: "2026-03-12T10:30:00Z",
+    reference: "WP-PLAN-01",
+  },
+  {
+    id: "cc-3",
+    auditId: "audit-1",
+    section: "Subsequent Events",
+    item: "Perform subsequent events review procedures up to date of audit report",
+    completed: true,
+    completedBy: "user-auditor-1",
+    completedAt: "2026-03-14T09:00:00Z",
+    reference: "WP-COMP-02",
+  },
+  {
+    id: "cc-4",
+    auditId: "audit-1",
+    section: "Subsequent Events",
+    item: "Inquire of management regarding events after reporting period",
+    completed: true,
+    completedBy: "user-auditor-1",
+    completedAt: "2026-03-14T09:30:00Z",
+  },
+  {
+    id: "cc-5",
+    auditId: "audit-1",
+    section: "Management Representations",
+    item: "Obtain signed management representation letter",
+    completed: false,
+    notes: "Draft sent; awaiting HLGA signature",
+  },
+  {
+    id: "cc-6",
+    auditId: "audit-1",
+    section: "Management Representations",
+    item: "Ensure all specific representations required by audit findings are included",
+    completed: false,
+  },
+  {
+    id: "cc-7",
+    auditId: "audit-1",
+    section: "Analytical Review",
+    item: "Perform final overall analytical review of financial statements",
+    completed: true,
+    completedBy: "user-lead-1",
+    completedAt: "2026-03-15T14:00:00Z",
+    reference: "WP-COMP-03",
+  },
+  {
+    id: "cc-8",
+    auditId: "audit-1",
+    section: "Independence & Ethics",
+    item: "Confirm team independence and document any threats/safeguards",
+    completed: true,
+    completedBy: "user-lead-1",
+    completedAt: "2026-02-15T08:00:00Z",
+    reference: "WP-ADMIN-01",
+  },
+  {
+    id: "cc-9",
+    auditId: "audit-1",
+    section: "Quality Control",
+    item: "Engagement Quality Review (EQR) completed by independent partner",
+    completed: false,
+    notes: "Scheduled for final review week",
+  },
+  {
+    id: "cc-10",
+    auditId: "audit-1",
+    section: "File Assembly",
+    item: "Assemble audit file within 60 days of audit report date per ISA 230",
+    completed: false,
+  },
+  {
+    id: "cc-11",
+    auditId: "audit-1",
+    section: "Communication with Governance",
+    item: "Communicate significant matters to those charged with governance (ISA 260)",
+    completed: true,
+    completedBy: "user-lead-1",
+    completedAt: "2026-03-10T16:00:00Z",
+    reference: "WP-COMP-05",
+  },
+  {
+    id: "cc-12",
+    auditId: "audit-1",
+    section: "Laws & Regulations",
+    item: "Consider impact of non-compliance with laws and regulations (ISA 250)",
+    completed: true,
+    completedBy: "user-auditor-2",
+    completedAt: "2026-03-13T11:00:00Z",
+    reference: "WP-COMP-06",
+  },
+  {
+    id: "cc-13",
+    auditId: "audit-1",
+    section: "Related Parties",
+    item: "Evaluate related party transactions and disclosures (ISA 550)",
+    completed: true,
+    completedBy: "user-auditor-1",
+    completedAt: "2026-03-13T14:00:00Z",
+    reference: "WP-COMP-07",
+  },
+  {
+    id: "cc-14",
+    auditId: "audit-1",
+    section: "Related Parties",
+    item: "Review council members' interests register for undisclosed relationships",
+    completed: false,
+    notes: "Register requested from Council Secretary",
+  },
+];
+
+/* ─── Audit Workpapers Index (Big Four Standard) ─── */
+
+export const SEED_AUDIT_WORKPAPERS: AuditWorkpaper[] = [
+  {
+    id: "awp-1",
+    auditId: "audit-1",
+    reference: "WP-ADMIN-01",
+    title: "Engagement Acceptance & Independence",
+    category: "Permanent File",
+    section: "Administration",
+    preparedBy: "user-lead-1",
+    preparedAt: "2026-02-10T09:00:00Z",
+    reviewedBy: "user-sup-ikeja",
+    reviewedAt: "2026-02-12T10:00:00Z",
+    status: "Final",
+  },
+  {
+    id: "awp-2",
+    auditId: "audit-1",
+    reference: "WP-PLAN-01",
+    title: "Planning Memorandum & Strategy",
+    category: "Planning Memorandum",
+    section: "Planning",
+    preparedBy: "user-lead-1",
+    preparedAt: "2026-02-15T09:00:00Z",
+    reviewedBy: "user-sup-ikeja",
+    reviewedAt: "2026-02-18T10:00:00Z",
+    status: "Final",
+  },
+  {
+    id: "awp-3",
+    auditId: "audit-1",
+    reference: "WP-PLAN-02",
+    title: "Risk Assessment & Materiality Calculation",
+    category: "Planning Memorandum",
+    section: "Planning",
+    preparedBy: "user-lead-1",
+    preparedAt: "2026-02-16T09:00:00Z",
+    reviewedBy: "user-sup-ikeja",
+    reviewedAt: "2026-02-19T10:00:00Z",
+    status: "Final",
+  },
+  {
+    id: "awp-4",
+    auditId: "audit-1",
+    reference: "WP-REV-01",
+    title: "Revenue — Lead Schedule",
+    category: "Lead Schedule",
+    section: "Revenue & Receipts",
+    preparedBy: "user-auditor-1",
+    preparedAt: "2026-03-01T09:00:00Z",
+    reviewedBy: "user-lead-1",
+    reviewedAt: "2026-03-03T10:00:00Z",
+    status: "Reviewed",
+  },
+  {
+    id: "awp-5",
+    auditId: "audit-1",
+    reference: "WP-REV-02",
+    title: "Revenue — IGR Substantive Tests",
+    category: "Supporting Schedule",
+    section: "Revenue & Receipts",
+    preparedBy: "user-auditor-1",
+    preparedAt: "2026-03-02T09:00:00Z",
+    status: "Prepared",
+    crossReferences: ["WP-REV-01"],
+  },
+  {
+    id: "awp-6",
+    auditId: "audit-1",
+    reference: "WP-REV-03",
+    title: "Revenue — FAAC/VAT Allocation Confirmations",
+    category: "Confirmation",
+    section: "Revenue & Receipts",
+    preparedBy: "user-auditor-1",
+    preparedAt: "2026-03-03T09:00:00Z",
+    status: "Prepared",
+    crossReferences: ["WP-REV-01"],
+  },
+  {
+    id: "awp-7",
+    auditId: "audit-1",
+    reference: "WP-EXP-01",
+    title: "Expenditure — Lead Schedule",
+    category: "Lead Schedule",
+    section: "Expenditure & Payments",
+    preparedBy: "user-auditor-2",
+    preparedAt: "2026-03-01T09:00:00Z",
+    reviewedBy: "user-lead-1",
+    reviewedAt: "2026-03-04T10:00:00Z",
+    status: "Reviewed",
+  },
+  {
+    id: "awp-8",
+    auditId: "audit-1",
+    reference: "WP-EXP-02",
+    title: "Expenditure — Vouching Results",
+    category: "Supporting Schedule",
+    section: "Expenditure & Payments",
+    preparedBy: "user-auditor-2",
+    preparedAt: "2026-03-05T09:00:00Z",
+    status: "Prepared",
+    crossReferences: ["WP-EXP-01"],
+  },
+  {
+    id: "awp-9",
+    auditId: "audit-1",
+    reference: "WP-PAY-01",
+    title: "Payroll — Lead Schedule",
+    category: "Lead Schedule",
+    section: "Payroll & Personnel",
+    preparedBy: "user-auditor-2",
+    preparedAt: "2026-03-04T09:00:00Z",
+    reviewedBy: "user-lead-1",
+    reviewedAt: "2026-03-06T10:00:00Z",
+    status: "Reviewed",
+  },
+  {
+    id: "awp-10",
+    auditId: "audit-1",
+    reference: "WP-PAY-03",
+    title: "Payroll — Biometric Cross-Reference Analysis",
+    category: "Analytical Procedure",
+    section: "Payroll & Personnel",
+    preparedBy: "user-auditor-2",
+    preparedAt: "2026-03-06T09:00:00Z",
+    status: "Prepared",
+    crossReferences: ["WP-PAY-01"],
+    notes: "12 exceptions identified. See Audit Comment MC-2025-004.",
+  },
+  {
+    id: "awp-11",
+    auditId: "audit-1",
+    reference: "WP-BNK-01",
+    title: "Bank & Cash — Lead Schedule",
+    category: "Lead Schedule",
+    section: "Bank & Cash",
+    preparedBy: "user-auditor-1",
+    preparedAt: "2026-03-05T09:00:00Z",
+    status: "Prepared",
+  },
+  {
+    id: "awp-12",
+    auditId: "audit-1",
+    reference: "WP-BNK-02",
+    title: "Bank Confirmations & Reconciliations",
+    category: "Reconciliation",
+    section: "Bank & Cash",
+    preparedBy: "user-auditor-1",
+    preparedAt: "2026-03-06T09:00:00Z",
+    status: "Draft",
+    notes: "Awaiting 2 bank confirmations.",
+  },
+  {
+    id: "awp-13",
+    auditId: "audit-1",
+    reference: "WP-AST-01",
+    title: "Fixed Assets — Lead Schedule",
+    category: "Lead Schedule",
+    section: "Fixed Assets",
+    preparedBy: "user-auditor-1",
+    preparedAt: "2026-03-07T09:00:00Z",
+    status: "Prepared",
+  },
+  {
+    id: "awp-14",
+    auditId: "audit-1",
+    reference: "WP-AST-05",
+    title: "Capital Projects — Physical Verification Report",
+    category: "Supporting Schedule",
+    section: "Fixed Assets",
+    preparedBy: "user-auditor-2",
+    preparedAt: "2026-03-08T09:00:00Z",
+    status: "Prepared",
+    crossReferences: ["WP-AST-01"],
+    notes: "1 abandoned project identified – AJE-002 raised.",
+  },
+  {
+    id: "awp-15",
+    auditId: "audit-1",
+    reference: "WP-COMP-01",
+    title: "Completion Memorandum",
+    category: "Completion Memorandum",
+    section: "Completion",
+    preparedBy: "user-lead-1",
+    preparedAt: "2026-03-15T09:00:00Z",
+    status: "Draft",
+  },
+  {
+    id: "awp-16",
+    auditId: "audit-1",
+    reference: "WP-COMP-05",
+    title: "Communication with Those Charged with Governance",
+    category: "Minutes & Correspondence",
+    section: "Completion",
+    preparedBy: "user-lead-1",
+    preparedAt: "2026-03-10T16:00:00Z",
+    status: "Prepared",
+  },
+  {
+    id: "awp-17",
+    auditId: "audit-1",
+    reference: "WP-REP-01",
+    title: "Management Letter (Draft)",
+    category: "Representation Letter",
+    section: "Reporting",
+    preparedBy: "user-lead-1",
+    preparedAt: "2026-03-14T09:00:00Z",
+    status: "Draft",
+    notes: "5 audit comments included. Awaiting management responses.",
   },
 ];
 

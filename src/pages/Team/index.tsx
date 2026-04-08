@@ -65,7 +65,7 @@ const TeamManagementPage: React.FC = () => {
 
       openModal({
         title: "Assign Audit Lead",
-        message: `Assign ${lead?.name} as the lead auditor for ${lga?.name} LGA? An invitation will be sent for their acceptance.`,
+        message: `Assign ${lead?.name} as the lead auditor for ${lga?.name}? An invitation will be sent for their acceptance.`,
         confirmText: "Assign & Invite",
         variant: "info",
         onConfirm: () => {
@@ -115,7 +115,8 @@ const TeamManagementPage: React.FC = () => {
           <div>
             <h1 className={s.pageTitle}>Team Management</h1>
             <p className={s.pageSubtitle}>
-              {myZone?.name} Zone — Assign audit leads to {myLgas.length} LGA
+              {myZone?.name} Zone — Assign audit leads to {myLgas.length}{" "}
+              council
               {myLgas.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -246,7 +247,7 @@ const TeamManagementPage: React.FC = () => {
               <MapPin size={20} />
             </div>
             <div>
-              <div className={s.kpiLabel}>LGAs in Zone</div>
+              <div className={s.kpiLabel}>Councils in Zone</div>
               <div className={s.kpiValue}>{myLgas.length}</div>
             </div>
           </div>
@@ -285,13 +286,13 @@ const TeamManagementPage: React.FC = () => {
 
         <div className={s.card}>
           <div className={s.cardHeader}>
-            <h3 className={s.cardTitle}>LGA Lead Assignments</h3>
+            <h3 className={s.cardTitle}>Council Lead Assignments</h3>
           </div>
           <div className={s.tableWrap}>
             <table className={s.table}>
               <thead>
                 <tr>
-                  <th>LGA</th>
+                  <th>Council</th>
                   <th>Contact</th>
                   <th>Assigned Lead</th>
                   <th>Status</th>
@@ -459,7 +460,7 @@ const TeamManagementPage: React.FC = () => {
       const auditor = users.find((u) => u.id === auditorId);
       openModal({
         title: "Invite Team Auditor",
-        message: `Send an invitation to ${auditor?.name} to join the audit team for ${myLga?.name} LGA?`,
+        message: `Send an invitation to ${auditor?.name} to join the audit team for ${myLga?.name}?`,
         confirmText: "Send Invitation",
         variant: "info",
         onConfirm: () => {
@@ -487,8 +488,8 @@ const TeamManagementPage: React.FC = () => {
           <div>
             <h1 className={s.pageTitle}>Build Your Team</h1>
             <p className={s.pageSubtitle}>
-              {myLga?.name} LGA — Invite auditors from the available pool to
-              your engagement team
+              {myLga?.name} — Invite auditors from the available pool to your
+              engagement team
             </p>
           </div>
           <button

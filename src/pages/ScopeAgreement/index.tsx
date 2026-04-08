@@ -282,8 +282,8 @@ const ScopeAgreementPage: React.FC<ScopeAgreementPageProps> = ({
               <div className={s.emptyTitle}>No Scope Agreements</div>
               <div className={s.emptyDesc}>
                 {isAuditor
-                  ? "Select an audit and create a scope agreement to define audit boundaries with the LGA."
-                  : "No scope agreements have been created for your LGA yet."}
+                  ? "Select an audit and create a scope agreement to define audit boundaries with the council."
+                  : "No scope agreements have been created for your council yet."}
               </div>
             </div>
           </div>
@@ -348,7 +348,7 @@ const ScopeAgreementPage: React.FC<ScopeAgreementPageProps> = ({
                         <th>Timeline</th>
                         <th>Expectations</th>
                         <th>Auditor Sign-Off</th>
-                        <th>LGA Sign-Off</th>
+                        <th>Council Sign-Off</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -544,7 +544,7 @@ const ScopeAgreementPage: React.FC<ScopeAgreementPageProps> = ({
                         className={s.btnPrimary}
                         onClick={() => handleSignOff(agreement.id)}
                       >
-                        <Shield size={14} /> LGA Sign-Off
+                        <Shield size={14} /> Council Sign-Off
                       </button>
                     )}
                     {allAuditorSigned && allLgaSigned && (

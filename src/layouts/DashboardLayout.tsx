@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Outlet,
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useAuditStore } from "../store/useAuditStore";
 import { checkDeadlinesAndGenerateNotifications } from "../utils/timelineLogic";
+import type { Notification } from "../types";
 import {
   LayoutDashboard,
   FileText,
@@ -90,10 +97,17 @@ const DashboardLayout: React.FC = () => {
       );
 
       if (trulyNew.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const notifsToAdd = trulyNew.map(
-          ({ _id, _isRead, ...rest }: any) => rest,
-        );
+        const notifsToAdd: Array<
+          Omit<Notification, "id" | "isRead" | "timestamp">
+        > = trulyNew.map((notification) => ({
+          userId: notification.userId,
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          link: notification.link,
+          relatedEntityId: notification.relatedEntityId,
+          relatedEntityType: notification.relatedEntityType,
+        }));
         addNotifications(notifsToAdd);
       }
     }
@@ -136,7 +150,9 @@ const DashboardLayout: React.FC = () => {
     [notifications, user],
   );
 
-  if (!user) return null;
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
 
   const unreadCount = myNotifications.filter((n) => !n.isRead).length;
 

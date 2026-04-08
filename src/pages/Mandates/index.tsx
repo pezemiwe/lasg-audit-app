@@ -132,7 +132,7 @@ const MandatesPage: React.FC = () => {
     openModal({
       title: "Accept Audit Mandate",
       message:
-        "By accepting this mandate, you acknowledge the terms and commence the audit process for your LGA.",
+        "By accepting this mandate, you acknowledge the terms and commence the audit process for your council.",
       confirmText: "Accept & Commence",
       variant: "info",
       onConfirm: () => {
@@ -241,7 +241,7 @@ const MandatesPage: React.FC = () => {
                     fontWeight: 600,
                     border: "1px solid #bae6fd",
                   }}
-                  title="Number of LGAs that have accepted this mandate"
+                  title="Number of councils that have accepted this mandate"
                 >
                   <CheckCircle size={14} />
                   <span>
@@ -399,7 +399,7 @@ const MandatesPage: React.FC = () => {
               className={`${s.tabBtn} ${activeTab === "compliance" ? s.active : ""}`}
               onClick={() => setActiveTab("compliance")}
             >
-              <CheckCircle size={16} /> LGA Compliance
+              <CheckCircle size={16} /> Council Compliance
             </button>
           </div>
         )}
@@ -460,7 +460,7 @@ const MandatesPage: React.FC = () => {
         {activeTab === "compliance" && (
           <div className={s.card}>
             <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>LGA Compliance Tracker</h3>
+              <h3 className={s.cardTitle}>Council Compliance Tracker</h3>
               <div style={{ display: "flex", gap: "1rem" }}>
                 <StatusBadge
                   label={`Accepted: ${
@@ -477,14 +477,14 @@ const MandatesPage: React.FC = () => {
                     {user?.role === "STATE_AUDITOR_GENERAL" ||
                     user?.role === "AUDITOR_GENERAL_FEDERATION" ? (
                       <tr>
-                        <th>LGA Name</th>
+                        <th>Council Name</th>
                         <th>Zone</th>
                         <th>Mandate Status</th>
                         <th>Action</th>
                       </tr>
                     ) : (
                       <tr>
-                        <th>LGA Name</th>
+                        <th>Council Name</th>
                         <th>Zone</th>
                         <th>Mandate Status</th>
                         <th>Documents Uploaded</th>
@@ -825,8 +825,8 @@ const MandatesPage: React.FC = () => {
                                         marginTop: "0.25rem",
                                       }}
                                     >
-                                      The LGA has not accepted this mandate so
-                                      the document checklist has not been
+                                      The council has not accepted this mandate
+                                      so the document checklist has not been
                                       generated.
                                     </p>
                                   </div>
@@ -1259,8 +1259,8 @@ const MandatesPage: React.FC = () => {
           <h1 className={s.pageTitle}>Audit Mandates</h1>
           <p className={s.pageSubtitle}>
             {user?.role === "HEAD_OF_LOCAL_GOVERNMENT"
-              ? "View and acknowledge audit mandates for your LGA"
-              : "Create and manage audit mandates for Lagos State LGA audits"}
+              ? "View and acknowledge audit mandates for your council"
+              : "Create and manage audit mandates for Lagos State council audits"}
           </p>
         </div>
         {(user?.role === "STATE_AUDITOR_GENERAL" ||

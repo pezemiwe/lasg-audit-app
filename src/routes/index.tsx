@@ -26,7 +26,6 @@ const Settings = React.lazy(() => import("../pages/Settings"));
 const ScopeAgreement = React.lazy(() => import("../pages/ScopeAgreement"));
 const DocumentPortal = React.lazy(() => import("../pages/DocumentPortal"));
 const Questionnaire = React.lazy(() => import("../pages/Questionnaire"));
-const WorkProgramme = React.lazy(() => import("../pages/WorkProgramme"));
 const PostAudit = React.lazy(() => import("../pages/PostAudit"));
 const AuditDetail = React.lazy(() => import("../pages/Audit/AuditDetail"));
 
@@ -98,7 +97,10 @@ const AppRoutes = () => (
       <Route path="/scope-agreement" element={<L comp={ScopeAgreement} />} />
       <Route path="/document-portal" element={<L comp={DocumentPortal} />} />
       <Route path="/questionnaire" element={<L comp={Questionnaire} />} />
-      <Route path="/work-programme" element={<L comp={WorkProgramme} />} />
+      <Route
+        path="/work-programme"
+        element={<Navigate to="/audit-planning?tab=programme" replace />}
+      />
       <Route path="/post-audit" element={<L comp={PostAudit} />} />
     </Route>
 

@@ -360,7 +360,7 @@ const AuditDetail: React.FC = () => {
             </div>
             <div className={s.sectionBlock} style={{ marginTop: "2rem" }}>
               <h3 className={s.sectionTitle}>Audit Plan & Strategy</h3>
-              <AuditPlanningPage auditId={audit.id} embedded />
+              <AuditPlanningPage />
             </div>
           </div>
         );

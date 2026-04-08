@@ -40,32 +40,63 @@ export const calculateOverallRisk = (
 };
 
 // Auto-Suggest Procedures based on Risk Area
+// Returns assertion-aligned procedures suitable for the standardised AWP
 export const getSuggestedProcedures = (area: string): string[] => {
   const procedures: Record<string, string[]> = {
     "Revenue Collection": [
-      "Verify that all revenue receipts are sequentially numbered and accounted for.",
-      "Reconcile daily cash collections with bank deposit slips.",
-      "Confirm authorization of revenue waivers/discounts by relevant authority.",
+      "Vouch a sample of revenue receipts to source documents and verify sequential numbering (Completeness/Existence).",
+      "Reconcile daily cash collections with bank deposit slips and confirm amounts agree (Accuracy/Valuation).",
+      "Confirm authorization of revenue waivers/discounts by relevant authority and review supporting approvals (Rights & Obligations).",
+    ],
+    "Revenue & Receipts": [
+      "Vouch a sample of revenue receipts to source documents and verify sequential numbering (Completeness).",
+      "Reconcile aggregate revenue to approved budget and investigate variances exceeding 10% (Accuracy/Valuation).",
+      "Confirm all revenue streams are properly classified per chart of accounts (Presentation & Disclosure).",
     ],
     "Payroll Administration": [
-      "Vouch a sample of 20 employees to ensure they physically exist (Ghost worker check).",
-      "Reconcile payroll summary to GL control account.",
-      "Verify approval for all overtime payments and bonuses.",
+      "Vouch a sample of 20 employees to ensure they physically exist — headcount verification (Existence/Occurrence).",
+      "Reconcile payroll summary to GL control account and verify net pay to bank statements (Accuracy/Valuation).",
+      "Verify approval for all overtime payments and bonuses against approved establishment (Rights & Obligations).",
+    ],
+    "Payroll & Personnel": [
+      "Perform headcount verification for a sample of 25 employees against personnel files (Existence/Occurrence).",
+      "Reconcile payroll summary to GL control account and trace net pay to bank statements (Accuracy/Valuation).",
+      "Review grade-level placement and verify step increments comply with approved scheme of service (Completeness).",
     ],
     Procurement: [
-      "Examine tender board minutes for approval of contracts above threshold.",
-      "Verify 3 quotations were obtained for all sampled LPOs.",
-      "Inspect physical delivery of goods for selected high-value procurements.",
+      "Examine tender board minutes for approval of contracts above threshold (Existence/Occurrence).",
+      "Verify 3 quotations were obtained for all sampled LPOs and confirm competitive pricing (Rights & Obligations).",
+      "Inspect physical delivery of goods for selected high-value procurements against purchase orders (Completeness).",
+    ],
+    "Procurement & Contracts": [
+      "Review Due Process certification for all contracts above ₦50M threshold (Existence/Occurrence).",
+      "Verify contractor prequalification documents and confirm registration validity (Rights & Obligations).",
+      "Inspect project completion certificates against milestones and payment certificates (Completeness).",
     ],
     "Asset Management": [
-      "Conduct physical verification of fixed assets in the registry.",
-      "Verify ownership documents (C of O, Titles) for land and buildings.",
-      "Check condition of vehicles and consistency with fuel usage logs.",
+      "Conduct physical verification of fixed assets in the registry (Existence/Occurrence).",
+      "Verify ownership documents (C of O, Titles) for land and buildings (Rights & Obligations).",
+      "Check condition of vehicles and consistency with fuel usage logs (Accuracy/Valuation).",
+    ],
+    "Fixed Assets": [
+      "Conduct physical verification of a sample of fixed assets against the asset register (Existence/Occurrence).",
+      "Verify asset register completeness by tracing capital expenditure to recorded assets (Completeness).",
+      "Review depreciation computations and verify useful life assumptions per IPSAS 17 (Accuracy/Valuation).",
     ],
     "Budgetary Control": [
-      "Compare actual expenditure against approved budget line-by-line.",
-      "Investigate any budget variance exceeding 10%.",
-      "Ensure virements were properly authorized before execution.",
+      "Compare actual expenditure against approved budget line-by-line (Accuracy/Valuation).",
+      "Investigate any budget variance exceeding 10% and obtain management explanations (Completeness).",
+      "Ensure virements were properly authorized before execution (Rights & Obligations).",
+    ],
+    "Expenditure & Payments": [
+      "Vouch a sample of payment vouchers to supporting documents and verify approval chain (Existence/Occurrence).",
+      "Verify expenditure classification against chart of accounts and approved budget heads (Presentation & Disclosure).",
+      "Perform cut-off testing on payments around year-end to confirm proper period allocation (Cut-off).",
+    ],
+    "Bank & Cash": [
+      "Obtain and review bank reconciliation statements for all accounts at year-end (Completeness).",
+      "Confirm bank balances directly with financial institutions via bank confirmation letters (Existence/Occurrence).",
+      "Perform cash count at treasury and reconcile with cash book balance (Accuracy/Valuation).",
     ],
   };
 
@@ -76,9 +107,9 @@ export const getSuggestedProcedures = (area: string): string[] => {
   return key
     ? procedures[key]
     : [
-        "Review relevant policy documents and guidelines.",
-        "Interview key personnel to understand internal controls.",
-        "Perform analytical review of account balances.",
+        "Review relevant policy documents, guidelines, and regulatory requirements.",
+        "Interview key personnel to understand internal controls and identify weaknesses.",
+        "Perform analytical review of account balances and investigate unusual fluctuations.",
       ];
 };
 
@@ -90,7 +121,7 @@ export const getSmartNotification = (
     case "UPLOAD":
       return {
         title: "New Audit Evidence",
-        message: `LGA has uploaded documents for: ${details}. Review required within 48 hours.`,
+        message: `Council has uploaded documents for: ${details}. Review required within 48 hours.`,
         priority: "Normal",
       };
     case "MANDATE":
@@ -102,7 +133,7 @@ export const getSmartNotification = (
     case "SCOPE":
       return {
         title: "Scope Sign-off",
-        message: `LGA has counter-signed the scope agreement for ${details}. Fieldwork can proceed.`,
+        message: `Council has counter-signed the scope agreement for ${details}. Fieldwork can proceed.`,
         priority: "High",
       };
     default:

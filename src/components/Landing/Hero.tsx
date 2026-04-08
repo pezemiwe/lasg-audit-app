@@ -65,7 +65,7 @@ const Hero: React.FC = () => {
             <em style={{ color: "#fbbf24" }}>Driven by Data.</em>
           </h1>
           <p className="hero-sub" ref={subRef} style={{ color: "#e2e8f0" }}>
-            Empowering <strong style={{ color: "#fbbf24" }}>20 LGAs</strong>{" "}
+            Empowering <strong style={{ color: "#fbbf24" }}>57 Councils</strong>{" "}
             with world-class auditing infrastructure. Ensuring fiscal
             responsibility through automated oversight and real-time
             intelligence.
@@ -153,8 +153,8 @@ const Hero: React.FC = () => {
             />
 
             <div className="float-card fc-1">
-              <div className="fc-num">20</div>
-              <div className="fc-lbl">Active LGAs</div>
+              <div className="fc-num">57</div>
+              <div className="fc-lbl">Active Councils</div>
             </div>
             <div className="float-card fc-2">
               <div className="fc-num">98%</div>
