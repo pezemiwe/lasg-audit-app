@@ -25,6 +25,11 @@ import {
   Scale,
   Flag,
   X,
+  BookOpen,
+  PenLine,
+  FileBarChart,
+  Notebook,
+  FileSearch,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
@@ -52,10 +57,24 @@ import type {
   FieldworkWorkingPaper,
   FieldworkCompletionMemo,
   ReviewComment,
+  AuditWorkpaper,
+  AuditComment,
+  AuditJournal,
+  FinancialStatementItem,
+  AuditReport,
 } from "../../types";
 import s from "../../styles/pages.module.css";
 
-type Panel = "tracker" | "evidence" | "exceptions" | "workpapers";
+type Panel =
+  | "tracker"
+  | "evidence"
+  | "exceptions"
+  | "workpapers"
+  | "auditworkpapers"
+  | "comments"
+  | "financials"
+  | "journals"
+  | "reports";
 
 const PANELS: { key: Panel; label: string; icon: React.ReactNode }[] = [
   {
@@ -74,6 +93,31 @@ const PANELS: { key: Panel; label: string; icon: React.ReactNode }[] = [
     icon: <AlertTriangle size={15} />,
   },
   { key: "workpapers", label: "Working Papers", icon: <FileText size={15} /> },
+  {
+    key: "auditworkpapers",
+    label: "Audit Work Papers",
+    icon: <BookOpen size={15} />,
+  },
+  {
+    key: "comments",
+    label: "Audit Comments",
+    icon: <PenLine size={15} />,
+  },
+  {
+    key: "financials",
+    label: "Financial Statements",
+    icon: <FileBarChart size={15} />,
+  },
+  {
+    key: "journals",
+    label: "Audit Journals",
+    icon: <Notebook size={15} />,
+  },
+  {
+    key: "reports",
+    label: "Audit Report",
+    icon: <FileSearch size={15} />,
+  },
 ];
 
 const AREA_ICONS: Record<string, React.ReactNode> = {
@@ -201,22 +245,52 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
   );
   const workingPapers = useMemo(
     () => store.getAuditFieldworkWorkingPapers(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.fieldworkWorkingPapers, auditId],
   );
   const bankAccounts = useMemo(
     () => store.getAuditBankAccounts(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.bankAccounts, auditId],
   );
   const contractFlags = useMemo(
     () => store.getAuditContractFlags(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.contractFlags, auditId],
   );
   const fieldworkMemo = useMemo(
     () => store.getAuditFieldworkMemo(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.fieldworkMemos, auditId],
   );
   const programme = store.getAuditProgramme(auditId);
   const materiality = store.getAuditMateriality(auditId);
+
+  const auditWorkpaperIndex = useMemo(
+    () => store.getAuditWorkpaperIndex(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.auditWorkpapers, auditId],
+  );
+  const auditComments = useMemo(
+    () => store.getAuditComments(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.auditComments, auditId],
+  );
+  const auditJournals = useMemo(
+    () => store.getAuditJournals(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.auditJournals, auditId],
+  );
+  const financialStatements = useMemo(
+    () => store.getAuditFinancialStatements(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.financialStatements, auditId],
+  );
+  const auditReports = useMemo(
+    () => store.getAuditReports(auditId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store.reports, auditId],
+  );
 
   const isLead = user?.role === "AUDIT_LEAD";
   const isAuditor = user?.role === "TEAM_AUDITOR";
@@ -237,6 +311,24 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auditId, programme, requisitions.length]);
+
+  useEffect(() => {
+    if (activePanel !== "workpapers") return;
+    const existingIds = new Set(
+      workingPapers.map((wp) => wp.procedureExecutionId),
+    );
+    executions
+      .filter(
+        (e) =>
+          (e.status === "Submitted" ||
+            e.status === "Cleared" ||
+            e.status === "Locked" ||
+            e.status === "Exception Raised") &&
+          !existingIds.has(e.id),
+      )
+      .forEach((e) => store.generateWorkingPaper(e.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePanel]);
 
   const areaGroups = useMemo(() => {
     const groups: Record<string, ProcedureExecution[]> = {};
@@ -484,7 +576,7 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
           <div>
             <div className={s.kpiLabel}>Hours</div>
             <div className={s.kpiValue}>
-              {stats.loggedHours}/{stats.budgetedHours}
+              {stats.loggedHours.toFixed(1)}/{stats.budgetedHours}
             </div>
             <div className={s.kpiMeta}>
               {stats.budgetedHours > 0
@@ -631,6 +723,60 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
           userId={user?.id || ""}
           isLead={!!isLead}
           isSupervisor={!!isSupervisor}
+          executions={executions}
+          auditId={auditId}
+        />
+      )}
+
+      {activePanel === "auditworkpapers" && (
+        <AuditWorkpapersPanel
+          workpapers={auditWorkpaperIndex}
+          store={store}
+          auditId={auditId}
+          userId={user?.id || ""}
+          isLead={!!isLead}
+        />
+      )}
+
+      {activePanel === "comments" && (
+        <AuditCommentsPanel
+          comments={auditComments}
+          store={store}
+          auditId={auditId}
+          userId={user?.id || ""}
+          userName={user?.name || ""}
+          isLead={!!isLead}
+        />
+      )}
+
+      {activePanel === "financials" && (
+        <FinancialStatementsPanel
+          statements={financialStatements}
+          store={store}
+          userId={user?.id || ""}
+          isLead={!!isLead}
+        />
+      )}
+
+      {activePanel === "journals" && (
+        <AuditJournalsPanel
+          journals={auditJournals}
+          store={store}
+          auditId={auditId}
+          userId={user?.id || ""}
+          userName={user?.name || ""}
+          isLead={!!isLead}
+        />
+      )}
+
+      {activePanel === "reports" && (
+        <AuditReportsPanel
+          reports={auditReports}
+          store={store}
+          auditId={auditId}
+          userId={user?.id || ""}
+          userName={user?.name || ""}
+          isLead={!!isLead}
         />
       )}
 
@@ -1038,8 +1184,8 @@ const ProcedureTrackerPanel: React.FC<{
                 marginTop: "0.15rem",
               }}
             >
-              Exceptions: {stats.excRaised} · Hours: {stats.loggedHours}/
-              {stats.budgetedHours}
+              Exceptions: {stats.excRaised} · Hours:{" "}
+              {stats.loggedHours.toFixed(1)}/{stats.budgetedHours}
             </div>
           </div>
           <div
@@ -1690,6 +1836,8 @@ const WorkingPapersPanel: React.FC<{
   userId: string;
   isLead: boolean;
   isSupervisor: boolean;
+  executions: ProcedureExecution[];
+  auditId: string;
 }> = ({
   workingPapers,
   wpFilter,
@@ -1698,7 +1846,31 @@ const WorkingPapersPanel: React.FC<{
   userId,
   isLead,
   isSupervisor,
+  executions,
 }) => {
+  const generateMissing = () => {
+    const existingExecIds = new Set(
+      workingPapers.map((wp) => wp.procedureExecutionId),
+    );
+    const eligible = executions.filter(
+      (e) =>
+        (e.status === "Submitted" ||
+          e.status === "Cleared" ||
+          e.status === "Locked" ||
+          e.status === "Exception Raised") &&
+        !existingExecIds.has(e.id),
+    );
+    eligible.forEach((e) => store.generateWorkingPaper(e.id));
+    store.addToast({
+      type: eligible.length > 0 ? "success" : "info",
+      title: "Workpapers",
+      message:
+        eligible.length > 0
+          ? `${eligible.length} working paper(s) generated`
+          : "All eligible procedures already have working papers",
+    });
+  };
+
   const filtered =
     wpFilter === "all"
       ? workingPapers
@@ -1754,27 +1926,43 @@ const WorkingPapersPanel: React.FC<{
               <strong>{workingPapers.length}</strong> working papers generated
             </div>
           </div>
-          <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
-            {(
-              [
-                "all",
-                "Prepared",
-                "Under Review",
-                "Reviewed by Lead",
-                "Returned",
-                "Cleared by Supervisor",
-              ] as const
-            ).map((f) => (
-              <button
-                key={f}
-                className={wpFilter === f ? s.filterChipActive : s.filterChip}
-                onClick={() => setWpFilter(f)}
-              >
-                {f === "all"
-                  ? `All (${workingPapers.length})`
-                  : `${f} (${workingPapers.filter((wp) => wp.reviewStatus === f).length})`}
-              </button>
-            ))}
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              className={s.btnPrimary}
+              onClick={generateMissing}
+              style={{ fontSize: "0.75rem" }}
+            >
+              <Zap size={13} /> Generate All Working Papers
+            </button>
+            <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+              {(
+                [
+                  "all",
+                  "Prepared",
+                  "Under Review",
+                  "Reviewed by Lead",
+                  "Returned",
+                  "Cleared by Supervisor",
+                ] as const
+              ).map((f) => (
+                <button
+                  key={f}
+                  className={wpFilter === f ? s.filterChipActive : s.filterChip}
+                  onClick={() => setWpFilter(f)}
+                >
+                  {f === "all"
+                    ? `All (${workingPapers.length})`
+                    : `${f} (${workingPapers.filter((wp) => wp.reviewStatus === f).length})`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </Card>
@@ -2008,6 +2196,984 @@ const WorkingPapersPanel: React.FC<{
           </div>
         </div>
       ))}
+    </div>
+  );
+};
+
+/* ─── Audit Work Papers Panel ─── */
+const AuditWorkpapersPanel: React.FC<{
+  workpapers: AuditWorkpaper[];
+  store: AuditStore;
+  auditId: string;
+  userId: string;
+  isLead: boolean;
+}> = ({ workpapers, store, userId, isLead }) => {
+  const [catFilter, setCatFilter] = useState<
+    "all" | AuditWorkpaper["category"]
+  >("all");
+  const cats: AuditWorkpaper["category"][] = [
+    "Lead Schedule",
+    "Supporting Schedule",
+    "Reconciliation",
+    "Confirmation",
+    "Analytical Procedure",
+    "Representation Letter",
+    "Minutes & Correspondence",
+    "Permanent File",
+    "Planning Memorandum",
+    "Completion Memorandum",
+  ];
+  const filtered =
+    catFilter === "all"
+      ? workpapers
+      : workpapers.filter((w) => w.category === catFilter);
+
+  return (
+    <div className={s.card} style={{ borderTop: "3px solid #6d28d9" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
+        <h3 className={s.cardTitle} style={{ margin: 0 }}>
+          <BookOpen size={16} /> Audit Work Papers ({workpapers.length})
+        </h3>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: "0.35rem",
+          flexWrap: "wrap",
+          marginBottom: "1rem",
+        }}
+      >
+        <button
+          className={catFilter === "all" ? s.filterChipActive : s.filterChip}
+          onClick={() => setCatFilter("all")}
+        >
+          All
+        </button>
+        {cats.map((c) => (
+          <button
+            key={c}
+            className={catFilter === c ? s.filterChipActive : s.filterChip}
+            onClick={() => setCatFilter(c)}
+          >
+            {c} ({workpapers.filter((w) => w.category === c).length})
+          </button>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontStyle: "italic",
+            fontSize: "0.85rem",
+          }}
+        >
+          No audit work papers in this category.
+        </p>
+      ) : (
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          {filtered.map((wp) => (
+            <div
+              key={wp.id}
+              className={s.card}
+              style={{
+                padding: "0.85rem 1rem",
+                borderLeft: "3px solid #6d28d9",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <strong
+                    style={{ fontFamily: "monospace", fontSize: "0.8rem" }}
+                  >
+                    {wp.reference}
+                  </strong>
+                  <span
+                    style={{ margin: "0 0.5rem", color: "var(--text-muted)" }}
+                  >
+                    ·
+                  </span>
+                  <span style={{ fontSize: "0.85rem" }}>{wp.title}</span>
+                </div>
+                <StatusBadge
+                  label={wp.status}
+                  variant={
+                    wp.status === "Final"
+                      ? "success"
+                      : wp.status === "Reviewed"
+                        ? "info"
+                        : wp.status === "Prepared"
+                          ? "warning"
+                          : "default"
+                  }
+                />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  marginTop: "0.5rem",
+                  fontSize: "0.78rem",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <span>Category: {wp.category}</span>
+                <span>Section: {wp.section}</span>
+                <span>Prepared by: {wp.preparedBy}</span>
+                <span>{wp.preparedAt}</span>
+              </div>
+              {wp.crossReferences && wp.crossReferences.length > 0 && (
+                <div
+                  style={{
+                    marginTop: "0.35rem",
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  Cross-refs: {wp.crossReferences.join(", ")}
+                </div>
+              )}
+              {wp.notes && (
+                <div style={{ marginTop: "0.35rem", fontSize: "0.78rem" }}>
+                  {wp.notes}
+                </div>
+              )}
+              {isLead && wp.status === "Prepared" && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <button
+                    className={s.btnPrimary}
+                    style={{ fontSize: "0.75rem" }}
+                    onClick={() =>
+                      store.updateAuditWorkpaper(wp.id, {
+                        status: "Reviewed",
+                        reviewedBy: userId,
+                        reviewedAt: new Date().toISOString().slice(0, 10),
+                      })
+                    }
+                  >
+                    <CheckCircle size={12} /> Mark Reviewed
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─── Audit Comments Panel ─── */
+const AuditCommentsPanel: React.FC<{
+  comments: AuditComment[];
+  store: AuditStore;
+  auditId: string;
+  userId: string;
+  userName: string;
+  isLead: boolean;
+}> = ({ comments, store, userName, isLead }) => {
+  const [sevFilter, setSevFilter] = useState<"all" | AuditComment["severity"]>(
+    "all",
+  );
+  const sevs: AuditComment["severity"][] = [
+    "Critical",
+    "High",
+    "Medium",
+    "Low",
+  ];
+  const filtered =
+    sevFilter === "all"
+      ? comments
+      : comments.filter((c) => c.severity === sevFilter);
+
+  const sevColor = (sev: AuditComment["severity"]) =>
+    sev === "Critical"
+      ? "#dc2626"
+      : sev === "High"
+        ? "#ea580c"
+        : sev === "Medium"
+          ? "#ca8a04"
+          : "#6b7280";
+
+  return (
+    <div className={s.card} style={{ borderTop: "3px solid #ea580c" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
+        <h3 className={s.cardTitle} style={{ margin: 0 }}>
+          <PenLine size={16} /> Audit Comments ({comments.length})
+        </h3>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: "0.35rem",
+          flexWrap: "wrap",
+          marginBottom: "1rem",
+        }}
+      >
+        <button
+          className={sevFilter === "all" ? s.filterChipActive : s.filterChip}
+          onClick={() => setSevFilter("all")}
+        >
+          All
+        </button>
+        {sevs.map((sv) => (
+          <button
+            key={sv}
+            className={sevFilter === sv ? s.filterChipActive : s.filterChip}
+            onClick={() => setSevFilter(sv)}
+          >
+            {sv} ({comments.filter((c) => c.severity === sv).length})
+          </button>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontStyle: "italic",
+            fontSize: "0.85rem",
+          }}
+        >
+          No audit comments found.
+        </p>
+      ) : (
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          {filtered.map((c) => (
+            <div
+              key={c.id}
+              className={s.card}
+              style={{
+                padding: "0.85rem 1rem",
+                borderLeft: `3px solid ${sevColor(c.severity)}`,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <strong
+                    style={{ fontFamily: "monospace", fontSize: "0.8rem" }}
+                  >
+                    {c.referenceNumber}
+                  </strong>
+                  <span
+                    style={{ margin: "0 0.5rem", color: "var(--text-muted)" }}
+                  >
+                    ·
+                  </span>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                    {c.title}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <StatusBadge
+                    label={c.severity}
+                    variant={
+                      c.severity === "Critical"
+                        ? "error"
+                        : c.severity === "High"
+                          ? "warning"
+                          : c.severity === "Medium"
+                            ? "warning"
+                            : "default"
+                    }
+                  />
+                  <StatusBadge
+                    label={c.status}
+                    variant={
+                      c.status === "Resolved"
+                        ? "success"
+                        : c.status === "Reported"
+                          ? "info"
+                          : c.status === "Agreed"
+                            ? "gold"
+                            : "default"
+                    }
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: "0.5rem", fontSize: "0.82rem" }}>
+                <div>
+                  <strong>Observation:</strong> {c.observation}
+                </div>
+                <div style={{ marginTop: "0.25rem" }}>
+                  <strong>Criteria:</strong> {c.criteria}
+                </div>
+                <div style={{ marginTop: "0.25rem" }}>
+                  <strong>Cause:</strong> {c.cause}
+                </div>
+                <div style={{ marginTop: "0.25rem" }}>
+                  <strong>Effect:</strong> {c.effect}
+                </div>
+                <div style={{ marginTop: "0.25rem" }}>
+                  <strong>Recommendation:</strong> {c.recommendation}
+                </div>
+                {c.managementResponse && (
+                  <div
+                    style={{
+                      marginTop: "0.25rem",
+                      padding: "0.4rem",
+                      background: "var(--bg-tertiary)",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <strong>Management Response:</strong> {c.managementResponse}
+                  </div>
+                )}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  marginTop: "0.5rem",
+                  fontSize: "0.75rem",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <span>Prepared by: {c.preparedBy}</span>
+                {c.reviewedBy && <span>Reviewed by: {c.reviewedBy}</span>}
+                {c.responsibleParty && (
+                  <span>Responsible: {c.responsibleParty}</span>
+                )}
+                {c.targetDate && <span>Target: {c.targetDate}</span>}
+              </div>
+              {isLead && c.status === "Draft" && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <button
+                    className={s.btnPrimary}
+                    style={{ fontSize: "0.75rem" }}
+                    onClick={() =>
+                      store.updateAuditComment(c.id, {
+                        status: "Discussed",
+                        reviewedBy: userName,
+                      })
+                    }
+                  >
+                    <CheckCircle size={12} /> Mark Discussed
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─── Financial Statements Panel ─── */
+const FinancialStatementsPanel: React.FC<{
+  statements: FinancialStatementItem[];
+  store: AuditStore;
+  userId: string;
+  isLead: boolean;
+}> = ({ statements, store, userId, isLead }) => {
+  const statusColor = (st: FinancialStatementItem["status"]): BadgeVariant =>
+    st === "Final"
+      ? "success"
+      : st === "Adjusted"
+        ? "info"
+        : st === "Under Review"
+          ? "warning"
+          : st === "Received"
+            ? "gold"
+            : "default";
+
+  return (
+    <div className={s.card} style={{ borderTop: "3px solid #0891b2" }}>
+      <h3 className={s.cardTitle} style={{ marginBottom: "1rem" }}>
+        <FileBarChart size={16} /> Final Audited Financial Statements (
+        {statements.length})
+      </h3>
+      {statements.length === 0 ? (
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontStyle: "italic",
+            fontSize: "0.85rem",
+          }}
+        >
+          No financial statements available.
+        </p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table
+            className={s.table}
+            style={{ width: "100%", fontSize: "0.82rem" }}
+          >
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", padding: "0.5rem" }}>
+                  Statement Type
+                </th>
+                <th style={{ textAlign: "center", padding: "0.5rem" }}>
+                  Status
+                </th>
+                <th style={{ textAlign: "center", padding: "0.5rem" }}>
+                  Draft Received
+                </th>
+                <th style={{ textAlign: "right", padding: "0.5rem" }}>
+                  Adjustments
+                </th>
+                <th style={{ textAlign: "right", padding: "0.5rem" }}>
+                  Adj. Amount (₦)
+                </th>
+                <th style={{ textAlign: "center", padding: "0.5rem" }}>
+                  Reviewed By
+                </th>
+                <th style={{ textAlign: "center", padding: "0.5rem" }}>
+                  Final Date
+                </th>
+                {isLead && (
+                  <th style={{ textAlign: "center", padding: "0.5rem" }}>
+                    Action
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {statements.map((f) => (
+                <tr key={f.id}>
+                  <td style={{ padding: "0.5rem", fontWeight: 500 }}>
+                    {f.statementType}
+                  </td>
+                  <td style={{ padding: "0.5rem", textAlign: "center" }}>
+                    <StatusBadge
+                      label={f.status}
+                      variant={statusColor(f.status)}
+                    />
+                  </td>
+                  <td style={{ padding: "0.5rem", textAlign: "center" }}>
+                    {f.draftReceivedDate || "—"}
+                  </td>
+                  <td style={{ padding: "0.5rem", textAlign: "right" }}>
+                    {f.adjustmentsCount}
+                  </td>
+                  <td style={{ padding: "0.5rem", textAlign: "right" }}>
+                    {f.adjustmentsAmount.toLocaleString()}
+                  </td>
+                  <td style={{ padding: "0.5rem", textAlign: "center" }}>
+                    {f.reviewedBy || "—"}
+                  </td>
+                  <td style={{ padding: "0.5rem", textAlign: "center" }}>
+                    {f.finalDate || "—"}
+                  </td>
+                  {isLead && (
+                    <td style={{ padding: "0.5rem", textAlign: "center" }}>
+                      {f.status === "Under Review" && (
+                        <button
+                          className={s.btnPrimary}
+                          style={{ fontSize: "0.7rem" }}
+                          onClick={() =>
+                            store.updateFinancialStatement(f.id, {
+                              status: "Final",
+                              reviewedBy: userId,
+                              finalDate: new Date().toISOString().slice(0, 10),
+                            })
+                          }
+                        >
+                          Finalise
+                        </button>
+                      )}
+                      {f.status === "Received" && (
+                        <button
+                          className={s.btnOutline}
+                          style={{ fontSize: "0.7rem" }}
+                          onClick={() =>
+                            store.updateFinancialStatement(f.id, {
+                              status: "Under Review",
+                              reviewedBy: userId,
+                            })
+                          }
+                        >
+                          Start Review
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {statements.some((f) => f.notes) && (
+        <div style={{ marginTop: "0.75rem" }}>
+          <strong style={{ fontSize: "0.8rem" }}>Notes:</strong>
+          {statements
+            .filter((f) => f.notes)
+            .map((f) => (
+              <div
+                key={f.id}
+                style={{
+                  fontSize: "0.78rem",
+                  color: "var(--text-muted)",
+                  marginTop: "0.25rem",
+                }}
+              >
+                <em>{f.statementType}:</em> {f.notes}
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─── Audit Journals Panel ─── */
+const AuditJournalsPanel: React.FC<{
+  journals: AuditJournal[];
+  store: AuditStore;
+  auditId: string;
+  userId: string;
+  userName: string;
+  isLead: boolean;
+}> = ({ journals, store, userName, isLead }) => {
+  const [typeFilter, setTypeFilter] = useState<"all" | AuditJournal["type"]>(
+    "all",
+  );
+  const types: AuditJournal["type"][] = [
+    "Adjusting",
+    "Reclassifying",
+    "Proposed",
+    "Passed",
+  ];
+  const filtered =
+    typeFilter === "all"
+      ? journals
+      : journals.filter((j) => j.type === typeFilter);
+
+  const typeColor = (t: AuditJournal["type"]) =>
+    t === "Adjusting"
+      ? "#2563eb"
+      : t === "Reclassifying"
+        ? "#7c3aed"
+        : t === "Proposed"
+          ? "#ca8a04"
+          : "#15803d";
+
+  return (
+    <div className={s.card} style={{ borderTop: "3px solid #2563eb" }}>
+      <h3 className={s.cardTitle} style={{ marginBottom: "1rem" }}>
+        <Notebook size={16} /> Audit Journals ({journals.length})
+      </h3>
+      <div
+        style={{
+          display: "flex",
+          gap: "0.35rem",
+          flexWrap: "wrap",
+          marginBottom: "1rem",
+        }}
+      >
+        <button
+          className={typeFilter === "all" ? s.filterChipActive : s.filterChip}
+          onClick={() => setTypeFilter("all")}
+        >
+          All
+        </button>
+        {types.map((t) => (
+          <button
+            key={t}
+            className={typeFilter === t ? s.filterChipActive : s.filterChip}
+            onClick={() => setTypeFilter(t)}
+          >
+            {t} ({journals.filter((j) => j.type === t).length})
+          </button>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontStyle: "italic",
+            fontSize: "0.85rem",
+          }}
+        >
+          No audit journals found.
+        </p>
+      ) : (
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          {filtered.map((j) => (
+            <div
+              key={j.id}
+              className={s.card}
+              style={{
+                padding: "0.85rem 1rem",
+                borderLeft: `3px solid ${typeColor(j.type)}`,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <strong
+                    style={{ fontFamily: "monospace", fontSize: "0.8rem" }}
+                  >
+                    {j.journalNumber}
+                  </strong>
+                  <span
+                    style={{ margin: "0 0.5rem", color: "var(--text-muted)" }}
+                  >
+                    ·
+                  </span>
+                  <StatusBadge
+                    label={j.type}
+                    variant={
+                      j.type === "Adjusting"
+                        ? "info"
+                        : j.type === "Reclassifying"
+                          ? "gold"
+                          : j.type === "Proposed"
+                            ? "warning"
+                            : "success"
+                    }
+                  />
+                  <span
+                    style={{ margin: "0 0.5rem", color: "var(--text-muted)" }}
+                  >
+                    ·
+                  </span>
+                  <StatusBadge
+                    label={j.status}
+                    variant={
+                      j.status === "Agreed"
+                        ? "success"
+                        : j.status === "Posted"
+                          ? "info"
+                          : j.status === "Waived"
+                            ? "error"
+                            : "default"
+                    }
+                  />
+                </div>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "0.9rem",
+                    color: j.netEffect >= 0 ? "#15803d" : "#dc2626",
+                  }}
+                >
+                  ₦{Math.abs(j.netEffect).toLocaleString()}
+                </span>
+              </div>
+              <div style={{ marginTop: "0.4rem", fontSize: "0.82rem" }}>
+                {j.description}
+              </div>
+              {j.entries.length > 0 && (
+                <table
+                  style={{
+                    width: "100%",
+                    fontSize: "0.78rem",
+                    marginTop: "0.5rem",
+                    borderCollapse: "collapse",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                      <th style={{ textAlign: "left", padding: "0.3rem" }}>
+                        Account
+                      </th>
+                      <th style={{ textAlign: "right", padding: "0.3rem" }}>
+                        Debit (₦)
+                      </th>
+                      <th style={{ textAlign: "right", padding: "0.3rem" }}>
+                        Credit (₦)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {j.entries.map((e, i) => (
+                      <tr
+                        key={i}
+                        style={{ borderBottom: "1px solid var(--border)" }}
+                      >
+                        <td style={{ padding: "0.3rem" }}>{e.account}</td>
+                        <td style={{ textAlign: "right", padding: "0.3rem" }}>
+                          {e.debit > 0 ? e.debit.toLocaleString() : "—"}
+                        </td>
+                        <td style={{ textAlign: "right", padding: "0.3rem" }}>
+                          {e.credit > 0 ? e.credit.toLocaleString() : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  marginTop: "0.5rem",
+                  fontSize: "0.75rem",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <span>Area: {j.affectedArea}</span>
+                <span>Prepared by: {j.preparedBy}</span>
+                {j.reviewedBy && <span>Reviewed by: {j.reviewedBy}</span>}
+                {j.workpaperRef && <span>WP Ref: {j.workpaperRef}</span>}
+              </div>
+              {isLead && j.status === "Draft" && (
+                <div
+                  style={{
+                    marginTop: "0.5rem",
+                    display: "flex",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <button
+                    className={s.btnPrimary}
+                    style={{ fontSize: "0.75rem" }}
+                    onClick={() =>
+                      store.updateAuditJournal(j.id, {
+                        status: "Agreed",
+                        reviewedBy: userName,
+                      })
+                    }
+                  >
+                    <CheckCircle size={12} /> Approve
+                  </button>
+                  <button
+                    className={s.btnOutline}
+                    style={{ fontSize: "0.75rem" }}
+                    onClick={() =>
+                      store.updateAuditJournal(j.id, {
+                        status: "Waived",
+                        reviewedBy: userName,
+                      })
+                    }
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─── Audit Reports Panel ─── */
+const AuditReportsPanel: React.FC<{
+  reports: AuditReport[];
+  store: AuditStore;
+  auditId: string;
+  userId: string;
+  userName: string;
+  isLead: boolean;
+}> = ({ reports }) => {
+  const sevColor = (sev: string) =>
+    sev === "Critical"
+      ? "#dc2626"
+      : sev === "High"
+        ? "#ea580c"
+        : sev === "Medium"
+          ? "#ca8a04"
+          : "#6b7280";
+
+  return (
+    <div className={s.card} style={{ borderTop: "3px solid #15803d" }}>
+      <h3 className={s.cardTitle} style={{ marginBottom: "1rem" }}>
+        <FileSearch size={16} /> Audit Reports ({reports.length})
+      </h3>
+      {reports.length === 0 ? (
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontStyle: "italic",
+            fontSize: "0.85rem",
+          }}
+        >
+          No audit reports generated yet.
+        </p>
+      ) : (
+        <div style={{ display: "grid", gap: "0.75rem" }}>
+          {reports.map((r) => (
+            <div
+              key={r.id}
+              className={s.card}
+              style={{
+                padding: "0.85rem 1rem",
+                borderLeft: "3px solid #15803d",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
+                  {r.title}
+                </span>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <StatusBadge
+                    label={r.type}
+                    variant={
+                      r.type === "Final"
+                        ? "success"
+                        : r.type === "Draft"
+                          ? "default"
+                          : r.type === "Preliminary"
+                            ? "warning"
+                            : "info"
+                    }
+                  />
+                  <StatusBadge
+                    label={r.status}
+                    variant={
+                      r.status === "Final" || r.status === "Approved"
+                        ? "success"
+                        : r.status === "Under Review"
+                          ? "info"
+                          : r.status === "Submitted"
+                            ? "gold"
+                            : "default"
+                    }
+                  />
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  marginTop: "0.4rem",
+                  fontSize: "0.78rem",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <span>Prepared by: {r.preparedBy}</span>
+                {r.submittedAt && <span>Submitted: {r.submittedAt}</span>}
+                {r.reviewedBy && <span>Reviewed by: {r.reviewedBy}</span>}
+                <span>Findings: {r.findings.length}</span>
+              </div>
+              {r.findings.length > 0 && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <strong style={{ fontSize: "0.78rem" }}>Findings:</strong>
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "0.4rem",
+                      marginTop: "0.35rem",
+                    }}
+                  >
+                    {r.findings.map((f) => (
+                      <div
+                        key={f.id}
+                        style={{
+                          padding: "0.4rem 0.6rem",
+                          background: "var(--bg-tertiary)",
+                          borderRadius: "4px",
+                          borderLeft: `3px solid ${sevColor(f.severity)}`,
+                          fontSize: "0.78rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <strong>{f.title}</strong>
+                          <div style={{ display: "flex", gap: "0.35rem" }}>
+                            <StatusBadge
+                              label={f.severity}
+                              variant={
+                                f.severity === "Critical"
+                                  ? "error"
+                                  : f.severity === "High"
+                                    ? "warning"
+                                    : f.severity === "Medium"
+                                      ? "warning"
+                                      : "default"
+                              }
+                            />
+                            <StatusBadge
+                              label={f.status}
+                              variant={
+                                f.status === "Closed"
+                                  ? "success"
+                                  : f.status === "Addressed"
+                                    ? "info"
+                                    : "default"
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            marginTop: "0.2rem",
+                            color: "var(--text-muted)",
+                          }}
+                        >
+                          {f.description}
+                        </div>
+                        <div style={{ marginTop: "0.15rem" }}>
+                          <em>Recommendation:</em> {f.recommendation}
+                        </div>
+                        {f.managementResponse && (
+                          <div
+                            style={{
+                              marginTop: "0.15rem",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            Management: {f.managementResponse}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {r.lgaResponse && (
+                <div
+                  style={{
+                    marginTop: "0.5rem",
+                    padding: "0.4rem 0.6rem",
+                    background: "var(--bg-tertiary)",
+                    borderRadius: "4px",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  <strong>LGA Response:</strong> {r.lgaResponse}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -5456,15 +6622,13 @@ const FieldworkCompletionModal: React.FC<{
             >
               Hours:{" "}
               <strong>
-                {stats.loggedHours}/{stats.budgetedHours}
+                {stats.loggedHours.toFixed(1)}/{stats.budgetedHours}
               </strong>{" "}
               (
               {stats.budgetedHours > 0
-                ? ((stats.loggedHours / stats.budgetedHours - 1) * 100).toFixed(
-                    1,
-                  )
+                ? ((stats.loggedHours / stats.budgetedHours) * 100).toFixed(1)
                 : 0}
-              %)
+              % utilised)
             </div>
           </div>
 
