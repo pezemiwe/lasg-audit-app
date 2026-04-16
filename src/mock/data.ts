@@ -1712,6 +1712,67 @@ const SEED_SECTIONS: AuditProgrammeSection[] = [
 
 export const SEED_PROGRAMMES: AuditProgramme[] = [
   {
+    id: "prog-2",
+    auditId: "audit-2",
+    objectives:
+      "To express an opinion on the financial statements and procurement compliance of Alimosho LGA",
+    scope:
+      "All financial transactions with a focus on procurement processes and revenue receipts for FY 2025",
+    riskAreas: ["Procurement & Contracts", "Revenue & Receipts"],
+    sections: [
+      {
+        id: "sec-201",
+        title: "Procurement & Contracts",
+        auditObjectives: [
+          "Verify compliance with Public Procurement Law",
+          "Ensure value for money",
+        ],
+        riskLevel: "Critical",
+        keyRisks: [
+          "Non-compliance with Public Procurement Act",
+          "Overpayment for goods/services not delivered",
+        ],
+        documentationNotes:
+          "Document all contracts sampled and their compliance status.",
+        sortOrder: 1,
+      },
+      {
+        id: "sec-202",
+        title: "Revenue & Receipts",
+        auditObjectives: ["Verify completeness of revenue recorded"],
+        riskLevel: "High",
+        keyRisks: [
+          "Unrecorded receipts (completeness)",
+          "Fictitious revenue (existence)",
+        ],
+        documentationNotes: "Agree all revenue summaries to bank statements.",
+        sortOrder: 2,
+      },
+    ],
+    procedures: [
+      {
+        id: "proc-p1",
+        area: "Procurement & Contracts",
+        procedure:
+          "Select a sample of 25 capital contracts and verify the tender process and approvals.",
+        assertion: "Rights & Obligations",
+        assignedTo: "user-auditor-5",
+        status: "Not Started",
+      },
+      {
+        id: "proc-r2",
+        area: "Revenue & Receipts",
+        procedure:
+          "Perform analytical procedures on monthly IGR trends to identify unusual fluctuations.",
+        assertion: "Completeness",
+        assignedTo: "user-lead-2",
+        status: "Not Started",
+      },
+    ],
+    status: "Draft",
+    preparedBy: "user-lead-2",
+  },
+  {
     id: "prog-1",
     auditId: "audit-1",
     objectives:
@@ -3300,6 +3361,34 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
   },
   {
     id: "risk-2",
+    auditId: "audit-2",
+    area: "Procurement & Contracts",
+    inherentRisk: "Critical",
+    controlRisk: "High",
+    detectionRisk: "Medium",
+    overallRisk: "Critical",
+    mitigationPlan:
+      "Review contract award procedures, check compliance with Public Procurement Law, trace payments to specific contracts",
+    status: "Open",
+    preparedBy: "user-lead-2",
+    createdAt: "2026-03-20T10:00:00Z",
+  },
+  {
+    id: "risk-3",
+    auditId: "audit-2",
+    area: "Revenue & Receipts",
+    inherentRisk: "High",
+    controlRisk: "Medium",
+    detectionRisk: "Low",
+    overallRisk: "High",
+    mitigationPlan:
+      "Vouch revenue receipts to bank statements, test revenue collection systems, assess cash handling",
+    status: "Open",
+    preparedBy: "user-lead-2",
+    createdAt: "2026-03-20T11:00:00Z",
+  },
+  {
+    id: "risk-2",
     auditId: "audit-1",
     area: "Payroll & Personnel",
     inherentRisk: "High",
@@ -3524,6 +3613,19 @@ export const SEED_MATERIALITY: MaterialityThreshold[] = [
     preparedBy: "user-lead-1",
     approvedBy: "user-sup-ikeja",
     createdAt: "2026-02-22T10:00:00Z",
+  },
+  {
+    id: "mat-2",
+    auditId: "audit-2",
+    overallMateriality: 37500000,
+    performanceMateriality: 26250000,
+    clearlyTrivialThreshold: 1500000,
+    basis: "Total Revenue",
+    basisAmount: 2500000000,
+    percentage: 1.5,
+    preparedBy: "user-lead-2",
+    approvedBy: "user-sup-ikeja",
+    createdAt: "2026-03-21T09:00:00Z",
   },
   {
     id: "mat-2",

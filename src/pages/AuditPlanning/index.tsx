@@ -247,24 +247,16 @@ const AuditPlanning: React.FC = () => {
       );
     }
     if (user.role === "AUDIT_LEAD")
-      return store.audits.filter(
-        (a) =>
-          a.leadId === user.id &&
-          (a.status === "Planning" || a.status === "Pre-Audit"),
-      );
+      return store.audits.filter((a) => a.leadId === user.id);
     if (user.role === "TEAM_AUDITOR")
-      return store.audits.filter(
-        (a) =>
-          (a.teamIds || []).includes(user.id) &&
-          (a.status === "Planning" || a.status === "Pre-Audit"),
-      );
+      return store.audits.filter((a) => (a.teamIds || []).includes(user.id));
     if (user.role === "HEAD_OF_LOCAL_GOVERNMENT")
       return store.audits.filter(
         (a) =>
           a.lgaId === user.lgaId &&
           (a.status === "Planning" || a.status === "Pre-Audit"),
       );
-    return [];
+    return store.audits;
   }, [user, store.audits, store.zones, store.lgas]);
 
   const [selectedAuditId, setSelectedAuditId] = useState<string>(
