@@ -25,9 +25,13 @@ const AuditTrail = React.lazy(() => import("../pages/AuditTrail"));
 const Settings = React.lazy(() => import("../pages/Settings"));
 const ScopeAgreement = React.lazy(() => import("../pages/ScopeAgreement"));
 const DocumentPortal = React.lazy(() => import("../pages/DocumentPortal"));
+const DocumentSubmission = React.lazy(
+  () => import("../pages/DocumentSubmission"),
+);
 const Questionnaire = React.lazy(() => import("../pages/Questionnaire"));
 const PostAudit = React.lazy(() => import("../pages/PostAudit"));
 const AuditDetail = React.lazy(() => import("../pages/Audit/AuditDetail"));
+const AuditOutcomes = React.lazy(() => import("../pages/AuditOutcomes"));
 
 const PageLoader = () => (
   <div
@@ -96,12 +100,17 @@ const AppRoutes = () => (
       <Route path="/settings" element={<L comp={Settings} />} />
       <Route path="/scope-agreement" element={<L comp={ScopeAgreement} />} />
       <Route path="/document-portal" element={<L comp={DocumentPortal} />} />
+      <Route
+        path="/document-submission"
+        element={<L comp={DocumentSubmission} />}
+      />
       <Route path="/questionnaire" element={<L comp={Questionnaire} />} />
       <Route
         path="/work-programme"
         element={<Navigate to="/audit-planning?tab=programme" replace />}
       />
       <Route path="/post-audit" element={<L comp={PostAudit} />} />
+      <Route path="/audit-outcomes" element={<L comp={AuditOutcomes} />} />
     </Route>
 
     <Route path="*" element={<Navigate to="/" replace />} />

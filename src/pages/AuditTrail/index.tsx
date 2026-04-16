@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
 import {
@@ -12,14 +12,30 @@ import {
   Clock,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
-import { MOCK_USERS } from "../../mock/data";
+import { MOCK_USERS, SEED_ACTIVITY_LOG } from "../../mock/data";
 
 const AuditTrail: React.FC = () => {
   const { user } = useAuth();
   const activityLog = useAuditStore((state) => state.activityLog);
   const [searchTerm, setSearchTerm] = useState("");
 
-  if (!user || user.role !== "SYSTEM_ADMIN") return null;
+  useEffect(() => {
+    // If activity log is empty due to storage migration
+    // this can populate it back using the zustand store directly if needed.
+    if (activityLog.length === 0) {
+      useAuditStore.setState({ activityLog: SEED_ACTIVITY_LOG });
+    }
+  }, [activityLog.length]);
+
+  if (!user || user.role !== "SYSTEM_ADMIN") return (
+    <div className={s.emptyState}>
+      <Shield size={40} className={s.emptyIcon} style={{ color: 'var(--danger)' }} />
+      <div className={s.emptyTitle}>Access Denied</div>
+      <div className={s.emptyDesc}>
+        You do not have permission to view the audit trail. This module is restricted to System Administrators.
+      </div>
+    </div>
+  );
 
   const filteredLogs = activityLog.filter((log) => {
     const actor = MOCK_USERS.find((u) => u.id === log.userId);

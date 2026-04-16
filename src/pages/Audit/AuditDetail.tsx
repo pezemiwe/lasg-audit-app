@@ -7,11 +7,12 @@ import {
   ArrowLeft,
   BookOpen,
   Calendar,
-  FileText,
   FlaskConical,
   FolderOpen,
   Target,
   ClipboardList,
+  BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
 
@@ -36,12 +37,16 @@ const AuditDetail: React.FC = () => {
   const audit = audits.find((a) => a.id === id);
   const lga = lgas.find((l) => l.id === audit?.lgaId);
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("engagement");
 
-  // Auto-switch to Post-Audit if Completed
+  // Auto-switch to Post-Audit if Completed, Reporting if in Reporting phase
   React.useEffect(() => {
     if (audit?.status === "Completed") {
       setActiveTab("post-audit");
+    } else if (audit?.status === "Reporting") {
+      setActiveTab("reporting");
+    } else if (audit?.status === "Fieldwork") {
+      setActiveTab("fieldwork");
     }
   }, [audit?.status]);
 
@@ -97,79 +102,87 @@ const AuditDetail: React.FC = () => {
     user.role === "STATE_AUDITOR_GENERAL" ||
     user.role === "AUDITOR_GENERAL_FEDERATION";
 
-  // Tab Definitions
+  /* ──────────────────────────────────────────────
+   *  ISA-aligned Audit Lifecycle Tabs
+   *  Phase 1 – Engagement Acceptance & Pre-Engagement
+   *  Phase 2 – Risk Assessment & Planning (ISA 300/315)
+   *  Phase 3 – Fieldwork Execution (ISA 500/530)
+   *  Phase 4 – Reporting & Quality Review (ISA 700/706)
+   *  Phase 5 – Post-Audit & Follow-Up
+   *  Supporting – Audit File / Documents
+   * ────────────────────────────────────────────── */
   const tabs = [
-    { id: "overview", label: "Overview", icon: FileText },
-    { id: "pre-audit", label: "Pre-Audit Tasks", icon: BookOpen },
-    // Only show Questionnaire if NOT Auditor General
+    { id: "engagement", label: "Engagement", icon: BookOpen },
     ...(!isAG
-      ? [{ id: "questionnaire", label: "Questionnaire", icon: ClipboardList }]
+      ? [{ id: "questionnaire", label: "Risk Assessment", icon: ClipboardList }]
       : []),
     { id: "planning", label: "Planning", icon: Calendar },
     { id: "fieldwork", label: "Fieldwork", icon: FlaskConical },
+    { id: "reporting", label: "Reporting", icon: BarChart3 },
+    { id: "quality-review", label: "Quality Review", icon: ShieldCheck },
     { id: "post-audit", label: "Post-Audit", icon: Target },
-    { id: "documents", label: "Documents", icon: FolderOpen },
+    { id: "documents", label: "Audit File", icon: FolderOpen },
   ];
 
-  // Specific Logic for Sub-Tabs or Content within tabs
   const renderContent = () => {
     switch (activeTab) {
-      case "overview":
+      /* ─── Phase 1: Engagement Acceptance ─── */
+      case "engagement":
         return (
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Audit Overview</h3>
-            </div>
-            <div className={s.cardBody}>
-              <div className={s.gridTwoCols}>
-                <div>
-                  <div className={s.label}>Local Government Area</div>
-                  <div className={s.value}>{lga?.name || audit.lgaId}</div>
-                </div>
-                <div>
-                  <div className={s.label}>Audit Type</div>
-                  <div className={s.value}>{audit.type} Audit</div>
-                </div>
-                <div>
-                  <div className={s.label}>Audit Year</div>
-                  <div className={s.value}>{audit.year}</div>
-                </div>
-                <div>
-                  <div className={s.label}>Current Status</div>
-                  <div style={{ marginTop: "0.5rem" }}>
-                    <StatusBadge label={audit.status} />
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+          >
+            {/* Audit summary card */}
+            <div className={s.card}>
+              <div className={s.cardHeader}>
+                <h3 className={s.cardTitle}>Engagement Summary</h3>
+              </div>
+              <div className={s.cardBody}>
+                <div className={s.gridTwoCols}>
+                  <div>
+                    <div className={s.label}>Entity Under Audit</div>
+                    <div className={s.value}>{lga?.name || audit.lgaId}</div>
+                  </div>
+                  <div>
+                    <div className={s.label}>Audit Type</div>
+                    <div className={s.value}>{audit.type} Audit</div>
+                  </div>
+                  <div>
+                    <div className={s.label}>Audit Year</div>
+                    <div className={s.value}>{audit.year}</div>
+                  </div>
+                  <div>
+                    <div className={s.label}>Current Phase</div>
+                    <div style={{ marginTop: "0.5rem" }}>
+                      <StatusBadge label={audit.status} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className={s.label}>Engagement Start</div>
+                    <div className={s.value}>
+                      {audit.startDate || "Not set"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className={s.label}>Target Completion</div>
+                    <div className={s.value}>{audit.endDate || "Not set"}</div>
                   </div>
                 </div>
-                <div>
-                  <div className={s.label}>Start Date</div>
-                  <div className={s.value}>{audit.startDate}</div>
-                </div>
-                <div>
-                  <div className={s.label}>End Date</div>
-                  <div className={s.value}>{audit.endDate}</div>
-                </div>
               </div>
+            </div>
 
-              <div
-                style={{
-                  marginTop: "2rem",
-                  paddingTop: "1.5rem",
-                  borderTop: "1px solid #e5e7eb",
-                }}
-              >
+            {/* Phase Timelines */}
+            <div className={s.card}>
+              <div className={s.cardHeader}>
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: "1rem",
+                    width: "100%",
                   }}
                 >
-                  <h3
-                    style={{ fontSize: "1.125rem", fontWeight: 600, margin: 0 }}
-                  >
-                    Phase Timelines
-                  </h3>
+                  <h3 className={s.cardTitle}>Phase Timelines</h3>
                   {!isEditingTimelines &&
                     (user.role === "AUDIT_SUPERVISOR" ||
                       user.role === "AUDIT_LEAD" ||
@@ -202,7 +215,8 @@ const AuditDetail: React.FC = () => {
                     </div>
                   )}
                 </div>
-
+              </div>
+              <div className={s.cardBody}>
                 {isEditingTimelines ? (
                   <div
                     style={{
@@ -336,12 +350,13 @@ const AuditDetail: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Pre-Engagement Tasks */}
+            <PreAuditPage auditId={audit.id} embedded />
           </div>
         );
 
-      case "pre-audit":
-        return <PreAuditPage auditId={audit.id} embedded />;
-
+      /* ─── Phase 2: Risk Assessment (Questionnaire + Scope) ─── */
       case "questionnaire":
         return (
           <div className={s.tabContent}>
@@ -351,6 +366,7 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
+      /* ─── Phase 2b: Planning (Scope Agreement + Audit Strategy) ─── */
       case "planning":
         return (
           <div className={s.tabContent}>
@@ -365,15 +381,105 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
+      /* ─── Phase 3: Fieldwork Execution ─── */
       case "fieldwork":
         return <FieldworkPage auditId={audit.id} embedded />;
 
+      /* ─── Phase 4: Reporting ─── */
       case "reporting":
         return <ReportsPage auditId={audit.id} embedded />;
 
+      /* ─── Phase 4b: Quality Review (EQCR) ─── */
+      case "quality-review":
+        return (
+          <div className={s.card}>
+            <div className={s.cardHeader}>
+              <h3 className={s.cardTitle}>
+                Engagement Quality Control Review (EQCR)
+              </h3>
+            </div>
+            <div className={s.cardBody}>
+              <p
+                style={{
+                  color: "#475569",
+                  fontSize: "0.9rem",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                The EQCR is a mandatory review per ISQM 1 / ISA 220 before the
+                audit report is issued. The reviewer must be independent of the
+                engagement team.
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                }}
+              >
+                {[
+                  {
+                    label: "Financial Statements Review",
+                    desc: "Verify figures agree with working papers",
+                  },
+                  {
+                    label: "Significant Judgements",
+                    desc: "Review materiality, going concern, estimates",
+                  },
+                  {
+                    label: "Audit Evidence Sufficiency",
+                    desc: "Confirm adequate evidence for all assertions",
+                  },
+                  {
+                    label: "Independence Confirmation",
+                    desc: "Re-confirm team independence declarations",
+                  },
+                  {
+                    label: "Compliance with Standards",
+                    desc: "ISA/IPSAS/ISSAI compliance check",
+                  },
+                  {
+                    label: "Report Drafting Review",
+                    desc: "Final audit opinion and management letter",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    style={{
+                      padding: "1rem",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      background: "#f8fafc",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        color: "#0f172a",
+                        marginBottom: "0.25rem",
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                      {item.desc}
+                    </div>
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <StatusBadge label="Pending" variant="default" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      /* ─── Phase 5: Post-Audit & Follow-Up ─── */
       case "post-audit":
         return <PostAuditPage auditId={audit.id} embedded />;
 
+      /* ─── Audit File / Documents ─── */
       case "documents":
         return <DocumentPortalPage auditId={audit.id} embedded />;
 

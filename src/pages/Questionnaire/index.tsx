@@ -521,27 +521,52 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                       </label>
                     ))}
                   </div>
-                ) : q.type === "risk-scoring" ? (
-                  <div style={{ marginLeft: "2.5rem" }}>
-                    <select
-                      className={s.formSelect}
-                      value={answer}
-                      disabled={!canEdit}
-                      onChange={(e) =>
-                        canEdit &&
-                        setDraftAnswers({
-                          ...draftAnswers,
-                          [q.id]: e.target.value,
-                        })
-                      }
-                      style={{ width: 240 }}
-                    >
-                      <option value="">Select risk level...</option>
-                      <option value="Low">Low Risk</option>
-                      <option value="Medium">Medium Risk</option>
-                      <option value="High">High Risk</option>
-                      <option value="Critical">Critical Risk</option>
-                    </select>
+                ) : q.type === "risk-scoring" && q.options ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
+                      marginLeft: "2.5rem",
+                    }}
+                  >
+                    {q.options.map((opt) => (
+                      <label
+                        key={opt.value}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          fontSize: "0.85rem",
+                          cursor: "pointer",
+                          padding: "0.4rem 0.75rem",
+                          borderRadius: "4px",
+                          background:
+                            answer === opt.value
+                              ? "rgba(234, 88, 12, 0.06)"
+                              : "transparent",
+                          border: `1.5px solid ${answer === opt.value ? "#ea580c" : "transparent"}`,
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name={q.id}
+                          value={opt.value}
+                          checked={answer === opt.value}
+                          disabled={!canEdit}
+                          onChange={() =>
+                            canEdit &&
+                            setDraftAnswers({
+                              ...draftAnswers,
+                              [q.id]: opt.value,
+                            })
+                          }
+                          style={{ accentColor: "#ea580c" }}
+                        />
+                        {opt.label}
+                      </label>
+                    ))}
                   </div>
                 ) : q.type === "document-confirmation" ? (
                   <div

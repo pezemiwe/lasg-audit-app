@@ -92,14 +92,13 @@ const PreAudit: React.FC<{
   } = useAuditStore();
 
   const [activeTab, setActiveTab] = useState<
-    | "overview"
     | "engagement"
     | "independence"
     | "letters"
     | "meetings"
     | "checklist"
     | "team"
-  >("overview");
+  >("engagement");
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showDeclForm, setShowDeclForm] = useState(false);
   const [declForm, setDeclForm] = useState({ threats: "", safeguards: "" });
@@ -208,7 +207,6 @@ const PreAudit: React.FC<{
   ];
 
   const tabs = [
-    { id: "overview", label: "Overview" },
     { id: "engagement", label: "Engagement Lifecycle" },
     { id: "independence", label: "Independence & Ethics" },
     { id: "letters", label: "Notification Letters" },
@@ -332,305 +330,6 @@ const PreAudit: React.FC<{
 
         {/* Content Area */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {activeTab === "overview" && (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
-            >
-              {/* Dashboard Summary Chips */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "1rem",
-                }}
-              >
-                {[
-                  {
-                    label: "Total Engagements",
-                    value: myAudits.length,
-                    color: "var(--primary)",
-                  },
-                  {
-                    label: "Meetings Held",
-                    value: entryMeetings.filter((m) => m.status === "Completed")
-                      .length,
-                    color: "#059669",
-                  },
-                  { label: "Documents Pending", value: "42", color: "#d97706" },
-                  {
-                    label: "Lead Assigned",
-                    value: myAudits.filter((a) => a.leadId).length,
-                    color: "#2563eb",
-                  },
-                ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    style={{
-                      background: "var(--bg-card)",
-                      padding: "1.25rem",
-                      borderRadius: "4px",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "var(--text-3)",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {stat.label}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "1.75rem",
-                        fontWeight: 800,
-                        color: stat.color,
-                        marginTop: "0.5rem",
-                      }}
-                    >
-                      {stat.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "2fr 1fr",
-                  gap: "1.5rem",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1.5rem",
-                  }}
-                >
-                  <Card
-                    title="Active Engagements"
-                    subtitle="Status of ongoing audit engagements"
-                  >
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "2fr 1fr 1fr 0.5fr",
-                          padding: "0.75rem 1rem",
-                          background: "var(--bg)",
-                          borderBottom: "1px solid var(--border)",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          color: "var(--text-3)",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        <div>LGA / Entity</div>
-                        <div>Type</div>
-                        <div>Stage</div>
-                        <div>Status</div>
-                      </div>
-                      {myAudits.map((audit) => (
-                        <div
-                          key={audit.id}
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "2fr 1fr 1fr 0.5fr",
-                            padding: "1rem",
-                            borderBottom: "1px solid var(--border)",
-                            alignItems: "center",
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          <div style={{ fontWeight: 600 }}>
-                            {getLGAName(audit.lgaId)}
-                          </div>
-                          <div style={{ color: "var(--text-2)" }}>
-                            {audit.type}
-                          </div>
-                          <div style={{ color: "var(--text-2)" }}>
-                            Pre-Audit
-                          </div>
-                          <div>
-                            <Badge status={audit.status} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-
-                  <Card
-                    title="Timeline & Milestones"
-                    subtitle="Key dates for the current audit cycle"
-                  >
-                    <div
-                      style={{
-                        padding: "1rem",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      {[
-                        { label: "Mandate Issued", date: "Oct 01", done: true },
-                        {
-                          label: "Notifications Sent",
-                          date: "Oct 05",
-                          done: true,
-                        },
-                        { label: "Team Assigned", date: "Oct 10", done: true },
-                        {
-                          label: "Entry Meetings",
-                          date: "Oct 15",
-                          done: false,
-                        },
-                        {
-                          label: "Fieldwork Start",
-                          date: "Oct 20",
-                          done: false,
-                        },
-                      ].map((step, i, arr) => (
-                        <div
-                          key={step.label}
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            position: "relative",
-                            flex: 1,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "12px",
-                              height: "12px",
-                              borderRadius: "50%",
-                              background: step.done
-                                ? "#059669"
-                                : "var(--border)",
-                              zIndex: 2,
-                              marginBottom: "0.5rem",
-                            }}
-                          />
-                          {i !== arr.length - 1 && (
-                            <div
-                              style={{
-                                position: "absolute",
-                                top: "5px",
-                                left: "50%",
-                                width: "100%",
-                                height: "3px",
-                                background: arr[i + 1].done
-                                  ? "#059669"
-                                  : "#e2e8f0",
-                                zIndex: 1,
-                              }}
-                            />
-                          )}
-                          <div
-                            style={{
-                              fontSize: "0.75rem",
-                              fontWeight: 600,
-                              textAlign: "center",
-                            }}
-                          >
-                            {step.label}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.7rem",
-                              color: "var(--text-3)",
-                            }}
-                          >
-                            {step.date}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1.5rem",
-                  }}
-                >
-                  <Card title="Recent Notifications">
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      {letters.slice(0, 4).map((letter) => (
-                        <div
-                          key={letter.id}
-                          style={{
-                            padding: "0.75rem",
-                            border: "1px solid var(--border)",
-                            borderRadius: "4px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: "0.8rem",
-                              color: "var(--text-3)",
-                              display: "flex",
-                              justifyContent: "space-between",
-                              marginBottom: "0.25rem",
-                            }}
-                          >
-                            <span>{letter.sentAt}</span>
-                            <span
-                              style={{
-                                fontWeight: 700,
-                                color:
-                                  letter.status === "Sent"
-                                    ? "#059669"
-                                    : "#d97706",
-                              }}
-                            >
-                              {letter.status}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: "0.85rem", fontWeight: 600 }}>
-                            Letter to {getLGAName(letter.lgaId)}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "var(--text-2)",
-                            }}
-                          >
-                            Ref: {letter.id}
-                          </div>
-                        </div>
-                      ))}
-                      {letters.length === 0 && (
-                        <div
-                          style={{
-                            fontSize: "0.875rem",
-                            color: "var(--text-3)",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          No recent notifications
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                </div>
-              </div>
-            </div>
-          )}
-
           {activeTab === "engagement" && (
             <div
               style={{
@@ -784,7 +483,111 @@ const PreAudit: React.FC<{
                 );
               })}
 
-              {/* ── 2. Initial Contact Log ── */}
+              {/* ── 2. Engagement Readiness (HoLGA Status) ── */}
+              <Card
+                title="Engagement Readiness"
+                subtitle="Track the council's completion of onboarding requirements"
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                  }}
+                >
+                  {myAudits.map((audit) => {
+                    const lgaName = getLGAName(audit.lgaId);
+                    return (
+                      <div
+                        key={`readiness-${audit.id}`}
+                        style={{
+                          padding: "1rem",
+                          border: "1px solid var(--border)",
+                          borderRadius: "8px",
+                          background: "var(--bg)",
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, marginBottom: "1rem" }}>
+                          {lgaName} — Readiness Status
+                        </div>
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                            gap: "1rem",
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CheckCircle size={16} color="#94a3b8" />
+                            <span>Mandate Signed</span>
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CheckCircle size={16} color="#94a3b8" />
+                            <span>Docs Uploaded</span>
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CheckCircle size={16} color="#94a3b8" />
+                            <span>Questionnaire</span>
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "0.5rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CheckCircle size={16} color="#94a3b8" />
+                            <span>Scope Agreed</span>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: "1rem",
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <button
+                            disabled
+                            style={{
+                              padding: "0.5rem 1rem",
+                              fontSize: "0.8rem",
+                              background: "var(--border)",
+                              color: "var(--text-3)",
+                              cursor: "not-allowed",
+                            }}
+                          >
+                            Graduate to Planning (Blocked)
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+
+              {/* ── 3. Initial Contact Log ── */}
               <Card
                 title="Initial Contact Log"
                 subtitle="Record of communications made with LGA officials prior to fieldwork"

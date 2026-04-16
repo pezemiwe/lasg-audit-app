@@ -181,6 +181,97 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {(() => {
+          const outcome =
+            audits.length > 0
+              ? useAuditStore
+                  .getState()
+                  .auditOutcomes?.find(
+                    (o) =>
+                      o.status === "Ready for Review" ||
+                      o.status === "In Progress",
+                  )
+              : undefined;
+          const stateReport = outcome
+            ? useAuditStore
+                .getState()
+                .auditReportDocuments?.find(
+                  (r) =>
+                    r.type === "State Consolidated" &&
+                    outcome.auditReportIds.includes(r.id),
+                )
+            : undefined;
+          const awaitingAG =
+            stateReport &&
+            stateReport.auditLeadSignature?.signedAt &&
+            stateReport.auditSupervisorSignature?.signedAt &&
+            !stateReport.auditorGeneralSignature?.signedAt;
+
+          if (!awaitingAG || !outcome) return null;
+
+          return (
+            <div
+              style={{
+                background: "linear-gradient(90deg, #064e3b 0%, #059669 100%)",
+                color: "white",
+                borderRadius: 8,
+                padding: "1.25rem 1.5rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+                marginBottom: "2rem",
+                boxShadow: "0 4px 12px rgba(6, 78, 59, 0.25)",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    opacity: 0.85,
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  Action Required
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  {outcome.title} — Ready for your sign-off
+                </div>
+                <div style={{ fontSize: "0.85rem", opacity: 0.9 }}>
+                  Audit Lead and Audit Supervisor have completed review and
+                  approval. Your signature is the final gate before compilation.
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/audit-outcomes")}
+                style={{
+                  padding: "0.75rem 1.25rem",
+                  background: "white",
+                  color: "#064e3b",
+                  border: "none",
+                  borderRadius: 6,
+                  fontSize: "0.9rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                }}
+              >
+                Review &amp; Sign →
+              </button>
+            </div>
+          );
+        })()}
+
         {/* Secondary Dashboard Grid */}
         <div
           className={s.gridTwoCols}
@@ -1674,112 +1765,30 @@ const Dashboard: React.FC = () => {
           <div>
             <div className={s.card} style={{ marginBottom: "2rem" }}>
               <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Document Submission Progress</h3>
+                <h3 className={s.cardTitle}>Engagement Readiness</h3>
               </div>
               <div className={s.cardBody}>
-                <div style={{ marginBottom: "1rem" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.85rem",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-2)" }}>
-                      Overall Progress
-                    </span>
-                    <span style={{ fontWeight: 700 }}>
-                      {myDocs.length > 0
-                        ? Math.round((docsApproved / myDocs.length) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: "8px",
-                      background: "var(--border)",
-                      borderRadius: "4px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${myDocs.length > 0 ? (docsApproved / myDocs.length) * 100 : 0}%`,
-                        background: "#064e3b",
-                        borderRadius: "4px",
-                        transition: "width 0.3s",
-                      }}
-                    />
-                  </div>
-                </div>
-                {myDocs.slice(0, 6).map((doc) => (
-                  <div
-                    key={doc.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "0.5rem 0",
-                      borderBottom: "1px solid var(--border)",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    <span style={{ color: "var(--text)", fontWeight: 500 }}>
-                      {doc.documentName}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        padding: "0.15rem 0.5rem",
-                        borderRadius: "2px",
-                        background:
-                          doc.status === "Approved"
-                            ? "#ecfdf5"
-                            : doc.status === "Rejected"
-                              ? "#fef2f2"
-                              : doc.status === "Uploaded"
-                                ? "#fefce8"
-                                : "#f3f4f6",
-                        color:
-                          doc.status === "Approved"
-                            ? "#065f46"
-                            : doc.status === "Rejected"
-                              ? "#991b1b"
-                              : doc.status === "Uploaded"
-                                ? "#854d0e"
-                                : "#6b7280",
-                      }}
-                    >
-                      {doc.status}
-                    </span>
-                  </div>
-                ))}
-                {myDocs.length > 6 && (
+                <p
+                  style={{
+                    color: "var(--text-2)",
+                    fontSize: "0.85rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  Please complete the engagement readiness steps required by the
+                  active audit.
+                </p>
+                <div style={{ display: "flex", gap: "1rem" }}>
                   <button
-                    className={s.btnOutline}
-                    style={{ marginTop: "1rem", width: "100%" }}
-                    onClick={() => navigate("/document-portal")}
+                    onClick={() =>
+                      (window.location.href = "/document-submission")
+                    }
+                    className={s.btnPrimary}
+                    style={{ padding: "0.6rem 1rem", fontSize: "0.85rem" }}
                   >
-                    View All Documents
+                    Go to Engagement Readiness
                   </button>
-                )}
-                {myDocs.length === 0 && (
-                  <div className={s.emptyState}>
-                    <FolderOpen size={32} className={s.emptyIcon} />
-                    <div className={s.emptyTitle}>
-                      No Documents Required Yet
-                    </div>
-                    <div className={s.emptyDesc}>
-                      Documents will appear here once an audit mandate is issued
-                      for your LGA.
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

@@ -1219,3 +1219,6 @@ export interface FieldworkWorkingPaper {
   clearedBySupervisor?: string;
   clearedBySupervisorAt?: string;
 }
+
+// Audit Outcomes feature (new)
+export * from "./auditOutcomes";
