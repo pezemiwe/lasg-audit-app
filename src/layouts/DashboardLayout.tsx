@@ -20,7 +20,6 @@ import {
   Menu,
   X,
   MapPin,
-  Mail,
   Shield,
   ClipboardList,
   Briefcase,
@@ -28,6 +27,9 @@ import {
   Activity,
   Check,
   ChevronRight,
+  FileCheck,
+  MessageSquare,
+  FolderOpen,
 } from "lucide-react";
 import s from "../styles/dashboard.module.css";
 import MessagingWidget from "../components/UI/MessagingWidget";
@@ -169,80 +171,172 @@ const DashboardLayout: React.FC = () => {
     (i) => i.userId === user.id && i.status === "Pending",
   ).length;
 
-  const mainNav: NavItem[] = [
-    { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    {
-      to: "/notifications",
-      icon: Mail,
-      label: "Notifications",
-      badge: unreadCount > 0 ? unreadCount : undefined,
-    },
-  ];
+  const dbLink = {
+    to: "/dashboard",
+    icon: LayoutDashboard,
+    label: "Dashboard",
+  };
+  const regLink = { to: "/regulations", icon: BookOpen, label: "Regulations" };
 
-  const managementNav: NavItem[] = [];
-  const workNav: NavItem[] = [];
-
-  if (user.role === "SYSTEM_ADMIN") {
-    managementNav.push(
-      { to: "/user-management", icon: Users, label: "User Management" },
-      { to: "/audit-trail", icon: Activity, label: "Audit Trail" },
-      { to: "/settings", icon: Settings, label: "Platform Settings" },
-    );
-    workNav.push(
-      { to: "/mandates", icon: Shield, label: "All Mandates" },
-      { to: "/audit", icon: FileText, label: "All Engagements" },
-    );
+  interface NavGroup {
+    label: string;
+    items: NavItem[];
   }
+  const navGroups: NavGroup[] = [];
+
+  navGroups.push({
+    label: "Overview",
+    items: [dbLink],
+  });
 
   if (user.role === "STATE_AUDITOR_GENERAL") {
-    managementNav.push(
-      { to: "/mandates", icon: Shield, label: "Mandates" },
-      { to: "/zones", icon: MapPin, label: "Zones" },
-      { to: "/reports", icon: ClipboardList, label: "Reports" },
-    );
-    workNav.push({ to: "/audit", icon: FileText, label: "All Engagements" });
-  }
-
-  if (user.role === "AUDIT_SUPERVISOR") {
-    managementNav.push(
-      { to: "/mandates", icon: Shield, label: "Mandates" },
-      { to: "/team", icon: Users, label: "Team" },
-      { to: "/reports", icon: ClipboardList, label: "Reports" },
-    );
-    workNav.push({ to: "/audit", icon: FileText, label: "Zone Audits" });
-  }
-
-  if (user.role === "AUDIT_LEAD") {
-    managementNav.push(
-      {
-        to: "/assignments",
-        icon: Briefcase,
-        label: "Assignments",
-        badge: pendingInvitations || undefined,
-      },
-      { to: "/team", icon: Users, label: "Build Team" },
-      { to: "/reports", icon: ClipboardList, label: "Reports" },
-    );
-    workNav.push({ to: "/audit", icon: FileText, label: "My Audits" });
-  }
-
-  if (user.role === "TEAM_AUDITOR") {
-    managementNav.push({
-      to: "/assignments",
-      icon: Briefcase,
-      label: "Assignments",
-      badge: pendingInvitations || undefined,
+    navGroups.push({
+      label: "Oversight",
+      items: [
+        { to: "/mandates", icon: Shield, label: "Mandates" },
+        { to: "/zones", icon: MapPin, label: "Zones" },
+        { to: "/team", icon: Users, label: "Team" },
+        { to: "/audit-outcomes", icon: FileCheck, label: "Audit Outcomes" },
+      ],
     });
-    workNav.push({ to: "/audit", icon: ClipboardList, label: "My Tasks" });
+    navGroups.push({
+      label: "Administration",
+      items: [
+        {
+          to: "/notifications",
+          icon: Bell,
+          label: "Notifications",
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+      ],
+    });
+  } else if (user.role === "AUDIT_SUPERVISOR") {
+    navGroups.push({
+      label: "My Work",
+      items: [
+        { to: "/audit", icon: FileText, label: "Zone Audits" },
+        { to: "/team", icon: Users, label: "Team" },
+        { to: "/audit-outcomes", icon: FileCheck, label: "Audit Outcomes" },
+      ],
+    });
+    navGroups.push({
+      label: "Administration",
+      items: [
+        {
+          to: "/notifications",
+          icon: Bell,
+          label: "Notifications",
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        { to: "/messages", icon: MessageSquare, label: "Messages" },
+      ],
+    });
+  } else if (user.role === "AUDIT_LEAD") {
+    navGroups.push({
+      label: "My Work",
+      items: [
+        {
+          to: "/assignments",
+          icon: Briefcase,
+          label: "Assignments",
+          badge: pendingInvitations || undefined,
+        },
+        { to: "/audit", icon: FileText, label: "My Audits" },
+        { to: "/team", icon: Users, label: "Team" },
+        { to: "/audit-outcomes", icon: FileCheck, label: "Audit Outcomes" },
+      ],
+    });
+    navGroups.push({
+      label: "Administration",
+      items: [
+        {
+          to: "/notifications",
+          icon: Bell,
+          label: "Notifications",
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        { to: "/messages", icon: MessageSquare, label: "Messages" },
+      ],
+    });
+  } else if (user.role === "TEAM_AUDITOR") {
+    navGroups.push({
+      label: "My Work",
+      items: [
+        {
+          to: "/assignments",
+          icon: Briefcase,
+          label: "Assignments",
+          badge: pendingInvitations || undefined,
+        },
+        { to: "/audit", icon: FileText, label: "My Audits" },
+        { to: "/audit-tasks", icon: ClipboardList, label: "My Tasks" },
+      ],
+    });
+    navGroups.push({
+      label: "Administration",
+      items: [
+        {
+          to: "/notifications",
+          icon: Bell,
+          label: "Notifications",
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        { to: "/messages", icon: MessageSquare, label: "Messages" },
+      ],
+    });
+  } else if (user.role === "HEAD_OF_LOCAL_GOVERNMENT") {
+    navGroups.push({
+      label: "Engagements",
+      items: [
+        { to: "/mandates", icon: Shield, label: "Active Mandates" },
+        {
+          to: "/document-submission",
+          icon: FolderOpen,
+          label: "Document Submission",
+        },
+        { to: "/audit", icon: FileText, label: "My Audits" },
+        {
+          to: "/responses-rebuttals",
+          icon: ClipboardList,
+          label: "Responses & Rebuttals",
+        },
+      ],
+    });
+    navGroups.push({
+      label: "Administration",
+      items: [
+        {
+          to: "/notifications",
+          icon: Bell,
+          label: "Notifications",
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        { to: "/messages", icon: MessageSquare, label: "Messages" },
+      ],
+    });
+  } else if (user.role === "SYSTEM_ADMIN") {
+    navGroups.push({
+      label: "Administration",
+      items: [
+        { to: "/user-management", icon: Users, label: "User Management" },
+        { to: "/audit-trail", icon: Activity, label: "Audit Trail" },
+        { to: "/settings", icon: Settings, label: "Platform Settings" },
+      ],
+    });
+    navGroups.push({
+      label: "Oversight",
+      items: [
+        { to: "/mandates", icon: Shield, label: "Mandates" },
+        { to: "/audit", icon: FileText, label: "Audits" },
+        { to: "/audit-outcomes", icon: FileCheck, label: "Audit Outcomes" },
+      ],
+    });
   }
 
-  if (user.role === "HEAD_OF_LOCAL_GOVERNMENT") {
-    workNav.push(
-      { to: "/mandates", icon: Shield, label: "Mandates" },
-      { to: "/audit", icon: FileText, label: "Audits" },
-      { to: "/reports", icon: ClipboardList, label: "Reports" },
-    );
-  }
+  navGroups.push({
+    label: "Reference",
+    items: [regLink],
+  });
 
   const renderNavItems = (items: NavItem[]) =>
     items.map((item) => (
@@ -298,37 +392,12 @@ const DashboardLayout: React.FC = () => {
         </div>
 
         <nav className={s.nav} aria-label="Dashboard navigation">
-          <div className={s.navGroup}>
-            <div className={s.navGroupLabel}>Main</div>
-            {renderNavItems(mainNav)}
-          </div>
-
-          {managementNav.length > 0 && (
-            <div className={s.navGroup}>
-              <div className={s.navGroupLabel}>Management</div>
-              {renderNavItems(managementNav)}
+          {navGroups.map((group, index) => (
+            <div key={index} className={s.navGroup}>
+              <div className={s.navGroupLabel}>{group.label}</div>
+              {renderNavItems(group.items)}
             </div>
-          )}
-
-          {workNav.length > 0 && (
-            <div className={s.navGroup}>
-              <div className={s.navGroupLabel}>Work</div>
-              {renderNavItems(workNav)}
-            </div>
-          )}
-
-          <div className={s.navGroup}>
-            <div className={s.navGroupLabel}>Reference</div>
-            <Link
-              to="/regulations"
-              title="Regulations"
-              className={isActive("/regulations") ? s.navLinkActive : s.navLink}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <BookOpen className={s.navIcon} />
-              {!collapsed && "Regulations"}
-            </Link>
-          </div>
+          ))}
         </nav>
 
         <div className={s.sidebarFooter}>

@@ -4068,15 +4068,24 @@ export const SEED_SCOPE_AGREEMENTS: ScopeAgreement[] = [
 ];
 
 export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
+  // ═══ Understanding the Entity (ISA 315) ═══
   {
     id: "q-1",
     section: "Understanding the Entity",
-    question:
-      "Describe the LGA's organizational structure including key departments and reporting lines.",
-    type: "open-ended",
+    question: "What is the LGA's organizational structure?",
+    type: "multiple-choice",
     required: true,
-    minWords: 100,
-    maxWords: 2000,
+    options: [
+      {
+        label: "Well-defined with clear reporting lines",
+        value: "well_defined",
+      },
+      {
+        label: "Partially defined — some gaps in reporting lines",
+        value: "partial",
+      },
+      { label: "Poorly defined — no formal organogram", value: "poor" },
+    ],
   },
   {
     id: "q-2",
@@ -4096,27 +4105,90 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     id: "q-3",
     section: "Understanding the Entity",
     question:
-      "Confirm you have reviewed the LGA's organizational chart. Provide comments on clarity and completeness.",
-    type: "document-confirmation",
+      "Has the LGA's organizational chart been reviewed and confirmed current?",
+    type: "multiple-choice",
     required: true,
+    options: [
+      { label: "Yes — Current and comprehensive", value: "yes_current" },
+      { label: "Yes — Available but outdated", value: "yes_outdated" },
+      { label: "No — Organizational chart not available", value: "no" },
+    ],
   },
   {
     id: "q-4",
     section: "Understanding the Entity",
     question:
-      "What is the total staff strength of the LGA (permanent and casual)?",
-    type: "open-ended",
+      "What is the approximate total staff strength (permanent + casual)?",
+    type: "multiple-choice",
     required: true,
+    options: [
+      { label: "Under 500", value: "under_500" },
+      { label: "500 – 1,000", value: "500_1000" },
+      { label: "1,000 – 2,000", value: "1000_2000" },
+      { label: "Over 2,000", value: "over_2000" },
+    ],
   },
   {
     id: "q-5",
     section: "Understanding the Entity",
-    question: "List the key management personnel and their tenure at the LGA.",
-    type: "dynamic-table",
+    question:
+      "Has the LGA undergone significant structural or leadership changes in the last 24 months?",
+    type: "multiple-choice",
     required: true,
+    options: [
+      { label: "Yes — Major leadership change", value: "yes_major" },
+      { label: "Yes — Minor restructuring only", value: "yes_minor" },
+      { label: "No — Stable structure", value: "no" },
+    ],
   },
   {
     id: "q-6",
+    section: "Understanding the Entity",
+    question:
+      "How does the current year's approved budget compare to the previous year?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Increased by more than 20%", value: "increase_20plus" },
+      { label: "Increased by 5–20%", value: "increase_5_20" },
+      { label: "Roughly the same (±5%)", value: "same" },
+      { label: "Decreased", value: "decreased" },
+    ],
+  },
+  {
+    id: "q-7",
+    section: "Understanding the Entity",
+    question: "Are the LGA's enabling law/bye-laws reviewed and up to date?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Reviewed within the last 3 years", value: "yes_recent" },
+      { label: "No — Last reviewed over 5 years ago", value: "no_old" },
+      { label: "Unknown — Not verified", value: "unknown" },
+    ],
+  },
+  {
+    id: "q-8",
+    section: "Understanding the Entity",
+    question: "How does the LGA receive and account for JAAC allocations?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Direct credit to dedicated account with proper reconciliation",
+        value: "dedicated_reconciled",
+      },
+      {
+        label: "Direct credit but reconciliation is irregular",
+        value: "dedicated_irregular",
+      },
+      { label: "Commingled with other funds", value: "commingled" },
+    ],
+  },
+
+  // ═══ Key Accounting Systems ═══
+  {
+    id: "q-9",
     section: "Key Accounting Systems",
     question: "Does the LGA use accounting software for financial management?",
     type: "multiple-choice",
@@ -4128,36 +4200,105 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-7",
-    section: "Key Accounting Systems",
-    question:
-      "Describe the revenue collection system in use, including collection points and receipt issuance process.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 1000,
-  },
-  {
-    id: "q-8",
-    section: "Key Accounting Systems",
-    question:
-      "How is the payroll processed? Describe the end-to-end process from preparation to payment.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 1000,
-  },
-  {
-    id: "q-9",
-    section: "Key Accounting Systems",
-    question: "What banking arrangements does the LGA maintain?",
-    type: "open-ended",
-    required: true,
-    minWords: 30,
-    maxWords: 500,
-  },
-  {
     id: "q-10",
+    section: "Key Accounting Systems",
+    question: "How is revenue collected and receipted?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label:
+          "Centralized with pre-numbered receipts and daily reconciliation",
+        value: "centralized_good",
+      },
+      {
+        label: "Decentralized collection points with periodic reconciliation",
+        value: "decentralized",
+      },
+      { label: "No formal receipt system in place", value: "no_system" },
+    ],
+  },
+  {
+    id: "q-11",
+    section: "Key Accounting Systems",
+    question: "How is the payroll processed?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Automated payroll system with biometric verification",
+        value: "automated_biometric",
+      },
+      {
+        label: "Automated payroll without biometric verification",
+        value: "automated_no_bio",
+      },
+      { label: "Manual payroll processing", value: "manual" },
+    ],
+  },
+  {
+    id: "q-12",
+    section: "Key Accounting Systems",
+    question: "What accounting basis does the LGA adopt?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Cash Basis (IPSAS Cash)", value: "cash" },
+      { label: "Accrual Basis (IPSAS Accrual)", value: "accrual" },
+      { label: "Modified Cash Basis", value: "modified_cash" },
+      { label: "Modified Accrual Basis", value: "modified_accrual" },
+    ],
+  },
+  {
+    id: "q-13",
+    section: "Key Accounting Systems",
+    question: "Are bank reconciliation statements prepared regularly?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Yes — Monthly, by a preparer with independent reviewer",
+        value: "yes_monthly",
+      },
+      { label: "Yes — Quarterly", value: "yes_quarterly" },
+      { label: "Irregularly — No fixed schedule", value: "irregular" },
+      { label: "No — Not performed", value: "no" },
+    ],
+  },
+  {
+    id: "q-14",
+    section: "Key Accounting Systems",
+    question: "How are petty cash advances controlled?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Imprest system with approved limits and prompt retirement",
+        value: "imprest_good",
+      },
+      {
+        label: "Imprest system but retirements are frequently delayed",
+        value: "imprest_delayed",
+      },
+      { label: "No formal petty cash controls", value: "no_controls" },
+    ],
+  },
+  {
+    id: "q-15",
+    section: "Key Accounting Systems",
+    question: "Are audited accounts for the last three fiscal years available?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — All three years available and filed", value: "yes_all" },
+      { label: "Yes — Partially (1-2 years only)", value: "yes_partial" },
+      { label: "No — Accounts are in arrears", value: "no" },
+    ],
+  },
+
+  // ═══ Internal Control Environment (ISA 315/330) ═══
+  {
+    id: "q-16",
     section: "Internal Control Environment",
     question: "Rate the overall internal control environment of the LGA.",
     type: "risk-scoring",
@@ -4177,7 +4318,7 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-11",
+    id: "q-17",
     section: "Internal Control Environment",
     question: "Is there a functional internal audit unit within the LGA?",
     type: "multiple-choice",
@@ -4189,25 +4330,84 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-12",
+    id: "q-18",
     section: "Internal Control Environment",
     question:
-      "Describe the segregation of duties for financial transactions. Are the functions of authorisation, custody, and recording appropriately separated?",
-    type: "open-ended",
+      "Is segregation of duties maintained for financial transactions (authorisation, custody, recording)?",
+    type: "multiple-choice",
     required: true,
-    minWords: 50,
-    maxWords: 1000,
+    options: [
+      {
+        label: "Yes — Fully segregated across all functions",
+        value: "yes_full",
+      },
+      { label: "Partially — Some functions are combined", value: "partial" },
+      { label: "No — Inadequate segregation", value: "no" },
+    ],
   },
   {
-    id: "q-13",
-    section: "Risk Assessment",
+    id: "q-19",
+    section: "Internal Control Environment",
+    question: "Is there a documented financial regulations manual in use?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Current and actively followed", value: "yes_current" },
+      { label: "Yes — Available but compliance is weak", value: "yes_weak" },
+      { label: "No — No documented financial manual", value: "no" },
+    ],
+  },
+  {
+    id: "q-20",
+    section: "Internal Control Environment",
+    question: "How are fixed assets recorded and managed?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Complete asset register maintained and reconciled annually",
+        value: "complete",
+      },
+      {
+        label: "Register exists but is incomplete or outdated",
+        value: "incomplete",
+      },
+      { label: "No formal fixed asset register", value: "none" },
+    ],
+  },
+  {
+    id: "q-21",
+    section: "Internal Control Environment",
     question:
-      "Based on your preliminary assessment, what are the significant risk areas for this audit?",
-    type: "dynamic-table",
+      "Are there unresolved audit queries from the previous audit cycle?",
+    type: "multiple-choice",
     required: true,
+    options: [
+      { label: "No — All prior queries resolved", value: "all_resolved" },
+      { label: "Yes — Some queries remain unresolved", value: "some_pending" },
+      {
+        label: "Yes — Majority of queries remain unresolved",
+        value: "most_pending",
+      },
+    ],
   },
   {
-    id: "q-14",
+    id: "q-22",
+    section: "Internal Control Environment",
+    question: "Rate the effectiveness of the IT general controls environment.",
+    type: "risk-scoring",
+    required: true,
+    options: [
+      { label: "Strong — Robust IT controls in place", value: "1" },
+      { label: "Adequate — Basic controls with some gaps", value: "2" },
+      { label: "Moderate — Significant IT weaknesses", value: "3" },
+      { label: "Weak — Minimal or no IT controls", value: "4" },
+    ],
+  },
+
+  // ═══ Risk Assessment (ISA 315/330) ═══
+  {
+    id: "q-23",
     section: "Risk Assessment",
     question:
       "Rate the overall risk of material misstatement for the LGA's financial statements.",
@@ -4222,7 +4422,7 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-15",
+    id: "q-24",
     section: "Risk Assessment",
     question:
       "Have any fraud or irregularity indicators been identified during the preliminary review?",
@@ -4238,214 +4438,41 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-16",
-    section: "Materiality Determination",
-    question:
-      "State the basis for determining materiality and justify the chosen benchmark.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 500,
-  },
-  // Professional Additions
-  {
-    id: "q-17",
-    section: "Procurement Compliance",
-    question:
-      "List all capital projects awarded in the last 12 months, including contract sums and contractors.",
-    type: "dynamic-table",
-    required: true,
-  },
-  {
-    id: "q-18",
-    section: "Payroll Integrity",
-    question:
-      "Are there any staff members on the payroll who have not been captured biometrically? If yes, provide details.",
-    type: "open-ended",
-    required: true,
-  },
-  {
-    id: "q-19",
-    section: "Revenue Assurance",
-    question:
-      "Provide a breakdown of all revenue sources and the actual collections against budget for the last fiscal year.",
-    type: "dynamic-table",
-    required: true,
-  },
-  // Understanding the Entity — additional questions
-  {
-    id: "q-20",
-    section: "Understanding the Entity",
-    question:
-      "What are the LGA's statutory responsibilities under the Third Schedule of the 1999 Constitution as amended? Describe how these are currently being discharged.",
-    type: "open-ended",
-    required: true,
-    minWords: 80,
-    maxWords: 1500,
-  },
-  {
-    id: "q-21",
-    section: "Understanding the Entity",
-    question:
-      "Has the LGA undergone any significant structural or leadership changes in the last 24 months? If so, describe the nature and impact of such changes.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 1000,
-  },
-  {
-    id: "q-22",
-    section: "Understanding the Entity",
-    question:
-      "What is the LGA's approved budget for the current fiscal year and how does it compare to the previous year?",
-    type: "open-ended",
-    required: true,
-    minWords: 30,
-    maxWords: 600,
-  },
-  {
-    id: "q-23",
-    section: "Understanding the Entity",
-    question:
-      "Confirm that the LGA's enabling law/bye-laws are reviewed and up to date.",
-    type: "document-confirmation",
-    required: true,
-  },
-  {
-    id: "q-24",
-    section: "Understanding the Entity",
-    question:
-      "Describe the relationship between the LGA and the Joint Account Allocation Committee (JAAC). How are funds released and accounted for?",
-    type: "open-ended",
-    required: true,
-    minWords: 60,
-    maxWords: 800,
-  },
-  // Key Accounting Systems — additional questions
-  {
     id: "q-25",
-    section: "Key Accounting Systems",
+    section: "Risk Assessment",
     question:
-      "Describe the LGA's expenditure approval process from purchase request to payment. Who are the key approving officers?",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 1000,
-  },
-  {
-    id: "q-26",
-    section: "Key Accounting Systems",
-    question:
-      "What accounting basis does the LGA adopt (cash, accrual, or modified cash)? Is this consistent with the IPSAS framework?",
+      "Are there any identified related-party transactions or conflicts of interest?",
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Cash Basis", value: "cash" },
-      { label: "Accrual Basis", value: "accrual" },
-      { label: "Modified Cash Basis", value: "modified_cash" },
-      { label: "Modified Accrual Basis", value: "modified_accrual" },
+      {
+        label: "Yes — Significant related-party transactions noted",
+        value: "yes_significant",
+      },
+      { label: "Yes — Minor related-party matters noted", value: "yes_minor" },
+      { label: "No — None identified", value: "no" },
+    ],
+  },
+  {
+    id: "q-26",
+    section: "Risk Assessment",
+    question: "Are there ongoing litigation cases or contingent liabilities?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Yes — Significant financial exposure",
+        value: "yes_significant",
+      },
+      { label: "Yes — Minor or immaterial exposure", value: "yes_minor" },
+      { label: "No — None identified", value: "no" },
     ],
   },
   {
     id: "q-27",
-    section: "Key Accounting Systems",
-    question:
-      "Are bank reconciliation statements prepared regularly? Describe the frequency, preparer, and reviewer.",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 600,
-  },
-  {
-    id: "q-28",
-    section: "Key Accounting Systems",
-    question:
-      "How are petty cash advances controlled and retired? Are there imprest accounts and what are the limits?",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 600,
-  },
-  {
-    id: "q-29",
-    section: "Key Accounting Systems",
-    question:
-      "Confirm that audited accounts for the last three fiscal years are available.",
-    type: "document-confirmation",
-    required: true,
-  },
-  // Internal Control Environment — additional questions
-  {
-    id: "q-30",
-    section: "Internal Control Environment",
-    question:
-      "Is there a documented financial regulations manual or finance procedure manual in use? Confirm and comment on compliance.",
-    type: "document-confirmation",
-    required: true,
-  },
-  {
-    id: "q-31",
-    section: "Internal Control Environment",
-    question:
-      "How are fixed assets recorded and managed? Describe the asset register maintenance process and disposal procedures.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 800,
-  },
-  {
-    id: "q-32",
-    section: "Internal Control Environment",
-    question:
-      "Are there any unresolved audit queries from the previous audit cycle? If yes, describe the nature and current status.",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 800,
-  },
-  {
-    id: "q-33",
-    section: "Internal Control Environment",
-    question: "Rate the effectiveness of the IT general controls environment.",
-    type: "risk-scoring",
-    required: true,
-  },
-  {
-    id: "q-34",
-    section: "Internal Control Environment",
-    question:
-      "Describe the anti-corruption measures in place. Are staff subject to annual declaration of assets?",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 700,
-  },
-  // Risk Assessment — additional questions
-  {
-    id: "q-35",
     section: "Risk Assessment",
     question:
-      "Identify and describe any related-party transactions or relationships that may create conflicts of interest.",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 800,
-  },
-  {
-    id: "q-36",
-    section: "Risk Assessment",
-    question:
-      "Are there any ongoing litigation cases or contingent liabilities? Provide details and estimated financial exposure.",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 600,
-  },
-  {
-    id: "q-37",
-    section: "Risk Assessment",
-    question:
-      "Has the LGA been subject to any special investigations or forensic audits in the last five years?",
+      "Has the LGA been subject to any special investigations or forensic audits in the last 5 years?",
     type: "multiple-choice",
     required: true,
     options: [
@@ -4459,164 +4486,83 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-38",
+    id: "q-28",
     section: "Risk Assessment",
     question:
-      "What is the assessment of management integrity and the overall control consciousness at the LGA?",
+      "What is the assessment of management integrity and control consciousness?",
     type: "risk-scoring",
     required: true,
+    options: [
+      { label: "High — Strong tone at the top", value: "1" },
+      { label: "Adequate — Generally cooperative", value: "2" },
+      { label: "Moderate — Some concerns noted", value: "3" },
+      { label: "Low — Significant integrity concerns", value: "4" },
+    ],
   },
-  // Materiality Determination — additional questions
+
+  // ═══ Materiality Determination (ISA 320) ═══
   {
-    id: "q-39",
+    id: "q-29",
     section: "Materiality Determination",
-    question:
-      "State the quantitative materiality threshold (in Naira) determined for the audit and explain the calculation.",
-    type: "open-ended",
-    required: true,
-    minWords: 30,
-    maxWords: 500,
-  },
-  {
-    id: "q-40",
-    section: "Materiality Determination",
-    question:
-      "Identify any qualitative materiality factors that could influence the audit opinion regardless of monetary value.",
-    type: "open-ended",
-    required: true,
-    minWords: 40,
-    maxWords: 600,
-  },
-  {
-    id: "q-41",
-    section: "Materiality Determination",
-    question:
-      "State the performance materiality level applied and the rationale for the percentage used relative to overall materiality.",
-    type: "open-ended",
-    required: true,
-    minWords: 30,
-    maxWords: 500,
-  },
-  {
-    id: "q-42",
-    section: "Materiality Determination",
-    question:
-      "Has the materiality threshold been discussed and agreed upon with the Audit Lead and documented in the audit planning memorandum?",
-    type: "document-confirmation",
-    required: true,
-  },
-  // Procurement Compliance — additional questions
-  {
-    id: "q-43",
-    section: "Procurement Compliance",
-    question:
-      "Does the LGA have a functional Due Process or Procurement Unit? Describe the procurement approval hierarchy and thresholds.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 800,
-  },
-  {
-    id: "q-44",
-    section: "Procurement Compliance",
-    question:
-      "Were competitive tenders advertised publicly for all contracts above the statutory threshold? Confirm compliance with the Public Procurement Act.",
-    type: "document-confirmation",
-    required: true,
-  },
-  {
-    id: "q-45",
-    section: "Procurement Compliance",
-    question:
-      "Identify any sole-source or emergency procurements conducted in the period under review. Provide justifications provided.",
-    type: "open-ended",
-    required: true,
-    minWords: 30,
-    maxWords: 600,
-  },
-  {
-    id: "q-46",
-    section: "Procurement Compliance",
-    question: "Rate the overall procurement compliance risk.",
-    type: "risk-scoring",
-    required: true,
-  },
-  {
-    id: "q-47",
-    section: "Procurement Compliance",
-    question:
-      "Provide details of any contract variations or addenda issued on major projects, including the basis and approvals obtained.",
-    type: "dynamic-table",
-    required: true,
-  },
-  // Payroll Integrity — additional questions
-  {
-    id: "q-48",
-    section: "Payroll Integrity",
-    question:
-      "Describe the process for adding new staff and removing separated staff from the payroll. Which department(s) are involved?",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-    maxWords: 800,
-  },
-  {
-    id: "q-49",
-    section: "Payroll Integrity",
-    question:
-      "Has a headcount reconciliation been performed between the nominal roll, payroll, and biometric data in the current period?",
+    question: "What benchmark was used to determine overall materiality?",
     type: "multiple-choice",
     required: true,
     options: [
-      {
-        label: "Yes — Full reconciliation performed, no discrepancies",
-        value: "yes_clean",
-      },
-      {
-        label: "Yes — Reconciliation performed, discrepancies found",
-        value: "yes_discrepancy",
-      },
-      {
-        label: "Partial — Not all staff categories reconciled",
-        value: "partial",
-      },
-      { label: "No — Not performed in this period", value: "no" },
+      { label: "Total Revenue (1–2%)", value: "revenue" },
+      { label: "Total Expenditure (1–2%)", value: "expenditure" },
+      { label: "Net Assets / Equity (3–5%)", value: "net_assets" },
+      { label: "Total Assets (0.5–1%)", value: "total_assets" },
     ],
   },
   {
-    id: "q-50",
-    section: "Payroll Integrity",
+    id: "q-30",
+    section: "Materiality Determination",
     question:
-      "Are there allowances or benefits paid outside the main payroll system? If yes, describe the types, amounts, and control mechanisms.",
-    type: "open-ended",
+      "Are there qualitative materiality factors that could influence the audit opinion?",
+    type: "multiple-choice",
     required: true,
-    minWords: 40,
-    maxWords: 700,
+    options: [
+      { label: "Yes — Regulatory non-compliance issues", value: "regulatory" },
+      { label: "Yes — Sensitive political matters", value: "political" },
+      {
+        label: "Yes — Media attention or public interest",
+        value: "public_interest",
+      },
+      { label: "No — No significant qualitative factors", value: "none" },
+    ],
   },
   {
-    id: "q-51",
-    section: "Payroll Integrity",
+    id: "q-31",
+    section: "Materiality Determination",
     question:
-      "Rate the overall payroll integrity risk based on preliminary review.",
-    type: "risk-scoring",
+      "What performance materiality percentage was applied relative to overall materiality?",
+    type: "multiple-choice",
     required: true,
+    options: [
+      { label: "50% — High risk entity", value: "50" },
+      { label: "60% — Moderate-high risk", value: "60" },
+      { label: "75% — Moderate risk", value: "75" },
+      { label: "80% — Low risk entity", value: "80" },
+    ],
   },
-  // Revenue Assurance — additional questions
   {
-    id: "q-52",
+    id: "q-32",
+    section: "Materiality Determination",
+    question:
+      "Has the materiality threshold been documented in the audit planning memorandum?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Documented and agreed by Audit Lead", value: "yes" },
+      { label: "No — Not yet documented", value: "no" },
+    ],
+  },
+
+  // ═══ Revenue Assurance ═══
+  {
+    id: "q-33",
     section: "Revenue Assurance",
-    question:
-      "Describe the mechanism for identifying, assessing, and collecting internally generated revenue (IGR). Who are the revenue collection agents?",
-    type: "open-ended",
-    required: true,
-    minWords: 60,
-    maxWords: 900,
-  },
-  {
-    id: "q-53",
-    section: "Revenue Assurance",
-    question:
-      "Is there a revenue assurance unit or function? How is leakage and under-remittance identified and addressed?",
+    question: "Is there a revenue assurance unit or function?",
     type: "multiple-choice",
     required: true,
     options: [
@@ -4629,116 +4575,110 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
   {
-    id: "q-54",
+    id: "q-34",
     section: "Revenue Assurance",
-    question:
-      "Describe the process for issuing, tracking, and accounting for revenue receipts. Are receipts pre-numbered and accounted for?",
-    type: "open-ended",
+    question: "Are revenue receipts pre-numbered and accounted for?",
+    type: "multiple-choice",
     required: true,
-    minWords: 40,
-    maxWords: 700,
+    options: [
+      {
+        label: "Yes — Pre-numbered and reconciled regularly",
+        value: "yes_reconciled",
+      },
+      {
+        label: "Yes — Pre-numbered but not regularly reconciled",
+        value: "yes_not_reconciled",
+      },
+      { label: "No — Receipts are not pre-numbered", value: "no" },
+    ],
   },
   {
-    id: "q-55",
+    id: "q-35",
     section: "Revenue Assurance",
     question:
       "Rate the overall revenue risk (risk of unrecorded or misappropriated revenue).",
     type: "risk-scoring",
     required: true,
-  },
-  {
-    id: "q-56",
-    section: "Revenue Assurance",
-    question:
-      "Confirm that all revenue collection points have been identified and mapped, and that daily remittance records are available.",
-    type: "document-confirmation",
-    required: true,
-  },
-  // Additional Sections based on Public Sector Audit Requirements
-  {
-    id: "q-57",
-    section: "Third-Party & Vendor Management",
-    question:
-      "Does the LGA maintain an approved vendor list? If yes, describe the process for vendor selection and pre-qualification.",
-    type: "open-ended",
-    required: true,
-    minWords: 50,
-  },
-  {
-    id: "q-58",
-    section: "Third-Party & Vendor Management",
-    question:
-      "Are there any significant outsourcing arrangements (e.g., waste management, market collection)? List major contracts and their value.",
-    type: "dynamic-table",
-    required: true,
-  },
-  {
-    id: "q-59",
-    section: "Environmental & Social Responsibility",
-    question:
-      "Has the LGA undertaken any environmental impact assessments for its major projects in the last fiscal year?",
-    type: "multiple-choice",
-    required: true,
     options: [
-      { label: "Yes — All major projects", value: "yes_all" },
-      { label: "Yes — Some projects only", value: "yes_some" },
-      { label: "No — Not typically done", value: "no" },
+      { label: "Low", value: "1" },
+      { label: "Medium", value: "2" },
+      { label: "High", value: "3" },
+      { label: "Very High", value: "4" },
     ],
   },
   {
-    id: "q-60",
-    section: "Environmental & Social Responsibility",
-    question:
-      "Describe community engagement initiatives undertaken to ensure projects meet the needs of the local population.",
-    type: "open-ended",
-    required: false,
-    minWords: 30,
-    maxWords: 500,
+    id: "q-36",
+    section: "Revenue Assurance",
+    question: "Have all revenue collection points been identified and mapped?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      {
+        label: "Yes — All points mapped with daily remittance records",
+        value: "yes_all",
+      },
+      {
+        label: "Partially — Some collection points not documented",
+        value: "partial",
+      },
+      { label: "No — No formal mapping exists", value: "no" },
+    ],
   },
+
+  // ═══ Information Security ═══
   {
-    id: "q-61",
+    id: "q-37",
     section: "Information Security",
-    question:
-      "Rate the maturity of the LGA's cybersecurity measures (e.g., firewalls, antivirus, staff training).",
+    question: "Rate the maturity of the LGA's cybersecurity measures.",
     type: "risk-scoring",
     required: true,
-  },
-  {
-    id: "q-62",
-    section: "Information Security",
-    question:
-      "Are there formal IT policies covering acceptable use, password management, and data protection?",
-    type: "document-confirmation",
-    required: true,
-  },
-  {
-    id: "q-63",
-    section: "Grant & Aid Management",
-    question:
-      "List all external grants or donor funds received in the audit period, including the donor name and purpose.",
-    type: "dynamic-table",
-    required: true,
-  },
-  {
-    id: "q-64",
-    section: "Grant & Aid Management",
-    question:
-      "Are grant funds kept in separate bank accounts? If so, provide details of the accounts.",
-    type: "multiple-choice",
-    required: true,
     options: [
-      { label: "Yes — Separate accounts used", value: "yes" },
-      { label: "No — Commingled with general funds", value: "no" },
+      { label: "Mature — Comprehensive security framework", value: "1" },
+      { label: "Developing — Basic protections in place", value: "2" },
+      { label: "Minimal — Significant gaps", value: "3" },
+      { label: "Non-existent — No cybersecurity measures", value: "4" },
     ],
   },
   {
-    id: "q-65",
+    id: "q-38",
+    section: "Information Security",
+    question:
+      "Are there formal IT policies covering acceptable use, passwords, and data protection?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Documented and enforced", value: "yes_enforced" },
+      {
+        label: "Yes — Documented but not actively enforced",
+        value: "yes_not_enforced",
+      },
+      { label: "No — No formal IT policies", value: "no" },
+    ],
+  },
+
+  // ═══ Audit Follow-Up (ISA 710) ═══
+  {
+    id: "q-39",
     section: "Audit Follow-Up",
     question:
-      "Provide a status report on the implementation of the Public Accounts Committee (PAC) directives from the last 3 years.",
-    type: "open-ended",
+      "What is the status of Public Accounts Committee (PAC) directive implementation?",
+    type: "multiple-choice",
     required: true,
-    minWords: 100,
+    options: [
+      { label: "Fully implemented — All directives addressed", value: "fully" },
+      {
+        label: "Partially implemented — Some directives outstanding",
+        value: "partial",
+      },
+      {
+        label: "Not implemented — Majority outstanding",
+        value: "not_implemented",
+      },
+      {
+        label: "No PAC directives issued in the last 3 years",
+        value: "none_issued",
+      },
+    ],
   },
 ];
 
@@ -4748,8 +4688,7 @@ export const SEED_QUESTIONNAIRE_RESPONSES: QuestionnaireResponse[] = [
     auditId: "audit-1",
     questionId: "q-1",
     section: "Understanding the Entity",
-    answer:
-      "Mushin LGA operates under the leadership of the Executive Chairman supported by the Vice Chairman and the Secretary to the Local Government. The administrative structure comprises 24 departments including Finance, Works, Education, Health, Agriculture, and Community Development. Each department is headed by a Director who reports to the Secretary. The Director of Finance oversees all financial operations with support from the Treasurer and Chief Accountant. The internal audit unit reports directly to the Chairman. Total workforce stands at approximately 1,200 staff comprising 780 permanent officers and 420 casual workers deployed across the main secretariat and 6 ward offices.",
+    answer: "well_defined",
     answeredBy: "user-lead-1",
     answeredAt: "2026-03-02T10:00:00Z",
   },
@@ -4765,35 +4704,25 @@ export const SEED_QUESTIONNAIRE_RESPONSES: QuestionnaireResponse[] = [
   {
     id: "qr-3",
     auditId: "audit-1",
-    questionId: "q-3",
-    section: "Understanding the Entity",
-    answer:
-      "Reviewed. The organizational chart is comprehensive and current as of January 2026. Reporting lines are clearly defined. However, the internal audit unit's reporting line should be elevated to report directly to the Chairman rather than through the Secretary for greater independence.",
-    answeredBy: "user-lead-1",
-    answeredAt: "2026-03-02T10:30:00Z",
-  },
-  {
-    id: "qr-4",
-    auditId: "audit-1",
-    questionId: "q-6",
+    questionId: "q-9",
     section: "Key Accounting Systems",
     answer: "yes_partial",
     answeredBy: "user-lead-1",
     answeredAt: "2026-03-02T11:00:00Z",
   },
   {
-    id: "qr-5",
+    id: "qr-4",
     auditId: "audit-1",
-    questionId: "q-10",
+    questionId: "q-16",
     section: "Internal Control Environment",
     answer: "3",
     answeredBy: "user-lead-1",
     answeredAt: "2026-03-03T09:00:00Z",
   },
   {
-    id: "qr-6",
+    id: "qr-5",
     auditId: "audit-1",
-    questionId: "q-14",
+    questionId: "q-23",
     section: "Risk Assessment",
     answer: "4",
     answeredBy: "user-lead-1",
