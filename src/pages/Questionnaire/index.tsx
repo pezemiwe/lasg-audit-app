@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import StatusBadge from "../../components/UI/StatusBadge";
@@ -9,6 +10,8 @@ import {
   Save,
   Pencil,
   Trash2,
+  FileText,
+  X,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
 
@@ -47,9 +50,10 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
 
   const [activeSection, setActiveSection] = useState<string>("");
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
-  const [editingQuestions, setEditingQuestions] = useState<Set<string>>(
-    new Set(),
-  );
+  const [otherExplanations, setOtherExplanations] = useState<Record<string, string>>({});
+  const [editingQuestions, setEditingQuestions] = useState<Set<string>>(new Set());
+  const [showReport, setShowReport] = useState(false);
+  const [sectionError, setSectionError] = useState<string | null>(null);
 
   const sections = useMemo(() => {
     return Array.from(new Set(questions.map((q) => q.section)));
@@ -130,6 +134,9 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
       section: activeSection,
       answer: answer.trim(),
       answeredBy: user?.id || "",
+      ...(answer.trim() === "other" && otherExplanations[questionId]
+        ? { otherExplanation: otherExplanations[questionId] }
+        : {}),
     });
     const updated = { ...draftAnswers };
     delete updated[questionId];
@@ -153,6 +160,9 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
           section: activeSection,
           answer: answer.trim(),
           answeredBy: user?.id || "",
+          ...(answer.trim() === "other" && otherExplanations[q.id]
+            ? { otherExplanation: otherExplanations[q.id] }
+            : {}),
         });
         saved++;
       }
@@ -163,6 +173,19 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
       title: "Responses Saved",
       message: `${saved} responses saved for ${activeSection}`,
     });
+  };
+
+  const handleSectionSwitch = (section: string) => {
+    if (section === activeSection) return;
+    const unanswered = sectionQuestions.filter((q) => !getResponse(q.id));
+    if (unanswered.length > 0) {
+      setSectionError(
+        `Please answer all ${unanswered.length} remaining question(s) in "${activeSection}" before proceeding.`,
+      );
+      return;
+    }
+    setSectionError(null);
+    setActiveSection(section);
   };
 
   return (
@@ -270,7 +293,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
-              onClick={() => setActiveSection(section)}
+              onClick={() => handleSectionSwitch(section)}
             >
               <div
                 style={{
@@ -333,6 +356,32 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
         })}
       </div>
 
+      {sectionError && (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: "8px",
+            padding: "0.75rem 1rem",
+            marginBottom: "1rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.75rem",
+          }}
+        >
+          <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: 600 }}>
+            {sectionError}
+          </span>
+          <button
+            onClick={() => setSectionError(null)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626" }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <div className={s.card}>
         <div className={s.cardHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -353,11 +402,22 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
               </span>
             )}
           </div>
-          {canEdit && (
-            <button className={s.btnPrimary} onClick={handleSaveAll}>
-              <Save size={14} /> Save All Responses
-            </button>
-          )}
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            {totalProgress.answered === totalProgress.total && totalProgress.total > 0 && (
+              <button
+                className={s.btnPrimary}
+                style={{ background: "#064e3b", borderColor: "#064e3b" }}
+                onClick={() => setShowReport(true)}
+              >
+                <FileText size={14} /> Generate Report
+              </button>
+            )}
+            {canEdit && (
+              <button className={s.btnPrimary} onClick={handleSaveAll}>
+                <Save size={14} /> Save All Responses
+              </button>
+            )}
+          </div>
         </div>
         <div className={s.cardBody}>
           {sectionQuestions.length === 0 && (
@@ -520,6 +580,25 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                         {opt.label}
                       </label>
                     ))}
+                    {answer === "other" && (
+                      <div style={{ marginTop: "0.5rem" }}>
+                        <input
+                          type="text"
+                          className={s.formInput}
+                          placeholder="Please explain…"
+                          value={otherExplanations[q.id] || ""}
+                          disabled={!canEdit}
+                          onChange={(e) =>
+                            canEdit &&
+                            setOtherExplanations((prev) => ({
+                              ...prev,
+                              [q.id]: e.target.value,
+                            }))
+                          }
+                          style={{ width: "100%", marginTop: "0.25rem" }}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : q.type === "risk-scoring" && q.options ? (
                   <div
@@ -815,45 +894,191 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
           })}
         </div>
       </div>
-      {activeSection === "Risk Assessment" && (
-        <div style={{ marginTop: "2rem" }}>
-          <div className={s.pageHeader}>
-            <div>
-              <h2 className={s.pageTitle}>Risk Assessment Report</h2>
-              <p className={s.pageSubtitle}>
-                Comprehensive overview based on above questionnaire responses
-              </p>
+      {showReport &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.5)",
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              padding: "2rem 1rem",
+              overflowY: "auto",
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowReport(false);
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                borderRadius: "12px",
+                width: "100%",
+                maxWidth: "800px",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                overflow: "hidden",
+                marginBottom: "2rem",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                  padding: "1.5rem 2rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <h2 style={{ color: "white", margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>
+                    Pre-Audit Questionnaire Report
+                  </h2>
+                  <p style={{ color: "rgba(255,255,255,0.75)", margin: "0.25rem 0 0", fontSize: "0.85rem" }}>
+                    Comprehensive responses — all {totalProgress.total} questions answered
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowReport(false)}
+                  style={{
+                    background: "rgba(255,255,255,0.15)",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "white",
+                    cursor: "pointer",
+                    padding: "0.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: "1.5rem 2rem", maxHeight: "70vh", overflowY: "auto" }}>
+                {sections.map((section) => {
+                  const qs = questions.filter((q) => q.section === section);
+                  return (
+                    <div key={section} style={{ marginBottom: "2rem" }}>
+                      <h3
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: 700,
+                          color: "#064e3b",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          borderBottom: "2px solid #d1fae5",
+                          paddingBottom: "0.5rem",
+                          marginBottom: "1rem",
+                        }}
+                      >
+                        {section}
+                      </h3>
+                      {qs.map((q, idx) => {
+                        const resp = auditResponses.find((r) => r.questionId === q.id);
+                        const optionLabel =
+                          q.options && resp
+                            ? (q.options.find((o) => o.value === resp.answer)?.label ?? resp.answer)
+                            : resp?.answer;
+                        return (
+                          <div
+                            key={q.id}
+                            style={{
+                              marginBottom: "1rem",
+                              padding: "0.875rem 1rem",
+                              background: "#f8fafc",
+                              borderRadius: "8px",
+                              border: "1px solid #e2e8f0",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "0.82rem",
+                                color: "#64748b",
+                                fontWeight: 600,
+                                marginBottom: "0.25rem",
+                              }}
+                            >
+                              Q{idx + 1}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "0.875rem",
+                                fontWeight: 600,
+                                color: "#1e293b",
+                                marginBottom: "0.5rem",
+                              }}
+                            >
+                              {q.question}
+                            </div>
+                            {resp ? (
+                              <div
+                                style={{
+                                  fontSize: "0.875rem",
+                                  color: "#064e3b",
+                                  fontWeight: 500,
+                                  background: "#ecfdf5",
+                                  border: "1px solid #a7f3d0",
+                                  borderRadius: "6px",
+                                  padding: "0.5rem 0.75rem",
+                                }}
+                              >
+                                {optionLabel}
+                                {resp.otherExplanation && (
+                                  <div
+                                    style={{
+                                      marginTop: "0.35rem",
+                                      fontSize: "0.82rem",
+                                      color: "#475569",
+                                    }}
+                                  >
+                                    <em>Explanation:</em> {resp.otherExplanation}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div
+                                style={{
+                                  fontSize: "0.82rem",
+                                  color: "#dc2626",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                No response recorded
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  padding: "1rem 2rem",
+                  borderTop: "1px solid #e2e8f0",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => setShowReport(false)}
+                >
+                  Close Report
+                </button>
+              </div>
             </div>
-          </div>
-          <div className={s.card}>
-            <div className={s.cardBody} style={{ fontSize: "0.9rem", lineHeight: "1.6" }}>
-              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Executive Summary</h4>
-              <p style={{ marginBottom: "1rem" }}>
-                Based on the risk assessment responses provided, the entity exhibits a moderate-to-high risk profile overall. Key areas of concern involve documented internal controls, fraud risk indicators, and potential regulatory non-compliance issues. The presence of ongoing litigation and related-party complexities underscores the need for robust substantive testing in specific account balances.
-              </p>
-
-              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Inherent vs. Control Risk</h4>
-              <p style={{ marginBottom: "1rem" }}>
-                <strong>Inherent Risk (High):</strong> Factors such as decentralized operations, significant regulatory environments, and potential fraud indicators contribute to a high inherent risk assessment.
-                <br/>
-                <strong>Control Risk (Medium):</strong> While there is a functional internal audit unit and partial segregation of duties, the lack of full compliance and documented enforcement structures elevates control risk.
-              </p>
-
-              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Key Risk Drivers</h4>
-              <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }}>
-                <li>Potential existence of related-party transactions lacking sufficient disclosure.</li>
-                <li>Indications of unresolved audit queries from prior periods, indicating a slow remediation capability by management.</li>
-                <li>Significant leadership or structural changes that could disrupt systematic control implementation.</li>
-              </ul>
-
-              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Audit Strategy Implications</h4>
-              <p>
-                The audit strategy should employ a predominantly substantive approach due to the moderate-low reliance on internal controls. Special focus is required on related-party disclosures, revenue completeness, and areas susceptible to management override. A higher sample size is recommended for expenditure vouching to account for the heightened fraud risk.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

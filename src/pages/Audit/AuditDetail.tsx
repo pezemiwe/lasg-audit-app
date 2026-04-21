@@ -31,7 +31,8 @@ const AuditDetail: React.FC = () => {
   const { user } = useAuth();
   const audits = useAuditStore((st) => st.audits);
   const lgas = useAuditStore((st) => st.lgas);
-  const updateAuditTimelines = useAuditStore((st) => st.updateAuditTimelines);
+  const proposeAuditTimelines = useAuditStore((st) => st.proposeAuditTimelines);
+  const approveAuditTimelines = useAuditStore((st) => st.approveAuditTimelines);
 
   const audit = audits.find((a) => a.id === id);
   const lga = lgas.find((l) => l.id === audit?.lgaId);
@@ -55,21 +56,23 @@ const AuditDetail: React.FC = () => {
     Record<string, { startDate: string; endDate: string }>
   >({});
 
+  const PHASES = [
+    "Engagement",
+    "Planning",
+    "Fieldwork",
+    "Reporting",
+    "Quality Review",
+    "Post-Audit",
+  ];
+
   const handleEditTimelines = () => {
-    if (audit?.phaseTimelines) {
-      setTimelineForm({ ...audit.phaseTimelines });
+    const source = audit?.proposedTimelines ?? audit?.phaseTimelines;
+    if (source) {
+      setTimelineForm({ ...source });
     } else {
-      // Initialize default phases if empty
       const defaults: Record<string, { startDate: string; endDate: string }> =
         {};
-      [
-        "Pre-Audit",
-        "Planning",
-        "Fieldwork",
-        "Reporting",
-        "Review",
-        "Post-Audit",
-      ].forEach((p) => {
+      PHASES.forEach((p) => {
         defaults[p] = { startDate: "", endDate: "" };
       });
       setTimelineForm(defaults);
@@ -79,7 +82,7 @@ const AuditDetail: React.FC = () => {
 
   const handleSaveTimelines = () => {
     if (audit) {
-      updateAuditTimelines(audit.id, timelineForm);
+      proposeAuditTimelines(audit.id, timelineForm);
       setIsEditingTimelines(false);
     }
   };
@@ -181,38 +184,76 @@ const AuditDetail: React.FC = () => {
                     width: "100%",
                   }}
                 >
-                  <h3 className={s.cardTitle}>Phase Timelines</h3>
-                  {!isEditingTimelines &&
-                    (user.role === "AUDIT_SUPERVISOR" ||
-                      user.role === "AUDIT_LEAD" ||
-                      user.role === "STATE_AUDITOR_GENERAL") && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <h3 className={s.cardTitle}>Phase Timelines</h3>
+                    {audit.proposedTimelines && !audit.timelinesApproved && (
+                      <span style={{
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        padding: "0.2rem 0.6rem",
+                        borderRadius: "4px",
+                        background: "#fef3c7",
+                        color: "#92400e",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}>
+                        Pending Approval
+                      </span>
+                    )}
+                    {audit.timelinesApproved && (
+                      <span style={{
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        padding: "0.2rem 0.6rem",
+                        borderRadius: "4px",
+                        background: "#d1fae5",
+                        color: "#065f46",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}>
+                        Approved
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    {!isEditingTimelines && user.role === "AUDIT_LEAD" && (
                       <button
                         className={s.btnSecondary}
-                        style={{
-                          fontSize: "0.875rem",
-                          padding: "0.25rem 0.75rem",
-                        }}
+                        style={{ fontSize: "0.875rem", padding: "0.25rem 0.75rem" }}
                         onClick={handleEditTimelines}
                       >
-                        Manage Timelines
+                        {audit.proposedTimelines ? "Edit Proposal" : "Set Timelines"}
                       </button>
                     )}
-                  {isEditingTimelines && (
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <button
-                        className={s.btnSecondary}
-                        onClick={() => setIsEditingTimelines(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className={s.btnPrimary}
-                        onClick={handleSaveTimelines}
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  )}
+                    {!isEditingTimelines &&
+                      user.role === "AUDIT_SUPERVISOR" &&
+                      audit.proposedTimelines &&
+                      !audit.timelinesApproved && (
+                        <button
+                          className={s.btnPrimary}
+                          style={{ fontSize: "0.875rem", padding: "0.25rem 0.75rem" }}
+                          onClick={() => approveAuditTimelines(audit.id)}
+                        >
+                          Approve Timelines
+                        </button>
+                      )}
+                    {isEditingTimelines && (
+                      <>
+                        <button
+                          className={s.btnSecondary}
+                          onClick={() => setIsEditingTimelines(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className={s.btnPrimary}
+                          onClick={handleSaveTimelines}
+                        >
+                          Submit for Approval
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className={s.cardBody}>
@@ -224,29 +265,18 @@ const AuditDetail: React.FC = () => {
                       gap: "1rem",
                     }}
                   >
-                    {[
-                      "Pre-Audit",
-                      "Planning",
-                      "Fieldwork",
-                      "Reporting",
-                      "Review",
-                      "Post-Audit",
-                    ].map((phase) => (
+                    {PHASES.map((phase) => (
                       <div
                         key={phase}
                         className={s.card}
                         style={{ padding: "0.75rem", border: "1px solid #eee" }}
                       >
-                        <div
-                          style={{ fontWeight: 600, marginBottom: "0.5rem" }}
-                        >
+                        <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
                           {phase}
                         </div>
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           <div style={{ flex: 1 }}>
-                            <label
-                              style={{ fontSize: "0.75rem", color: "#666" }}
-                            >
+                            <label style={{ fontSize: "0.75rem", color: "#666" }}>
                               Start
                             </label>
                             <input
@@ -258,10 +288,7 @@ const AuditDetail: React.FC = () => {
                                 setTimelineForm({
                                   ...timelineForm,
                                   [phase]: {
-                                    ...(timelineForm[phase] || {
-                                      startDate: "",
-                                      endDate: "",
-                                    }),
+                                    ...(timelineForm[phase] || { startDate: "", endDate: "" }),
                                     startDate: e.target.value,
                                   },
                                 })
@@ -269,13 +296,7 @@ const AuditDetail: React.FC = () => {
                             />
                           </div>
                           <div style={{ flex: 1 }}>
-                            <label
-                              style={{
-                                display: "block",
-                                fontSize: "0.75rem",
-                                color: "#666",
-                              }}
-                            >
+                            <label style={{ display: "block", fontSize: "0.75rem", color: "#666" }}>
                               End
                             </label>
                             <input
@@ -287,10 +308,7 @@ const AuditDetail: React.FC = () => {
                                 setTimelineForm({
                                   ...timelineForm,
                                   [phase]: {
-                                    ...(timelineForm[phase] || {
-                                      startDate: "",
-                                      endDate: "",
-                                    }),
+                                    ...(timelineForm[phase] || { startDate: "", endDate: "" }),
                                     endDate: e.target.value,
                                   },
                                 })
@@ -302,50 +320,46 @@ const AuditDetail: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fill, minmax(200px, 1fr))",
-                      gap: "1rem",
-                    }}
-                  >
-                    {audit.phaseTimelines &&
-                      Object.entries(audit.phaseTimelines).map(
-                        ([phase, dates]) => (
+                  <>
+                    {audit.proposedTimelines && !audit.timelinesApproved && (
+                      <div style={{ marginBottom: "1rem", fontSize: "0.8rem", color: "#92400e", background: "#fef9c3", padding: "0.6rem 1rem", borderRadius: "6px", border: "1px solid #fde68a" }}>
+                        These timelines were proposed by the Audit Lead and are awaiting supervisor approval.
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                        gap: "1rem",
+                      }}
+                    >
+                      {(() => {
+                        const timelines = audit.phaseTimelines ?? {};
+                        const proposed = audit.proposedTimelines;
+                        const displayTimelines = proposed && !audit.timelinesApproved ? proposed : timelines;
+                        const entries = Object.entries(displayTimelines);
+                        return entries.length > 0 ? entries.map(([phase, dates]) => (
                           <div
                             key={phase}
                             className={s.card}
-                            style={{
-                              padding: "0.75rem",
-                              background: "#f9fafb",
-                            }}
+                            style={{ padding: "0.75rem", background: "#f9fafb" }}
                           >
-                            <div
-                              style={{
-                                fontSize: "0.875rem",
-                                fontWeight: 600,
-                                marginBottom: "0.25rem",
-                              }}
-                            >
+                            <div style={{ fontSize: "0.875rem", fontWeight: 600, marginBottom: "0.25rem" }}>
                               {phase}
                             </div>
-                            <div
-                              style={{ fontSize: "0.75rem", color: "#4b5563" }}
-                            >
+                            <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>
                               <div>Start: {dates.startDate || "Not set"}</div>
                               <div>End: {dates.endDate || "Not set"}</div>
                             </div>
                           </div>
-                        ),
-                      )}
-                    {(!audit.phaseTimelines ||
-                      Object.keys(audit.phaseTimelines).length === 0) && (
-                      <div style={{ fontStyle: "italic", color: "#6b7280" }}>
-                        No phase timelines set.
-                      </div>
-                    )}
-                  </div>
+                        )) : (
+                          <div style={{ fontStyle: "italic", color: "#6b7280" }}>
+                            No phase timelines set.
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </>
                 )}
               </div>
             </div>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
 import ProfessionalTextarea from "../../components/UI/ProfessionalTextarea";
@@ -82,21 +83,30 @@ const PreAudit: React.FC<{
     users,
     sendLetter,
     updateLetterStatus,
-    updateAuditEntryMeeting,
     addIndependenceDeclaration,
     getIndependenceDeclarations,
+    addBriefingRecord,
+    addEntryMeetingRecord,
   } = useAuditStore();
 
   const [activeTab, setActiveTab] = useState<"letters" | "meetings" | "team">(
     "letters",
   );
   const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [showBriefingModal, setShowBriefingModal] = useState(false);
   const [showDeclForm, setShowDeclForm] = useState(false);
   const [declForm, setDeclForm] = useState({ threats: "", safeguards: "" });
   const [meetingForm, setMeetingForm] = useState({
     auditId: "",
     date: "",
     notes: "",
+    agendaItems: [{ action: "", timeline: "", responsibility: "" }],
+  });
+  const [briefingForm, setBriefingForm] = useState({
+    auditId: "",
+    date: "",
+    venue: "",
+    agendaItems: [{ action: "", timeline: "", responsibility: "" }],
   });
 
   if (!user) return null;
@@ -149,9 +159,20 @@ const PreAudit: React.FC<{
 
   const tabs = [
     { id: "letters", label: "Notification Letters" },
-    { id: "meetings", label: "Entry Meetings" },
+    { id: "meetings", label: "Meetings" },
     { id: "team", label: "Team Status" },
   ] as const;
+
+  const meetingAudit =
+    myAudits.find((a) => a.id === meetingForm.auditId) ?? myAudits[0];
+  const briefingAudit =
+    myAudits.find((a) => a.id === briefingForm.auditId) ?? myAudits[0];
+  const getTeamMembers = (audit: (typeof myAudits)[0] | undefined) =>
+    users.filter(
+      (u) => u.id === audit?.leadId || (audit?.teamIds ?? []).includes(u.id),
+    );
+  const meetingTeamMembers = getTeamMembers(meetingAudit);
+  const briefingTeamMembers = getTeamMembers(briefingAudit);
 
   return (
     <div
@@ -200,7 +221,14 @@ const PreAudit: React.FC<{
         </div>
       )}
 
-      <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "2rem",
+          alignItems: "flex-start",
+          width: "100%",
+        }}
+      >
         {/* Navigation - Sidebar if embedded, Tabs if standalone */}
         <div
           style={
@@ -423,120 +451,431 @@ const PreAudit: React.FC<{
                 gap: "1.25rem",
               }}
             >
-              {entryMeetings.length === 0 ? (
-                <Card title="Entry Meeting Log">
+              {/* ── Action buttons for Audit Lead ── */}
+              {user.role === "AUDIT_LEAD" && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      setBriefingForm({
+                        auditId: myAudits[0]?.id ?? "",
+                        date: "",
+                        venue: "",
+                        agendaItems: [
+                          { action: "", timeline: "", responsibility: "" },
+                        ],
+                      });
+                      setShowBriefingModal(true);
+                    }}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "var(--bg-card)",
+                      color: "var(--primary)",
+                      border: "1px solid var(--primary)",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <ClipboardList size={14} /> Record New Briefing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMeetingForm({
+                        auditId: myAudits[0]?.id ?? "",
+                        date: "",
+                        notes: "",
+                        agendaItems: [
+                          { action: "", timeline: "", responsibility: "" },
+                        ],
+                      });
+                      setShowMeetingModal(true);
+                    }}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background: "var(--primary)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    + Record Entry Meeting
+                  </button>
+                </div>
+              )}
+
+              {/* ── Briefing Records ── */}
+              {myAudits.some((a) => (a.briefings ?? []).length > 0) && (
+                <div style={{ display: "grid", gap: "1rem" }}>
                   <div
                     style={{
-                      padding: "2rem",
-                      textAlign: "center",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
                       color: "var(--text-3)",
                     }}
                   >
-                    No entry meetings scheduled or recorded.
-                    <br />
-                    <button
-                      onClick={() => {
-                        if (myAudits.length > 0) {
-                          setMeetingForm({
-                            auditId: myAudits[0].id,
-                            date: "",
-                            notes: "",
-                          });
-                          setShowMeetingModal(true);
-                        }
-                      }}
-                      style={{
-                        marginTop: "1rem",
-                        padding: "0.5rem 1rem",
-                        background: "var(--primary)",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Schedule Meeting
-                    </button>
+                    Team Briefing Records
                   </div>
-                </Card>
-              ) : (
-                <div style={{ display: "grid", gap: "1.5rem" }}>
-                  {entryMeetings.map((meeting) => (
-                    <div
-                      key={meeting.id}
-                      style={{
-                        background: "var(--bg-card)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "4px",
-                        overflow: "hidden",
-                      }}
-                    >
+                  {myAudits.flatMap((a) =>
+                    (a.briefings ?? []).map((b) => (
                       <div
+                        key={b.id}
                         style={{
-                          padding: "1rem 1.5rem",
-                          background: "var(--bg)",
-                          borderBottom: "1px solid var(--border)",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "6px",
+                          overflow: "hidden",
                         }}
                       >
-                        <div>
-                          <h3
-                            style={{
-                              margin: 0,
-                              fontSize: "1rem",
-                              fontWeight: 700,
-                            }}
-                          >
-                            {meeting.lgaName} LGA
-                          </h3>
-                          <span
-                            style={{
-                              fontSize: "0.8rem",
-                              color: "var(--text-3)",
-                            }}
-                          >
-                            Entry Meeting •{" "}
-                            {new Date(meeting.date).toLocaleDateString()}
-                          </span>
+                        <div
+                          style={{
+                            padding: "0.85rem 1.25rem",
+                            background: "var(--bg)",
+                            borderBottom: "1px solid var(--border)",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div>
+                            <div
+                              style={{ fontWeight: 700, fontSize: "0.95rem" }}
+                            >
+                              Team Briefing —{" "}
+                              {new Date(b.date).toLocaleDateString()}
+                            </div>
+                            {b.venue && (
+                              <div
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-3)",
+                                }}
+                              >
+                                {b.venue}
+                              </div>
+                            )}
+                          </div>
+                          <Badge status="Completed" />
                         </div>
-                        <Badge status={meeting.status} />
-                      </div>
-                      <div
-                        style={{
-                          padding: "1.5rem",
-                          display: "grid",
-                          gridTemplateColumns: "2fr 1fr",
-                          gap: "2rem",
-                        }}
-                      >
-                        <div>
-                          <h4
-                            style={{
-                              fontSize: "0.8rem",
-                              textTransform: "uppercase",
-                              color: "var(--text-3)",
-                              marginBottom: "0.5rem",
-                            }}
-                          >
-                            Meeting Minutes & Notes
-                          </h4>
+                        <div style={{ padding: "1rem 1.25rem" }}>
                           <div
                             style={{
-                              background: "var(--bg)",
-                              padding: "1rem",
-                              borderRadius: "4px",
-                              fontSize: "0.9rem",
-                              lineHeight: "1.6",
-                              color: "var(--text-2)",
-                              minHeight: "100px",
+                              fontSize: "0.75rem",
+                              textTransform: "uppercase",
+                              fontWeight: 700,
+                              color: "var(--text-3)",
+                              marginBottom: "0.5rem",
+                              letterSpacing: "0.06em",
                             }}
                           >
-                            {meeting.notes}
+                            Agenda & Actions
                           </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "0.5rem",
+                            }}
+                          >
+                            {b.agendaItems.map((item, i) => (
+                              <div
+                                key={i}
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "2fr 1fr 1fr",
+                                  gap: "0.75rem",
+                                  padding: "0.6rem 0.75rem",
+                                  borderRadius: "4px",
+                                  background: "var(--bg)",
+                                  border: "1px solid var(--border)",
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                <div>
+                                  <span
+                                    style={{
+                                      color: "var(--text-3)",
+                                      fontSize: "0.72rem",
+                                    }}
+                                  >
+                                    Action:
+                                  </span>{" "}
+                                  {item.action}
+                                </div>
+                                {item.timeline && (
+                                  <div>
+                                    <span
+                                      style={{
+                                        color: "var(--text-3)",
+                                        fontSize: "0.72rem",
+                                      }}
+                                    >
+                                      Timeline:
+                                    </span>{" "}
+                                    {item.timeline}
+                                  </div>
+                                )}
+                                {item.responsibility && (
+                                  <div>
+                                    <span
+                                      style={{
+                                        color: "var(--text-3)",
+                                        fontSize: "0.72rem",
+                                      }}
+                                    >
+                                      Responsible:
+                                    </span>{" "}
+                                    {item.responsibility}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <div
+                            style={{
+                              marginTop: "0.75rem",
+                              fontSize: "0.75rem",
+                              color: "var(--text-3)",
+                            }}
+                          >
+                            Recorded by {b.recordedBy} on{" "}
+                            {new Date(b.recordedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    )),
+                  )}
+                </div>
+              )}
 
-                          <div style={{ marginTop: "1.5rem" }}>
+              {/* ── Entry Meetings ── */}
+              <div style={{ display: "grid", gap: "1rem" }}>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-3)",
+                  }}
+                >
+                  Entry Meetings
+                </div>
+                {myAudits.flatMap((a) => a.entryMeetings ?? []).length === 0 &&
+                entryMeetings.length === 0 ? (
+                  <Card title="Entry Meeting Log">
+                    <div
+                      style={{
+                        padding: "2rem",
+                        textAlign: "center",
+                        color: "var(--text-3)",
+                      }}
+                    >
+                      No entry meetings recorded yet.
+                    </div>
+                  </Card>
+                ) : (
+                  <>
+                    {/* New-style entry meetings from the array */}
+                    {myAudits.flatMap((a) =>
+                      (a.entryMeetings ?? []).map((em) => (
+                        <div
+                          key={em.id}
+                          style={{
+                            background: "var(--bg-card)",
+                            border: "1px solid var(--border)",
+                            borderRadius: "6px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: "0.85rem 1.25rem",
+                              background: "var(--bg)",
+                              borderBottom: "1px solid var(--border)",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{ fontWeight: 700, fontSize: "0.95rem" }}
+                              >
+                                Entry Meeting — {getLGAName(a.lgaId)} LGA
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-3)",
+                                }}
+                              >
+                                {new Date(em.date).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <Badge status="Scheduled" />
+                          </div>
+                          <div style={{ padding: "1rem 1.25rem" }}>
+                            {em.notes && (
+                              <div
+                                style={{
+                                  marginBottom: "0.75rem",
+                                  fontSize: "0.85rem",
+                                  color: "var(--text-2)",
+                                  background: "var(--bg)",
+                                  padding: "0.75rem",
+                                  borderRadius: "4px",
+                                }}
+                              >
+                                {em.notes}
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                fontSize: "0.75rem",
+                                textTransform: "uppercase",
+                                fontWeight: 700,
+                                color: "var(--text-3)",
+                                marginBottom: "0.5rem",
+                                letterSpacing: "0.06em",
+                              }}
+                            >
+                              Agenda & Actions
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
+                              }}
+                            >
+                              {em.agendaItems.map((item, i) => (
+                                <div
+                                  key={i}
+                                  style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "2fr 1fr 1fr",
+                                    gap: "0.75rem",
+                                    padding: "0.6rem 0.75rem",
+                                    borderRadius: "4px",
+                                    background: "var(--bg)",
+                                    border: "1px solid var(--border)",
+                                    fontSize: "0.85rem",
+                                  }}
+                                >
+                                  <div>
+                                    <span
+                                      style={{
+                                        color: "var(--text-3)",
+                                        fontSize: "0.72rem",
+                                      }}
+                                    >
+                                      Action:
+                                    </span>{" "}
+                                    {item.action}
+                                  </div>
+                                  {item.timeline && (
+                                    <div>
+                                      <span
+                                        style={{
+                                          color: "var(--text-3)",
+                                          fontSize: "0.72rem",
+                                        }}
+                                      >
+                                        Timeline:
+                                      </span>{" "}
+                                      {item.timeline}
+                                    </div>
+                                  )}
+                                  {item.responsibility && (
+                                    <div>
+                                      <span
+                                        style={{
+                                          color: "var(--text-3)",
+                                          fontSize: "0.72rem",
+                                        }}
+                                      >
+                                        Responsible:
+                                      </span>{" "}
+                                      {item.responsibility}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )),
+                    )}
+                    {/* Legacy entry meetings */}
+                    {entryMeetings.map((meeting) => (
+                      <div
+                        key={meeting.id}
+                        style={{
+                          background: "var(--bg-card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "6px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            padding: "0.85rem 1.25rem",
+                            background: "var(--bg)",
+                            borderBottom: "1px solid var(--border)",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div>
+                            <h3
+                              style={{
+                                margin: 0,
+                                fontSize: "1rem",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {meeting.lgaName} LGA
+                            </h3>
+                            <span
+                              style={{
+                                fontSize: "0.8rem",
+                                color: "var(--text-3)",
+                              }}
+                            >
+                              Entry Meeting •{" "}
+                              {new Date(meeting.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <Badge status={meeting.status} />
+                        </div>
+                        <div
+                          style={{
+                            padding: "1.5rem",
+                            display: "grid",
+                            gridTemplateColumns: "2fr 1fr",
+                            gap: "2rem",
+                          }}
+                        >
+                          <div>
                             <h4
                               style={{
                                 fontSize: "0.8rem",
@@ -545,102 +884,127 @@ const PreAudit: React.FC<{
                                 marginBottom: "0.5rem",
                               }}
                             >
-                              Action Items
+                              Meeting Minutes & Notes
+                            </h4>
+                            <div
+                              style={{
+                                background: "var(--bg)",
+                                padding: "1rem",
+                                borderRadius: "4px",
+                                fontSize: "0.9rem",
+                                lineHeight: "1.6",
+                                color: "var(--text-2)",
+                                minHeight: "80px",
+                              }}
+                            >
+                              {meeting.notes}
+                            </div>
+                            <div style={{ marginTop: "1.5rem" }}>
+                              <h4
+                                style={{
+                                  fontSize: "0.8rem",
+                                  textTransform: "uppercase",
+                                  color: "var(--text-3)",
+                                  marginBottom: "0.5rem",
+                                }}
+                              >
+                                Action Items
+                              </h4>
+                              <ul
+                                style={{
+                                  margin: 0,
+                                  paddingLeft: "1.2rem",
+                                  color: "var(--text-2)",
+                                  fontSize: "0.9rem",
+                                }}
+                              >
+                                {meeting.actionItems.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              borderLeft: "1px solid var(--border)",
+                              paddingLeft: "1.5rem",
+                            }}
+                          >
+                            <h4
+                              style={{
+                                fontSize: "0.8rem",
+                                textTransform: "uppercase",
+                                color: "var(--text-3)",
+                                marginBottom: "0.5rem",
+                              }}
+                            >
+                              Attendees
                             </h4>
                             <ul
                               style={{
+                                listStyle: "none",
+                                padding: 0,
                                 margin: 0,
-                                paddingLeft: "1.2rem",
-                                color: "var(--text-2)",
-                                fontSize: "0.9rem",
+                                fontSize: "0.875rem",
+                                color: "var(--text)",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
                               }}
                             >
-                              {meeting.actionItems.map((item) => (
-                                <li key={item}>{item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            borderLeft: "1px solid var(--border)",
-                            paddingLeft: "1.5rem",
-                          }}
-                        >
-                          <h4
-                            style={{
-                              fontSize: "0.8rem",
-                              textTransform: "uppercase",
-                              color: "var(--text-3)",
-                              marginBottom: "0.5rem",
-                            }}
-                          >
-                            Attendees
-                          </h4>
-                          <ul
-                            style={{
-                              listStyle: "none",
-                              padding: 0,
-                              margin: 0,
-                              fontSize: "0.875rem",
-                              color: "var(--text)",
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            {meeting.attendees.map((person) => (
-                              <li
-                                key={person}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.5rem",
-                                }}
-                              >
-                                <div
+                              {meeting.attendees.map((person) => (
+                                <li
+                                  key={person}
                                   style={{
-                                    width: "24px",
-                                    height: "24px",
-                                    background: "#e5e7eb",
-                                    borderRadius: "50%",
                                     display: "flex",
                                     alignItems: "center",
-                                    justifyContent: "center",
-                                    fontSize: "0.7rem",
-                                    fontWeight: 600,
+                                    gap: "0.5rem",
                                   }}
                                 >
-                                  {person.charAt(0)}
-                                </div>
-                                {person}
-                              </li>
-                            ))}
-                          </ul>
-                          <button
-                            style={{
-                              marginTop: "2rem",
-                              width: "100%",
-                              padding: "0.5rem",
-                              border: "1px solid var(--border)",
-                              background: "white",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "0.8rem",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <span>📄</span> View Minutes PDF
-                          </button>
+                                  <div
+                                    style={{
+                                      width: "24px",
+                                      height: "24px",
+                                      background: "#e5e7eb",
+                                      borderRadius: "50%",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: "0.7rem",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {person.charAt(0)}
+                                  </div>
+                                  {person}
+                                </li>
+                              ))}
+                            </ul>
+                            <button
+                              style={{
+                                marginTop: "2rem",
+                                width: "100%",
+                                padding: "0.5rem",
+                                border: "1px solid var(--border)",
+                                background: "white",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "0.8rem",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "0.5rem",
+                              }}
+                            >
+                              <span>📄</span> View Minutes PDF
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </>
+                )}
+              </div>
             </div>
           )}
 
@@ -1318,10 +1682,10 @@ const PreAudit: React.FC<{
                 );
               })}
 
-              {/* ── Pre-Audit Team Briefing Record ── */}
+              {/* ── Pre-Audit Team Briefing Record (moved to Meetings tab) ── */}
               <Card
                 title="Pre-Audit Team Briefing Record"
-                subtitle="Briefing held by the Audit Lead before fieldwork commencement"
+                subtitle="Briefing held by the Audit Lead before fieldwork commencement — view full records in the Meetings tab"
               >
                 <div
                   style={{
@@ -1569,6 +1933,21 @@ const PreAudit: React.FC<{
                       </button>
                       {user.role === "AUDIT_LEAD" && (
                         <button
+                          onClick={() => {
+                            setBriefingForm({
+                              auditId: myAudits[0]?.id ?? "",
+                              date: "",
+                              venue: "",
+                              agendaItems: [
+                                {
+                                  action: "",
+                                  timeline: "",
+                                  responsibility: "",
+                                },
+                              ],
+                            });
+                            setShowBriefingModal(true);
+                          }}
                           style={{
                             flex: 1,
                             padding: "0.5rem 1rem",
@@ -1742,159 +2121,799 @@ const PreAudit: React.FC<{
             </div>
           )}
 
-          {showMeetingModal && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background: "rgba(0,0,0,0.5)",
-                backdropFilter: "blur(4px)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 1000,
-              }}
-            >
+          {/* ── Entry Meeting Modal ── */}
+          {showMeetingModal &&
+            createPortal(
               <div
                 style={{
-                  background: "var(--bg-card)",
-                  padding: "2rem",
-                  borderRadius: "8px",
-                  minWidth: "400px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                  border: "1px solid var(--border)",
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: "1rem",
+                  zIndex: 2147483000,
+                  isolation: "isolate",
                 }}
               >
-                <h3 style={{ marginBottom: "1.5rem" }}>
-                  Schedule Entry Meeting
-                </h3>
                 <div
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.5)",
+                    zIndex: -9,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 2,
+                    background: "#fff",
+                    padding: "2rem",
+                    borderRadius: "8px",
+                    width: "600px",
+                    maxWidth: "95vw",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+                    border: "1px solid var(--border)",
                   }}
                 >
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        fontSize: "0.85rem",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      Audit / LGA
-                    </label>
-                    <select
-                      value={meetingForm.auditId}
-                      onChange={(e) =>
-                        setMeetingForm({
-                          ...meetingForm,
-                          auditId: e.target.value,
-                        })
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "0.75rem",
-                        border: "1px solid var(--border)",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      {myAudits.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {getLGAName(a.lgaId)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        fontSize: "0.85rem",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      value={meetingForm.date}
-                      onChange={(e) =>
-                        setMeetingForm({ ...meetingForm, date: e.target.value })
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "0.75rem",
-                        border: "1px solid var(--border)",
-                        borderRadius: "4px",
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <ProfessionalTextarea
-                      label="Notes / Agenda"
-                      value={meetingForm.notes}
-                      rows={4}
-                      onChange={(e) =>
-                        setMeetingForm({
-                          ...meetingForm,
-                          notes: e.target.value,
-                        })
-                      }
-                      placeholder="Enter meeting notes here..."
-                    />
-                  </div>
+                  <h3 style={{ marginBottom: "1.5rem", fontWeight: 700 }}>
+                    Record Entry Meeting
+                  </h3>
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "flex-end",
+                      flexDirection: "column",
                       gap: "1rem",
-                      marginTop: "1rem",
                     }}
                   >
-                    <button
-                      onClick={() => setShowMeetingModal(false)}
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          color: "var(--text-3)",
+                          marginBottom: "0.35rem",
+                        }}
+                      >
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={meetingForm.date}
+                        onChange={(e) =>
+                          setMeetingForm({
+                            ...meetingForm,
+                            date: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "0.65rem 0.75rem",
+                          border: "1.5px solid var(--border)",
+                          borderRadius: "4px",
+                          fontSize: "0.875rem",
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <ProfessionalTextarea
+                        label="General Notes"
+                        value={meetingForm.notes}
+                        rows={2}
+                        onChange={(e) =>
+                          setMeetingForm({
+                            ...meetingForm,
+                            notes: e.target.value,
+                          })
+                        }
+                        placeholder="Optional general notes..."
+                      />
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        <label
+                          style={{
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            color: "var(--text-3)",
+                          }}
+                        >
+                          Agenda / Action Items
+                        </label>
+                        <button
+                          onClick={() =>
+                            setMeetingForm({
+                              ...meetingForm,
+                              agendaItems: [
+                                ...meetingForm.agendaItems,
+                                {
+                                  action: "",
+                                  timeline: "",
+                                  responsibility: "",
+                                },
+                              ],
+                            })
+                          }
+                          style={{
+                            fontSize: "0.78rem",
+                            padding: "0.2rem 0.6rem",
+                            border: "1px solid var(--primary)",
+                            borderRadius: "4px",
+                            background: "transparent",
+                            color: "var(--primary)",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                          }}
+                        >
+                          + Add Item
+                        </button>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        {meetingForm.agendaItems.map((item, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "0.4rem",
+                              padding: "0.75rem",
+                              border: "1px solid var(--border)",
+                              borderRadius: "6px",
+                              background: "var(--bg)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "2fr 1fr auto",
+                                gap: "0.5rem",
+                                alignItems: "end",
+                              }}
+                            >
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    color: "var(--text-3)",
+                                    display: "block",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  Action / Agenda
+                                </label>
+                                <input
+                                  value={item.action}
+                                  onChange={(e) => {
+                                    const items = [...meetingForm.agendaItems];
+                                    items[i] = {
+                                      ...items[i],
+                                      action: e.target.value,
+                                    };
+                                    setMeetingForm({
+                                      ...meetingForm,
+                                      agendaItems: items,
+                                    });
+                                  }}
+                                  placeholder="Key agenda or action"
+                                  style={{
+                                    width: "100%",
+                                    padding: "0.5rem 0.6rem",
+                                    border: "1.5px solid var(--border)",
+                                    borderRadius: "4px",
+                                    fontSize: "0.82rem",
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    color: "var(--text-3)",
+                                    display: "block",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  Timeline
+                                </label>
+                                <input
+                                  value={item.timeline ?? ""}
+                                  onChange={(e) => {
+                                    const items = [...meetingForm.agendaItems];
+                                    items[i] = {
+                                      ...items[i],
+                                      timeline: e.target.value,
+                                    };
+                                    setMeetingForm({
+                                      ...meetingForm,
+                                      agendaItems: items,
+                                    });
+                                  }}
+                                  placeholder="e.g. 2 weeks"
+                                  style={{
+                                    width: "100%",
+                                    padding: "0.5rem 0.6rem",
+                                    border: "1.5px solid var(--border)",
+                                    borderRadius: "4px",
+                                    fontSize: "0.82rem",
+                                  }}
+                                />
+                              </div>
+                              {meetingForm.agendaItems.length > 1 && (
+                                <button
+                                  onClick={() =>
+                                    setMeetingForm({
+                                      ...meetingForm,
+                                      agendaItems:
+                                        meetingForm.agendaItems.filter(
+                                          (_, j) => j !== i,
+                                        ),
+                                    })
+                                  }
+                                  style={{
+                                    padding: "0.5rem 0.6rem",
+                                    border: "1px solid #fca5a5",
+                                    borderRadius: "4px",
+                                    background: "#fff1f2",
+                                    color: "#dc2626",
+                                    cursor: "pointer",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            <div>
+                              <label
+                                style={{
+                                  fontSize: "0.72rem",
+                                  color: "var(--text-3)",
+                                  display: "block",
+                                  marginBottom: "0.2rem",
+                                }}
+                              >
+                                Responsibility
+                              </label>
+                              <select
+                                value={item.responsibility ?? ""}
+                                onChange={(e) => {
+                                  const items = [...meetingForm.agendaItems];
+                                  items[i] = {
+                                    ...items[i],
+                                    responsibility: e.target.value,
+                                  };
+                                  setMeetingForm({
+                                    ...meetingForm,
+                                    agendaItems: items,
+                                  });
+                                }}
+                                style={{
+                                  width: "100%",
+                                  padding: "0.5rem 0.6rem",
+                                  border: "1.5px solid var(--border)",
+                                  borderRadius: "4px",
+                                  fontSize: "0.82rem",
+                                }}
+                              >
+                                <option value="">— Select member —</option>
+                                {meetingTeamMembers.map((m) => (
+                                  <option key={m.id} value={m.name}>
+                                    {m.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div
                       style={{
-                        padding: "0.75rem 1.5rem",
-                        background: "transparent",
-                        border: "1px solid var(--border)",
-                        borderRadius: "4px",
-                        cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: "1rem",
+                        marginTop: "1rem",
                       }}
                     >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        updateAuditEntryMeeting(
-                          meetingForm.auditId,
-                          meetingForm.date,
-                          meetingForm.notes,
-                        );
-                        setShowMeetingModal(false);
-                      }}
-                      disabled={!meetingForm.date}
-                      style={{
-                        padding: "0.75rem 1.5rem",
-                        background: "var(--primary)",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        opacity: !meetingForm.date ? 0.5 : 1,
-                      }}
-                    >
-                      Save Meeting
-                    </button>
+                      <button
+                        onClick={() => setShowMeetingModal(false)}
+                        style={{
+                          padding: "0.65rem 1.25rem",
+                          background: "transparent",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          addEntryMeetingRecord(meetingForm.auditId, {
+                            date: meetingForm.date,
+                            notes: meetingForm.notes,
+                            agendaItems: meetingForm.agendaItems.filter((it) =>
+                              it.action.trim(),
+                            ),
+                            recordedBy: user!.name,
+                          });
+                          setShowMeetingModal(false);
+                        }}
+                        disabled={
+                          !meetingForm.date ||
+                          !meetingForm.agendaItems.some((it) =>
+                            it.action.trim(),
+                          )
+                        }
+                        style={{
+                          padding: "0.65rem 1.25rem",
+                          background: "var(--primary)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: "0.875rem",
+                          opacity:
+                            !meetingForm.date ||
+                            !meetingForm.agendaItems.some((it) =>
+                              it.action.trim(),
+                            )
+                              ? 0.5
+                              : 1,
+                        }}
+                      >
+                        Save Meeting
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </div>,
+              document.body,
+            )}
+
+          {/* ── Briefing Modal ── */}
+          {showBriefingModal &&
+            createPortal(
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: "1rem",
+                  zIndex: 2147483000,
+                  isolation: "isolate",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.5)",
+                    zIndex: 0,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 2,
+                    background: "var(--bg-card)",
+                    padding: "2rem",
+                    borderRadius: "8px",
+                    width: "620px",
+                    maxWidth: "95vw",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+                    border: "1px solid var(--border)",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <h3 style={{ marginBottom: "0.25rem", fontWeight: 700 }}>
+                    Record Team Briefing
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "var(--text-3)",
+                      marginBottom: "1.5rem",
+                    }}
+                  >
+                    Pre-fieldwork briefing conducted by the Audit Lead
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "1rem",
+                      }}
+                    >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            color: "var(--text-3)",
+                            marginBottom: "0.35rem",
+                          }}
+                        >
+                          Date
+                        </label>
+                        <input
+                          type="date"
+                          value={briefingForm.date}
+                          onChange={(e) =>
+                            setBriefingForm({
+                              ...briefingForm,
+                              date: e.target.value,
+                            })
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "0.65rem 0.75rem",
+                            border: "1.5px solid var(--border)",
+                            borderRadius: "4px",
+                            fontSize: "0.875rem",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            color: "var(--text-3)",
+                            marginBottom: "0.35rem",
+                          }}
+                        >
+                          Venue (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={briefingForm.venue}
+                          onChange={(e) =>
+                            setBriefingForm({
+                              ...briefingForm,
+                              venue: e.target.value,
+                            })
+                          }
+                          placeholder="e.g. LASG Conference Room B"
+                          style={{
+                            width: "100%",
+                            padding: "0.65rem 0.75rem",
+                            border: "1.5px solid var(--border)",
+                            borderRadius: "4px",
+                            fontSize: "0.875rem",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        <label
+                          style={{
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.06em",
+                            color: "var(--text-3)",
+                          }}
+                        >
+                          Key Agenda / Action Items
+                        </label>
+                        <button
+                          onClick={() =>
+                            setBriefingForm({
+                              ...briefingForm,
+                              agendaItems: [
+                                ...briefingForm.agendaItems,
+                                {
+                                  action: "",
+                                  timeline: "",
+                                  responsibility: "",
+                                },
+                              ],
+                            })
+                          }
+                          style={{
+                            fontSize: "0.78rem",
+                            padding: "0.2rem 0.6rem",
+                            border: "1px solid var(--primary)",
+                            borderRadius: "4px",
+                            background: "transparent",
+                            color: "var(--primary)",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                          }}
+                        >
+                          + Add Item
+                        </button>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        {briefingForm.agendaItems.map((item, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "0.4rem",
+                              padding: "0.75rem",
+                              border: "1px solid var(--border)",
+                              borderRadius: "6px",
+                              background: "var(--bg)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "2fr 1fr auto",
+                                gap: "0.5rem",
+                                alignItems: "end",
+                              }}
+                            >
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    color: "var(--text-3)",
+                                    display: "block",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  Action / Agenda
+                                </label>
+                                <input
+                                  value={item.action}
+                                  onChange={(e) => {
+                                    const items = [...briefingForm.agendaItems];
+                                    items[i] = {
+                                      ...items[i],
+                                      action: e.target.value,
+                                    };
+                                    setBriefingForm({
+                                      ...briefingForm,
+                                      agendaItems: items,
+                                    });
+                                  }}
+                                  placeholder="Key agenda item or action"
+                                  style={{
+                                    width: "100%",
+                                    padding: "0.5rem 0.6rem",
+                                    border: "1.5px solid var(--border)",
+                                    borderRadius: "4px",
+                                    fontSize: "0.82rem",
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    color: "var(--text-3)",
+                                    display: "block",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  Timeline
+                                </label>
+                                <input
+                                  value={item.timeline ?? ""}
+                                  onChange={(e) => {
+                                    const items = [...briefingForm.agendaItems];
+                                    items[i] = {
+                                      ...items[i],
+                                      timeline: e.target.value,
+                                    };
+                                    setBriefingForm({
+                                      ...briefingForm,
+                                      agendaItems: items,
+                                    });
+                                  }}
+                                  placeholder="e.g. Oct 25"
+                                  style={{
+                                    width: "100%",
+                                    padding: "0.5rem 0.6rem",
+                                    border: "1.5px solid var(--border)",
+                                    borderRadius: "4px",
+                                    fontSize: "0.82rem",
+                                  }}
+                                />
+                              </div>
+                              {briefingForm.agendaItems.length > 1 && (
+                                <button
+                                  onClick={() =>
+                                    setBriefingForm({
+                                      ...briefingForm,
+                                      agendaItems:
+                                        briefingForm.agendaItems.filter(
+                                          (_, j) => j !== i,
+                                        ),
+                                    })
+                                  }
+                                  style={{
+                                    padding: "0.5rem 0.6rem",
+                                    border: "1px solid #fca5a5",
+                                    borderRadius: "4px",
+                                    background: "#fff1f2",
+                                    color: "#dc2626",
+                                    cursor: "pointer",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            <div>
+                              <label
+                                style={{
+                                  fontSize: "0.72rem",
+                                  color: "var(--text-3)",
+                                  display: "block",
+                                  marginBottom: "0.2rem",
+                                }}
+                              >
+                                Responsibility
+                              </label>
+                              <select
+                                value={item.responsibility ?? ""}
+                                onChange={(e) => {
+                                  const items = [...briefingForm.agendaItems];
+                                  items[i] = {
+                                    ...items[i],
+                                    responsibility: e.target.value,
+                                  };
+                                  setBriefingForm({
+                                    ...briefingForm,
+                                    agendaItems: items,
+                                  });
+                                }}
+                                style={{
+                                  width: "100%",
+                                  padding: "0.5rem 0.6rem",
+                                  border: "1.5px solid var(--border)",
+                                  borderRadius: "4px",
+                                  fontSize: "0.82rem",
+                                }}
+                              >
+                                <option value="">— Select member —</option>
+                                {briefingTeamMembers.map((m) => (
+                                  <option key={m.id} value={m.name}>
+                                    {m.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: "1rem",
+                        marginTop: "1rem",
+                      }}
+                    >
+                      <button
+                        onClick={() => setShowBriefingModal(false)}
+                        style={{
+                          padding: "0.65rem 1.25rem",
+                          background: "transparent",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          addBriefingRecord(
+                            briefingForm.auditId || myAudits[0]?.id,
+                            {
+                              date: briefingForm.date,
+                              venue: briefingForm.venue,
+                              agendaItems: briefingForm.agendaItems.filter(
+                                (it) => it.action.trim(),
+                              ),
+                              recordedBy: user!.name,
+                            },
+                          );
+                          setShowBriefingModal(false);
+                        }}
+                        disabled={
+                          !briefingForm.date ||
+                          !briefingForm.agendaItems.some((it) =>
+                            it.action.trim(),
+                          )
+                        }
+                        style={{
+                          padding: "0.65rem 1.25rem",
+                          background: "var(--primary)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: "0.875rem",
+                          opacity:
+                            !briefingForm.date ||
+                            !briefingForm.agendaItems.some((it) =>
+                              it.action.trim(),
+                            )
+                              ? 0.5
+                              : 1,
+                        }}
+                      >
+                        Save Briefing
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
     </div>

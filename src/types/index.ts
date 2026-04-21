@@ -77,16 +77,42 @@ export interface Mandate {
 }
 
 export type AuditPhase =
-  | "Pre-Audit"
+  | "Engagement"
   | "Planning"
   | "Fieldwork"
-  | "Review"
+  | "Quality Review"
   | "Reporting"
   | "Post-Audit";
 
 export interface PhaseTimeline {
   startDate: string;
   endDate: string;
+}
+
+export interface AgendaItem {
+  action: string;
+  timeline?: string;
+  responsibility?: string;
+}
+
+export interface BriefingRecord {
+  id: string;
+  date: string;
+  venue?: string;
+  agendaItems: AgendaItem[];
+  recordedBy: string;
+  recordedAt: string;
+}
+
+export interface EntryMeetingRecord {
+  id: string;
+  auditId: string;
+  lgaName?: string;
+  date: string;
+  agendaItems: AgendaItem[];
+  notes?: string;
+  recordedBy: string;
+  recordedAt: string;
 }
 
 export interface Audit {
@@ -98,12 +124,16 @@ export interface Audit {
   startDate?: string;
   endDate?: string;
   phaseTimelines?: Partial<Record<AuditPhase, PhaseTimeline>>;
+  proposedTimelines?: Partial<Record<AuditPhase, PhaseTimeline>>;
+  timelinesApproved?: boolean;
   mandateId: string;
   leadId?: string;
   teamIds?: string[];
   progress: number;
   entryMeetingDate?: string;
   entryMeetingNotes?: string;
+  entryMeetings?: EntryMeetingRecord[];
+  briefings?: BriefingRecord[];
 }
 
 export type RiskLevel = "Low" | "Medium" | "High" | "Critical";
@@ -450,6 +480,7 @@ export interface QuestionnaireResponse {
   questionId: string;
   section: string;
   answer: string;
+  otherExplanation?: string;
   answeredBy: string;
   answeredAt: string;
 }

@@ -658,12 +658,8 @@ const EntityUnderstandingStep: React.FC<{
               label="Population (est.)"
               value={profile.population.toLocaleString()}
             />
-            <InfoRow label="Chairman" value={profile.chairmanName || "—"} />
+            <InfoRow label="Chairman / Council Manager" value={profile.chairmanName || "—"} />
             <InfoRow label="Treasurer" value={profile.treasurerName || "—"} />
-            <InfoRow
-              label="Council Manager"
-              value={profile.councilManagerName || "—"}
-            />
             <InfoRow
               label="Internal Auditor"
               value={profile.internalAuditorName || "—"}
@@ -928,56 +924,61 @@ const EntityUnderstandingStep: React.FC<{
         <div className={s.formGrid}>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Entity Name</label>
-            <input
+            <div
               className={s.formInput}
-              value={form.entityName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, entityName: e.target.value }))
-              }
-            />
+              style={{
+                background: "#f8fafc",
+                color: "#475569",
+                cursor: "default",
+                pointerEvents: "none",
+              }}
+            >
+              {form.entityName}
+            </div>
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Council Type</label>
-            <select
-              className={s.formSelect}
-              value={form.councilType}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  councilType: e.target.value as "LGA" | "LCDA",
-                }))
-              }
+            <div
+              className={s.formInput}
+              style={{
+                background: "#f8fafc",
+                color: "#475569",
+                cursor: "default",
+                pointerEvents: "none",
+              }}
             >
-              <option value="LGA">Local Government Area (LGA)</option>
-              <option value="LCDA">
-                Local Council Development Area (LCDA)
-              </option>
-            </select>
+              {form.councilType === "LGA"
+                ? "Local Government Area (LGA)"
+                : "Local Council Development Area (LCDA)"}
+            </div>
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Year Established</label>
-            <input
-              type="number"
+            <div
               className={s.formInput}
-              value={form.establishedYear}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  establishedYear: Number(e.target.value),
-                }))
-              }
-            />
+              style={{
+                background: "#f8fafc",
+                color: "#475569",
+                cursor: "default",
+                pointerEvents: "none",
+              }}
+            >
+              {form.establishedYear}
+            </div>
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Population (Est.)</label>
-            <input
-              type="number"
+            <div
               className={s.formInput}
-              value={form.population}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, population: Number(e.target.value) }))
-              }
-            />
+              style={{
+                background: "#f8fafc",
+                color: "#475569",
+                cursor: "default",
+                pointerEvents: "none",
+              }}
+            >
+              {Number(form.population).toLocaleString()}
+            </div>
           </div>
         </div>
       </Card>
@@ -988,14 +989,14 @@ const EntityUnderstandingStep: React.FC<{
       >
         <div className={s.formGrid}>
           <div className={s.formGroup}>
-            <label className={s.formLabel}>Chairman</label>
+            <label className={s.formLabel}>Chairman / Council Manager</label>
             <input
               className={s.formInput}
               value={form.chairmanName}
               onChange={(e) =>
                 setForm((f) => ({ ...f, chairmanName: e.target.value }))
               }
-              placeholder="Name of LGA Chairman"
+              placeholder="Name of Chairman or Council Manager"
             />
           </div>
           <div className={s.formGroup}>
@@ -1007,17 +1008,6 @@ const EntityUnderstandingStep: React.FC<{
                 setForm((f) => ({ ...f, treasurerName: e.target.value }))
               }
               placeholder="Name of Council Treasurer"
-            />
-          </div>
-          <div className={s.formGroup}>
-            <label className={s.formLabel}>Council Manager</label>
-            <input
-              className={s.formInput}
-              value={form.councilManagerName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, councilManagerName: e.target.value }))
-              }
-              placeholder="Name of Council Manager"
             />
           </div>
           <div className={s.formGroup}>

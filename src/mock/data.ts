@@ -1183,10 +1183,10 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-03-01",
     endDate: "2026-09-30",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-03-01", endDate: "2026-03-15" },
+      "Engagement": { startDate: "2026-03-01", endDate: "2026-03-15" },
       Planning: { startDate: "2026-03-16", endDate: "2026-03-31" },
       Fieldwork: { startDate: "2026-04-01", endDate: "2026-06-30" },
-      Review: { startDate: "2026-07-01", endDate: "2026-07-31" },
+      "Quality Review": { startDate: "2026-07-01", endDate: "2026-07-31" },
       Reporting: { startDate: "2026-08-01", endDate: "2026-09-15" },
       "Post-Audit": { startDate: "2026-09-16", endDate: "2026-09-30" },
     },
@@ -1207,7 +1207,7 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-03-01",
     endDate: "2026-09-30",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-03-01", endDate: "2026-03-15" },
+      "Engagement": { startDate: "2026-03-01", endDate: "2026-03-15" },
       Planning: { startDate: "2026-03-16", endDate: "2026-03-31" },
     },
     progress: 15,
@@ -1224,10 +1224,10 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-03-10",
     endDate: "2026-09-30",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-03-10", endDate: "2026-03-20" },
+      "Engagement": { startDate: "2026-03-10", endDate: "2026-03-20" },
       Planning: { startDate: "2026-03-21", endDate: "2026-04-05" },
       Fieldwork: { startDate: "2026-04-06", endDate: "2026-06-30" },
-      Review: { startDate: "2026-07-01", endDate: "2026-07-31" },
+      "Quality Review": { startDate: "2026-07-01", endDate: "2026-07-31" },
     },
     progress: 80,
     entryMeetingDate: "2026-03-10",
@@ -1246,10 +1246,10 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-03-05",
     endDate: "2026-06-20",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-03-05", endDate: "2026-03-15" },
+      "Engagement": { startDate: "2026-03-05", endDate: "2026-03-15" },
       Planning: { startDate: "2026-03-16", endDate: "2026-03-31" },
       Fieldwork: { startDate: "2026-04-01", endDate: "2026-05-31" },
-      Review: { startDate: "2026-06-01", endDate: "2026-06-15" },
+      "Quality Review": { startDate: "2026-06-01", endDate: "2026-06-15" },
       Reporting: { startDate: "2026-06-16", endDate: "2026-06-20" },
       "Post-Audit": { startDate: "2026-06-21", endDate: "2026-07-05" },
     },
@@ -1270,7 +1270,7 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-03-01",
     endDate: "2026-09-30",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-03-01", endDate: "2026-03-10" },
+      "Engagement": { startDate: "2026-03-01", endDate: "2026-03-10" },
       Planning: { startDate: "2026-03-11", endDate: "2026-04-10" },
     },
     progress: 10,
@@ -1287,7 +1287,7 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-03-12",
     endDate: "2026-06-30",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-03-12", endDate: "2026-03-22" },
+      "Engagement": { startDate: "2026-03-12", endDate: "2026-03-22" },
       Planning: { startDate: "2026-03-23", endDate: "2026-04-05" },
       Fieldwork: { startDate: "2026-04-06", endDate: "2026-06-15" },
     },
@@ -1308,7 +1308,7 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2024-09-01",
     endDate: "2024-11-30",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2024-09-01", endDate: "2024-09-15" },
+      "Engagement": { startDate: "2024-09-01", endDate: "2024-09-15" },
       Planning: { startDate: "2024-09-16", endDate: "2024-09-30" },
       Fieldwork: {
         startDate: "2024-10-01",
@@ -1335,7 +1335,7 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2024-08-01",
     endDate: "2024-12-31",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2024-08-01", endDate: "2024-08-15" },
+      "Engagement": { startDate: "2024-08-01", endDate: "2024-08-15" },
       Planning: { startDate: "2024-08-16", endDate: "2024-08-31" },
       Fieldwork: { startDate: "2024-09-01", endDate: "2024-09-30" },
       Reporting: {
@@ -1436,10 +1436,10 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2023-08-01",
     endDate: "2023-12-15",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2023-08-01", endDate: "2023-08-15" },
+      "Engagement": { startDate: "2023-08-01", endDate: "2023-08-15" },
       Planning: { startDate: "2023-08-16", endDate: "2023-08-31" },
       Fieldwork: { startDate: "2023-09-01", endDate: "2023-11-15" },
-      Review: { startDate: "2023-11-16", endDate: "2023-11-30" },
+      "Quality Review": { startDate: "2023-11-16", endDate: "2023-11-30" },
       Reporting: { startDate: "2023-12-01", endDate: "2023-12-15" },
       "Post-Audit": { startDate: "2023-12-16", endDate: "2023-12-31" },
     },
@@ -1457,10 +1457,10 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2023-09-01",
     endDate: "2023-12-20",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2023-09-01", endDate: "2023-09-10" },
+      "Engagement": { startDate: "2023-09-01", endDate: "2023-09-10" },
       Planning: { startDate: "2023-09-11", endDate: "2023-09-25" },
       Fieldwork: { startDate: "2023-09-26", endDate: "2023-11-10" },
-      Review: { startDate: "2023-11-11", endDate: "2023-11-30" },
+      "Quality Review": { startDate: "2023-11-11", endDate: "2023-11-30" },
       Reporting: { startDate: "2023-12-01", endDate: "2023-12-20" },
       "Post-Audit": { startDate: "2023-12-21", endDate: "2024-01-10" },
     },
@@ -1478,7 +1478,7 @@ export const SEED_AUDITS: Audit[] = [
     startDate: "2026-01-10",
     endDate: "2026-02-20",
     phaseTimelines: {
-      "Pre-Audit": { startDate: "2026-01-10", endDate: "2026-01-20" },
+      "Engagement": { startDate: "2026-01-10", endDate: "2026-01-20" },
       Planning: { startDate: "2026-01-21", endDate: "2026-01-31" },
       Fieldwork: { startDate: "2026-02-01", endDate: "2026-02-20" },
     },
@@ -4548,70 +4548,181 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
 
-  // ═══ Revenue Assurance ═══
+  // ═══ Additional: Understanding the Entity ═══
   {
-    id: "q-33",
-    section: "Revenue Assurance",
-    question: "Is there a revenue assurance unit or function?",
+    id: "q-ue-1",
+    section: "Understanding the Entity",
+    question: "How many council wards does the LGA have, and is ward-level financial reporting available?",
     type: "multiple-choice",
     required: true,
     options: [
-      {
-        label: "Yes — Dedicated unit with active monitoring",
-        value: "yes_dedicated",
-      },
-      { label: "Yes — Informal monitoring only", value: "yes_informal" },
-      { label: "No — No specific unit or mechanism", value: "no" },
+      { label: "Ward-level reports are produced and consolidated", value: "ward_reports" },
+      { label: "Wards exist but no separate financial reports are produced", value: "no_reports" },
+      { label: "Ward structure is unclear or not formally defined", value: "unclear" },
     ],
   },
   {
-    id: "q-34",
-    section: "Revenue Assurance",
-    question: "Are revenue receipts pre-numbered and accounted for?",
+    id: "q-ue-2",
+    section: "Understanding the Entity",
+    question: "Has the LGA entered into any Public-Private Partnerships (PPPs) or joint ventures during the audit period?",
     type: "multiple-choice",
     required: true,
     options: [
-      {
-        label: "Yes — Pre-numbered and reconciled regularly",
-        value: "yes_reconciled",
-      },
-      {
-        label: "Yes — Pre-numbered but not regularly reconciled",
-        value: "yes_not_reconciled",
-      },
-      { label: "No — Receipts are not pre-numbered", value: "no" },
+      { label: "Yes — With documented agreements and reporting", value: "yes_documented" },
+      { label: "Yes — Informal arrangements not fully documented", value: "yes_informal" },
+      { label: "No", value: "no" },
+      { label: "Other", value: "other" },
     ],
   },
   {
-    id: "q-35",
-    section: "Revenue Assurance",
-    question:
-      "Rate the overall revenue risk (risk of unrecorded or misappropriated revenue).",
-    type: "risk-scoring",
-    required: true,
-    options: [
-      { label: "Low", value: "1" },
-      { label: "Medium", value: "2" },
-      { label: "High", value: "3" },
-      { label: "Very High", value: "4" },
-    ],
-  },
-  {
-    id: "q-36",
-    section: "Revenue Assurance",
-    question: "Have all revenue collection points been identified and mapped?",
+    id: "q-ue-3",
+    section: "Understanding the Entity",
+    question: "Are the LGA's annual budgets publicly disclosed and submitted to the relevant state authority on time?",
     type: "multiple-choice",
     required: true,
     options: [
-      {
-        label: "Yes — All points mapped with daily remittance records",
-        value: "yes_all",
-      },
-      {
-        label: "Partially — Some collection points not documented",
-        value: "partial",
-      },
-      { label: "No — No formal mapping exists", value: "no" },
+      { label: "Yes — Always submitted on time and publicly available", value: "yes_timely" },
+      { label: "Partially — Submitted late or not publicly disclosed", value: "partial" },
+      { label: "No — Budget submissions are consistently delayed", value: "no" },
+    ],
+  },
+  {
+    id: "q-ue-4",
+    section: "Understanding the Entity",
+    question: "Does the LGA have a Medium-Term Expenditure Framework (MTEF) or development plan aligned to its budget?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — MTEF is in place and budget-aligned", value: "yes_mtef" },
+      { label: "Partially — Plans exist but not integrated with budget", value: "partial" },
+      { label: "No — No formal MTEF or development plan", value: "no" },
+    ],
+  },
+
+  // ═══ Additional: Key Accounting Systems ═══
+  {
+    id: "q-kas-1",
+    section: "Key Accounting Systems",
+    question: "Is there a documented chart of accounts aligned to IPSAS/PSAS standards?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Fully aligned and consistently applied", value: "yes_aligned" },
+      { label: "Yes — Exists but partially applied", value: "yes_partial" },
+      { label: "No — No formal chart of accounts in use", value: "no" },
+    ],
+  },
+  {
+    id: "q-kas-2",
+    section: "Key Accounting Systems",
+    question: "How are journal vouchers authorised and reviewed before posting?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Dual authorisation by preparer and independent reviewer", value: "dual_auth" },
+      { label: "Authorised by one officer only", value: "single_auth" },
+      { label: "No formal authorisation process", value: "no_auth" },
+    ],
+  },
+  {
+    id: "q-kas-3",
+    section: "Key Accounting Systems",
+    question: "Are staff and project advances regularly retired within the stipulated period?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — All advances retired on time", value: "yes_all" },
+      { label: "Partially — Some advances remain outstanding beyond due date", value: "partial" },
+      { label: "No — Significant unretired advances exist", value: "no" },
+    ],
+  },
+  {
+    id: "q-kas-4",
+    section: "Key Accounting Systems",
+    question: "Is there a functional stores or inventory management system for LGA assets and consumables?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Full stores management with periodic stock-taking", value: "yes_full" },
+      { label: "Yes — Exists but not effectively managed", value: "yes_weak" },
+      { label: "No — No formal stores management", value: "no" },
+    ],
+  },
+
+  // ═══ Additional: Internal Control Environment ═══
+  {
+    id: "q-ice-1",
+    section: "Internal Control Environment",
+    question: "Does the LGA conduct periodic formal risk assessments to identify and mitigate operational risks?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Conducted at least annually with documented outcomes", value: "yes_annual" },
+      { label: "Yes — Informally, without documented outputs", value: "yes_informal" },
+      { label: "No — No formal risk assessment process", value: "no" },
+    ],
+  },
+  {
+    id: "q-ice-2",
+    section: "Internal Control Environment",
+    question: "Are there documented expenditure approval thresholds (e.g., Treasurer, Chairman, Council) enforced in practice?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Documented and consistently enforced", value: "yes_enforced" },
+      { label: "Yes — Documented but inconsistently applied", value: "yes_weak" },
+      { label: "No — No formal approval thresholds in place", value: "no" },
+    ],
+  },
+  {
+    id: "q-ice-3",
+    section: "Internal Control Environment",
+    question: "Is there a documented anti-corruption or whistleblower policy accessible to all staff?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Policy exists, staff are aware, and complaints channel is active", value: "yes_active" },
+      { label: "Yes — Policy exists but staff awareness is low", value: "yes_low_awareness" },
+      { label: "No — No such policy exists", value: "no" },
+    ],
+  },
+  {
+    id: "q-ice-4",
+    section: "Internal Control Environment",
+    question: "How frequently are surprise cash counts or unannounced control checks conducted?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Monthly or more frequently", value: "monthly" },
+      { label: "Quarterly", value: "quarterly" },
+      { label: "Annually or less", value: "annually" },
+      { label: "Never — No such checks are conducted", value: "never" },
+    ],
+  },
+
+  // ═══ Additional: Risk Assessment ═══
+  {
+    id: "q-ra-1",
+    section: "Risk Assessment",
+    question: "Are there significant areas of non-compliance with the LGA's Appropriation Law or approved budget lines?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Multiple significant breaches identified", value: "yes_significant" },
+      { label: "Yes — Minor deviations with explanations", value: "yes_minor" },
+      { label: "No — Expenditures are within appropriated limits", value: "no" },
+    ],
+  },
+  {
+    id: "q-ra-2",
+    section: "Risk Assessment",
+    question: "Are Budget Implementation Reports (BIRs) prepared and submitted to relevant oversight bodies?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Prepared quarterly and submitted on time", value: "yes_timely" },
+      { label: "Yes — Prepared but not submitted or submitted late", value: "yes_late" },
+      { label: "No — BIRs are not prepared", value: "no" },
     ],
   },
 
@@ -4632,19 +4743,76 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
   {
     id: "q-38",
     section: "Information Security",
-    question:
-      "Are there formal IT policies covering acceptable use, passwords, and data protection?",
+    question: "Are there formal IT policies covering acceptable use, passwords, and data protection?",
     type: "multiple-choice",
     required: true,
     options: [
       { label: "Yes — Documented and enforced", value: "yes_enforced" },
-      {
-        label: "Yes — Documented but not actively enforced",
-        value: "yes_not_enforced",
-      },
+      { label: "Yes — Documented but not actively enforced", value: "yes_not_enforced" },
       { label: "No — No formal IT policies", value: "no" },
     ],
-  }
+  },
+  {
+    id: "q-is-1",
+    section: "Information Security",
+    question: "Is access to financial systems controlled through role-based permissions and unique user accounts?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Role-based access with unique accounts and regular reviews", value: "yes_rbac" },
+      { label: "Partially — Some shared accounts or unreviewed access rights", value: "partial" },
+      { label: "No — No formal access controls in place", value: "no" },
+    ],
+  },
+  {
+    id: "q-is-2",
+    section: "Information Security",
+    question: "Are backups of financial data performed regularly and stored securely (off-site or cloud)?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Daily or weekly backups with secure off-site storage", value: "yes_regular" },
+      { label: "Yes — Backups exist but not tested or stored off-site", value: "yes_weak" },
+      { label: "No — No regular backup process", value: "no" },
+    ],
+  },
+  {
+    id: "q-is-3",
+    section: "Information Security",
+    question: "Have there been any cybersecurity incidents, data breaches, or system failures in the last 3 years?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Major incident with significant data or financial impact", value: "yes_major" },
+      { label: "Yes — Minor incidents that were resolved", value: "yes_minor" },
+      { label: "No — No known incidents", value: "no" },
+      { label: "Other", value: "other" },
+    ],
+  },
+  {
+    id: "q-is-4",
+    section: "Information Security",
+    question: "Is there a qualified ICT officer or dedicated IT governance unit responsible for systems management?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Dedicated ICT unit with qualified staff", value: "yes_dedicated" },
+      { label: "Yes — Shared responsibility with limited IT expertise", value: "yes_shared" },
+      { label: "No — No dedicated IT function", value: "no" },
+    ],
+  },
+  {
+    id: "q-is-5",
+    section: "Information Security",
+    question: "Are staff trained on data protection, phishing awareness, and IT security best practices?",
+    type: "multiple-choice",
+    required: true,
+    options: [
+      { label: "Yes — Regular structured training conducted", value: "yes_regular" },
+      { label: "Yes — Occasional or informal training only", value: "yes_occasional" },
+      { label: "No — No IT security training provided", value: "no" },
+    ],
+  },
 ];
 
 export const SEED_QUESTIONNAIRE_RESPONSES: QuestionnaireResponse[] = [
