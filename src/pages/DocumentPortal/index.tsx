@@ -646,12 +646,12 @@ const DocumentPortalPage: React.FC<{
               <table className={s.table}>
                 <thead>
                   <tr>
-                    {!isLGA && <th>Council</th>}
+                    {!isLGA && !embedded && <th>Council</th>}
                     <th>Document</th>
                     <th>Format</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
-                    <th>Version</th>
+                    {!embedded && <th>Due Date</th>}
+                    {!embedded && <th>Status</th>}
+                    {!embedded && <th>Version</th>}
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -663,7 +663,7 @@ const DocumentPortalPage: React.FC<{
                       new Date(doc.dueDate) < new Date();
                     return (
                       <tr key={doc.id}>
-                        {!isLGA && (
+                        {!isLGA && !embedded && (
                           <td style={{ fontWeight: 600 }}>
                             {lga?.name || doc.lgaId}
                           </td>
@@ -684,32 +684,36 @@ const DocumentPortalPage: React.FC<{
                           </div>
                         </td>
                         <td>{doc.requiredFormat}</td>
-                        <td>
-                          <span
-                            style={{
-                              color: overdue ? "#dc2626" : "inherit",
-                              fontWeight: overdue ? 600 : 400,
-                            }}
-                          >
-                            {new Date(doc.dueDate).toLocaleDateString()}
-                            {overdue && (
-                              <AlertTriangle
-                                size={12}
-                                style={{
-                                  marginLeft: "0.35rem",
-                                  verticalAlign: "middle",
-                                }}
-                              />
-                            )}
-                          </span>
-                        </td>
-                        <td>
-                          <StatusBadge
-                            label={doc.status}
-                            variant={docStatusVariant(doc.status)}
-                          />
-                        </td>
-                        <td>v{doc.version}</td>
+                        {!embedded && (
+                          <td>
+                            <span
+                              style={{
+                                color: overdue ? "#dc2626" : "inherit",
+                                fontWeight: overdue ? 600 : 400,
+                              }}
+                            >
+                              {new Date(doc.dueDate).toLocaleDateString()}
+                              {overdue && (
+                                <AlertTriangle
+                                  size={12}
+                                  style={{
+                                    marginLeft: "0.35rem",
+                                    verticalAlign: "middle",
+                                  }}
+                                />
+                              )}
+                            </span>
+                          </td>
+                        )}
+                        {!embedded && (
+                          <td>
+                            <StatusBadge
+                              label={doc.status}
+                              variant={docStatusVariant(doc.status)}
+                            />
+                          </td>
+                        )}
+                        {!embedded && <td>v{doc.version}</td>}
                         <td>
                           <div className={s.tableActions}>
                             {/* Hidden file input */}

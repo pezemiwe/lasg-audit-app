@@ -28,7 +28,6 @@ import {
   Check,
   ChevronRight,
   FileCheck,
-  MessageSquare,
   FolderOpen,
 } from "lucide-react";
 import s from "../styles/dashboard.module.css";
@@ -39,6 +38,7 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   badge?: number;
+  disabled?: boolean;
 }
 
 const DashboardLayout: React.FC = () => {
@@ -74,6 +74,8 @@ const DashboardLayout: React.FC = () => {
   }, [sidebarCollapsed]);
   const invitations = useAuditStore((st) => st.invitations);
   const audits = useAuditStore((st) => st.audits);
+  const mandates = useAuditStore((st) => st.mandates);
+  const documentUploads = useAuditStore((st) => st.documentUploads);
   const notifications = useAuditStore((st) => st.notifications);
   const addNotifications = useAuditStore((st) => st.addNotifications);
   const markNotificationAsRead = useAuditStore(
@@ -228,7 +230,6 @@ const DashboardLayout: React.FC = () => {
           label: "Notifications",
           badge: unreadCount > 0 ? unreadCount : undefined,
         },
-        { to: "/messages", icon: MessageSquare, label: "Messages" },
       ],
     });
   } else if (user.role === "AUDIT_LEAD") {
@@ -255,7 +256,6 @@ const DashboardLayout: React.FC = () => {
           label: "Notifications",
           badge: unreadCount > 0 ? unreadCount : undefined,
         },
-        { to: "/messages", icon: MessageSquare, label: "Messages" },
       ],
     });
   } else if (user.role === "TEAM_AUDITOR") {
@@ -269,7 +269,6 @@ const DashboardLayout: React.FC = () => {
           badge: pendingInvitations || undefined,
         },
         { to: "/audit", icon: FileText, label: "My Audits" },
-        { to: "/audit-tasks", icon: ClipboardList, label: "My Tasks" },
       ],
     });
     navGroups.push({
@@ -281,24 +280,50 @@ const DashboardLayout: React.FC = () => {
           label: "Notifications",
           badge: unreadCount > 0 ? unreadCount : undefined,
         },
-        { to: "/messages", icon: MessageSquare, label: "Messages" },
       ],
     });
   } else if (user.role === "HEAD_OF_LOCAL_GOVERNMENT") {
+    // Check if the HoLG has accepted any mandate
+    const hasAcceptedMandate = user.lgaId
+      ? mandates.some((m) => m.acceptedByLgas?.includes(user.lgaId!))
+      : false;
+
+    // Count pending (not uploaded) documents for this LGA
+    const pendingDocCount =
+      hasAcceptedMandate && user.lgaId
+        ? documentUploads.filter(
+            (d) =>
+              d.lgaId === user.lgaId &&
+              (d.status === "Not Uploaded" || d.status === "Rejected"),
+          ).length
+        : 0;
+
     navGroups.push({
       label: "Engagements",
       items: [
-        { to: "/mandates", icon: Shield, label: "Active Mandates" },
         {
-          to: "/document-submission",
-          icon: FolderOpen,
-          label: "Document Submission",
+          to: "/mandates",
+          icon: Shield,
+          label: "Active Mandates",
         },
-        { to: "/audit", icon: FileText, label: "My Audits" },
         {
-          to: "/responses-rebuttals",
+          to: "/document-portal",
+          icon: FolderOpen,
+          label: "Document Portal",
+          disabled: !hasAcceptedMandate,
+          badge: pendingDocCount || undefined,
+        },
+        {
+          to: "/questionnaire",
           icon: ClipboardList,
-          label: "Responses & Rebuttals",
+          label: "Questionnaire",
+          disabled: !hasAcceptedMandate,
+        },
+        {
+          to: "/audit",
+          icon: FileText,
+          label: "My Audits",
+          disabled: !hasAcceptedMandate,
         },
       ],
     });
@@ -311,7 +336,6 @@ const DashboardLayout: React.FC = () => {
           label: "Notifications",
           badge: unreadCount > 0 ? unreadCount : undefined,
         },
-        { to: "/messages", icon: MessageSquare, label: "Messages" },
       ],
     });
   } else if (user.role === "SYSTEM_ADMIN") {
@@ -339,19 +363,32 @@ const DashboardLayout: React.FC = () => {
   });
 
   const renderNavItems = (items: NavItem[]) =>
-    items.map((item) => (
-      <Link
-        key={item.to}
-        to={item.to}
-        title={item.label}
-        className={isActive(item.to) ? s.navLinkActive : s.navLink}
-        onClick={() => setSidebarOpen(false)}
-      >
-        <item.icon className={s.navIcon} />
-        {!collapsed && item.label}
-        {item.badge ? <span className={s.navBadge}>{item.badge}</span> : null}
-      </Link>
-    ));
+    items.map((item) =>
+      item.disabled ? (
+        <span
+          key={item.to}
+          title={item.label}
+          className={s.navLink}
+          style={{ opacity: 0.4, pointerEvents: "none", cursor: "not-allowed" }}
+        >
+          <item.icon className={s.navIcon} />
+          {!collapsed && item.label}
+          {item.badge ? <span className={s.navBadge}>{item.badge}</span> : null}
+        </span>
+      ) : (
+        <Link
+          key={item.to}
+          to={item.to}
+          title={item.label}
+          className={isActive(item.to) ? s.navLinkActive : s.navLink}
+          onClick={() => setSidebarOpen(false)}
+        >
+          <item.icon className={s.navIcon} />
+          {!collapsed && item.label}
+          {item.badge ? <span className={s.navBadge}>{item.badge}</span> : null}
+        </Link>
+      ),
+    );
 
   return (
     <div className={s.layout}>
