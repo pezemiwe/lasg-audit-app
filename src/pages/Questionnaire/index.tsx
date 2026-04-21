@@ -214,7 +214,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
             }}
           >
             <CheckCircle2 size={16} style={{ color: "#16a34a" }} />
-            {totalProgress.answered}/{totalProgress.total} Completed
+            {totalProgress.answered}/{totalProgress.total} Responses Saved
           </div>
         </div>
       )}
@@ -815,6 +815,45 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
           })}
         </div>
       </div>
+      {activeSection === "Risk Assessment" && (
+        <div style={{ marginTop: "2rem" }}>
+          <div className={s.pageHeader}>
+            <div>
+              <h2 className={s.pageTitle}>Risk Assessment Report</h2>
+              <p className={s.pageSubtitle}>
+                Comprehensive overview based on above questionnaire responses
+              </p>
+            </div>
+          </div>
+          <div className={s.card}>
+            <div className={s.cardBody} style={{ fontSize: "0.9rem", lineHeight: "1.6" }}>
+              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Executive Summary</h4>
+              <p style={{ marginBottom: "1rem" }}>
+                Based on the risk assessment responses provided, the entity exhibits a moderate-to-high risk profile overall. Key areas of concern involve documented internal controls, fraud risk indicators, and potential regulatory non-compliance issues. The presence of ongoing litigation and related-party complexities underscores the need for robust substantive testing in specific account balances.
+              </p>
+
+              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Inherent vs. Control Risk</h4>
+              <p style={{ marginBottom: "1rem" }}>
+                <strong>Inherent Risk (High):</strong> Factors such as decentralized operations, significant regulatory environments, and potential fraud indicators contribute to a high inherent risk assessment.
+                <br/>
+                <strong>Control Risk (Medium):</strong> While there is a functional internal audit unit and partial segregation of duties, the lack of full compliance and documented enforcement structures elevates control risk.
+              </p>
+
+              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Key Risk Drivers</h4>
+              <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }}>
+                <li>Potential existence of related-party transactions lacking sufficient disclosure.</li>
+                <li>Indications of unresolved audit queries from prior periods, indicating a slow remediation capability by management.</li>
+                <li>Significant leadership or structural changes that could disrupt systematic control implementation.</li>
+              </ul>
+
+              <h4 style={{ color: "#064e3b", marginBottom: "0.5rem" }}>Audit Strategy Implications</h4>
+              <p>
+                The audit strategy should employ a predominantly substantive approach due to the moderate-low reliance on internal controls. Special focus is required on related-party disclosures, revenue completeness, and areas susceptible to management override. A higher sample size is recommended for expenditure vouching to account for the heightened fraud risk.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

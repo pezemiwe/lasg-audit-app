@@ -6,12 +6,8 @@ import ps from "../../styles/pages.module.css";
 import {
   ShieldCheck,
   FileText,
-  BookOpen,
   ClipboardList,
-  Phone,
-  Search,
   CheckCircle,
-  Clock,
   Users,
   Laptop,
   Wifi,
@@ -91,14 +87,9 @@ const PreAudit: React.FC<{
     getIndependenceDeclarations,
   } = useAuditStore();
 
-  const [activeTab, setActiveTab] = useState<
-    | "engagement"
-    | "independence"
-    | "letters"
-    | "meetings"
-    | "checklist"
-    | "team"
-  >("engagement");
+  const [activeTab, setActiveTab] = useState<"letters" | "meetings" | "team">(
+    "letters",
+  );
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showDeclForm, setShowDeclForm] = useState(false);
   const [declForm, setDeclForm] = useState({ threats: "", safeguards: "" });
@@ -156,62 +147,9 @@ const PreAudit: React.FC<{
       ],
     }));
 
-  const DOC_CHECKLIST_ITEMS = [
-    {
-      name: "Audited Annual Financial Statements (Prior Year)",
-      category: "Financial",
-      priority: "High",
-    },
-    {
-      name: "Draft Financial Statements (Current Year)",
-      category: "Financial",
-      priority: "Critical",
-    },
-    { name: "Trial Balance", category: "Financial", priority: "High" },
-    { name: "Fixed Assets Register", category: "Assets", priority: "Medium" },
-    {
-      name: "Bank Reconciliation Statements (all months)",
-      category: "Treasury",
-      priority: "High",
-    },
-    {
-      name: "Payroll Schedules & IPPIS Reports",
-      category: "HR / Payroll",
-      priority: "High",
-    },
-    {
-      name: "Internal Audit Reports",
-      category: "Internal Control",
-      priority: "Medium",
-    },
-    {
-      name: "Minutes of Finance Committee Meetings",
-      category: "Governance",
-      priority: "Low",
-    },
-    {
-      name: "Revenue Receipts & Collection Schedules",
-      category: "Revenue",
-      priority: "High",
-    },
-    {
-      name: "Procurement Records & Contract Awards",
-      category: "Procurement",
-      priority: "High",
-    },
-    {
-      name: "Stores & Inventory Records",
-      category: "Assets",
-      priority: "Medium",
-    },
-  ];
-
   const tabs = [
-    { id: "engagement", label: "Engagement Lifecycle" },
-    { id: "independence", label: "Independence & Ethics" },
     { id: "letters", label: "Notification Letters" },
     { id: "meetings", label: "Entry Meetings" },
-    { id: "checklist", label: "Document Checklist" },
     { id: "team", label: "Team Status" },
   ] as const;
 
@@ -330,1078 +268,6 @@ const PreAudit: React.FC<{
 
         {/* Content Area */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {activeTab === "engagement" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1.5rem",
-              }}
-            >
-              {/* ── 1. Per-Audit Engagement Lifecycle ── */}
-              {myAudits.map((audit) => {
-                const lgaName = getLGAName(audit.lgaId);
-                const lifecycleSteps = [
-                  {
-                    label: "Assignment Received",
-                    done: true,
-                    note: "Invitation dispatched by Supervisor",
-                  },
-                  {
-                    label: "Assignment Acknowledged",
-                    done: audit.status !== "Pending",
-                    note: "Acknowledgement recorded in system",
-                  },
-                  {
-                    label: "COI Declaration Submitted",
-                    done: audit.status !== "Pending",
-                    note: "Independence form completed and filed",
-                  },
-                  {
-                    label: "Engagement Letter Issued",
-                    done: audit.status !== "Pending",
-                    note: `Ref: EL-2024-${audit.lgaId.toUpperCase()}`,
-                  },
-                  {
-                    label: "Audit Charter Reviewed",
-                    done: false,
-                    note: "LASG Standing Instructions 2024",
-                  },
-                  {
-                    label: "Pre-Audit Briefing Held",
-                    done: false,
-                    note: "Team briefing by Audit Lead",
-                  },
-                  {
-                    label: "Notification Letter Sent",
-                    done: letters.some(
-                      (l) => l.lgaId === audit.lgaId && l.status !== "Draft",
-                    ),
-                    note: "Formal notification to LGA officials",
-                  },
-                  {
-                    label: "Preliminary Meeting Scheduled",
-                    done: !!audit.entryMeetingDate,
-                    note: audit.entryMeetingDate
-                      ? `Scheduled ${new Date(audit.entryMeetingDate).toLocaleDateString("en-NG")}`
-                      : "Entry meeting not yet set",
-                  },
-                ];
-                const done = lifecycleSteps.filter((s) => s.done).length;
-
-                return (
-                  <Card
-                    key={audit.id}
-                    title={`${lgaName} — Engagement Lifecycle`}
-                    subtitle={`${done}/${lifecycleSteps.length} steps complete`}
-                  >
-                    {/* Progress bar */}
-                    <div style={{ marginBottom: "1.25rem" }}>
-                      <div
-                        style={{
-                          height: "6px",
-                          background: "var(--border)",
-                          borderRadius: "99px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: "100%",
-                            width: `${(done / lifecycleSteps.length) * 100}%`,
-                            background:
-                              done === lifecycleSteps.length
-                                ? "#16a34a"
-                                : "#d97706",
-                            borderRadius: "99px",
-                            transition: "width 0.4s ease",
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      {lifecycleSteps.map((step, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: "0.75rem",
-                            padding: "0.75rem 1rem",
-                            borderRadius: "6px",
-                            border: "1px solid",
-                            borderColor: step.done
-                              ? "#bbf7d0"
-                              : "var(--border)",
-                            background: step.done ? "#f0fdf4" : "var(--bg)",
-                          }}
-                        >
-                          <div
-                            style={{
-                              marginTop: "0.1rem",
-                              flexShrink: 0,
-                              color: step.done ? "#16a34a" : "#94a3b8",
-                            }}
-                          >
-                            {step.done ? (
-                              <CheckCircle size={16} />
-                            ) : (
-                              <Clock size={16} />
-                            )}
-                          </div>
-                          <div>
-                            <div
-                              style={{
-                                fontWeight: 600,
-                                fontSize: "0.85rem",
-                                color: step.done ? "#166534" : "var(--text)",
-                              }}
-                            >
-                              {step.label}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "0.75rem",
-                                color: step.done ? "#166534" : "var(--text-3)",
-                                marginTop: "0.15rem",
-                              }}
-                            >
-                              {step.note}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                );
-              })}
-
-              {/* ── 2. Engagement Readiness (HoLGA Status) ── */}
-              <Card
-                title="Engagement Readiness"
-                subtitle="Track the council's completion of onboarding requirements"
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
-                  {myAudits.map((audit) => {
-                    const lgaName = getLGAName(audit.lgaId);
-                    return (
-                      <div
-                        key={`readiness-${audit.id}`}
-                        style={{
-                          padding: "1rem",
-                          border: "1px solid var(--border)",
-                          borderRadius: "8px",
-                          background: "var(--bg)",
-                        }}
-                      >
-                        <div style={{ fontWeight: 600, marginBottom: "1rem" }}>
-                          {lgaName} — Readiness Status
-                        </div>
-
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                            gap: "1rem",
-                            fontSize: "0.85rem",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "0.5rem",
-                              alignItems: "center",
-                            }}
-                          >
-                            <CheckCircle size={16} color="#94a3b8" />
-                            <span>Mandate Signed</span>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "0.5rem",
-                              alignItems: "center",
-                            }}
-                          >
-                            <CheckCircle size={16} color="#94a3b8" />
-                            <span>Docs Uploaded</span>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "0.5rem",
-                              alignItems: "center",
-                            }}
-                          >
-                            <CheckCircle size={16} color="#94a3b8" />
-                            <span>Questionnaire</span>
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "0.5rem",
-                              alignItems: "center",
-                            }}
-                          >
-                            <CheckCircle size={16} color="#94a3b8" />
-                            <span>Scope Agreed</span>
-                          </div>
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "1rem",
-                            display: "flex",
-                            justifyContent: "flex-end",
-                          }}
-                        >
-                          <button
-                            disabled
-                            style={{
-                              padding: "0.5rem 1rem",
-                              fontSize: "0.8rem",
-                              background: "var(--border)",
-                              color: "var(--text-3)",
-                              cursor: "not-allowed",
-                            }}
-                          >
-                            Graduate to Planning (Blocked)
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-
-              {/* ── 3. Initial Contact Log ── */}
-              <Card
-                title="Initial Contact Log"
-                subtitle="Record of communications made with LGA officials prior to fieldwork"
-              >
-                <div style={{ overflowX: "auto" }}>
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    <thead
-                      style={{
-                        background: "#f8fafc",
-                        borderBottom: "1px solid var(--border)",
-                      }}
-                    >
-                      <tr>
-                        {[
-                          "Date",
-                          "Method",
-                          "LGA Officer",
-                          "Position",
-                          "Purpose / Summary",
-                          "Recorded By",
-                        ].map((h) => (
-                          <th
-                            key={h}
-                            style={{
-                              textAlign: "left",
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-3)",
-                              fontSize: "0.72rem",
-                              textTransform: "uppercase",
-                              fontWeight: 700,
-                            }}
-                          >
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        {
-                          date: "2024-10-02",
-                          method: "Phone",
-                          officer: "Alhaji M. Yusuf",
-                          position: "Council Treasurer",
-                          purpose:
-                            "Introduced audit team, requested preliminary docs",
-                          by: "Audit Lead",
-                        },
-                        {
-                          date: "2024-10-05",
-                          method: "Email",
-                          officer: "Mrs T. Okonkwo",
-                          position: "HOD Finance",
-                          purpose: "Forwarded document request list (14 items)",
-                          by: "Audit Lead",
-                        },
-                        {
-                          date: "2024-10-08",
-                          method: "In-Person",
-                          officer: "Hon. A. Adeyemi",
-                          position: "Council Chairman",
-                          purpose:
-                            "Entry meeting confirmation; access and security briefing",
-                          by: "Supervisor",
-                        },
-                        {
-                          date: "2024-10-11",
-                          method: "Email",
-                          officer: "Mr S. Ibrahim",
-                          position: "Internal Auditor",
-                          purpose: "Requested prior internal audit reports",
-                          by: "Team Auditor",
-                        },
-                      ].map((row, i) => (
-                        <tr
-                          key={i}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        >
-                          <td style={{ padding: "0.75rem 1rem" }}>
-                            {new Date(row.date).toLocaleDateString("en-NG")}
-                          </td>
-                          <td style={{ padding: "0.75rem 1rem" }}>
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "0.35rem",
-                                fontWeight: 600,
-                                fontSize: "0.78rem",
-                                padding: "0.2rem 0.6rem",
-                                borderRadius: "4px",
-                                background:
-                                  row.method === "Phone"
-                                    ? "#ede9fe"
-                                    : row.method === "Email"
-                                      ? "#dbeafe"
-                                      : "#d1fae5",
-                                color:
-                                  row.method === "Phone"
-                                    ? "#4c1d95"
-                                    : row.method === "Email"
-                                      ? "#1e40af"
-                                      : "#065f46",
-                              }}
-                            >
-                              {row.method === "Phone" ? (
-                                <Phone size={11} />
-                              ) : row.method === "Email" ? (
-                                <FileText size={11} />
-                              ) : (
-                                <Users size={11} />
-                              )}
-                              {row.method}
-                            </span>
-                          </td>
-                          <td
-                            style={{ padding: "0.75rem 1rem", fontWeight: 600 }}
-                          >
-                            {row.officer}
-                          </td>
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-2)",
-                            }}
-                          >
-                            {row.position}
-                          </td>
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-2)",
-                              maxWidth: "260px",
-                            }}
-                          >
-                            {row.purpose}
-                          </td>
-                          <td
-                            style={{
-                              padding: "0.75rem 1rem",
-                              color: "var(--text-3)",
-                              fontSize: "0.8rem",
-                            }}
-                          >
-                            {row.by}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {(user.role === "AUDIT_LEAD" ||
-                  user.role === "AUDIT_SUPERVISOR") && (
-                  <div
-                    style={{
-                      marginTop: "1rem",
-                      display: "flex",
-                      justifyContent: "flex-end",
-                    }}
-                  >
-                    <button
-                      style={{
-                        padding: "0.5rem 1.2rem",
-                        background: "var(--primary)",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontSize: "0.85rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.4rem",
-                      }}
-                    >
-                      <Phone size={14} /> Log New Contact
-                    </button>
-                  </div>
-                )}
-              </Card>
-
-              {/* ── 3. Background Research ── */}
-              <Card
-                title="Background Research & Reference Documents"
-                subtitle="Prior audit findings, PAC reports, and institutional references"
-              >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                    gap: "1rem",
-                  }}
-                >
-                  {[
-                    {
-                      icon: <Search size={18} style={{ color: "#4f46e5" }} />,
-                      title: "Prior Year Audit Report (2022/2023)",
-                      desc: "LASG AG Office — Final Issued Report",
-                      tag: "Regulatory",
-                      tagColor: "#ede9fe",
-                      tagText: "#4c1d95",
-                    },
-                    {
-                      icon: <Search size={18} style={{ color: "#0891b2" }} />,
-                      title: "Public Accounts Committee Report",
-                      desc: "LASG House Committee — Q3 2023 Recommendations",
-                      tag: "Legislative",
-                      tagColor: "#dbeafe",
-                      tagText: "#1e40af",
-                    },
-                    {
-                      icon: <FileText size={18} style={{ color: "#16a34a" }} />,
-                      title: "Internal Audit Unit Reports (LGA)",
-                      desc: "Quarterly Internal Audit Reports — FY 2023",
-                      tag: "Internal",
-                      tagColor: "#d1fae5",
-                      tagText: "#065f46",
-                    },
-                    {
-                      icon: <BookOpen size={18} style={{ color: "#d97706" }} />,
-                      title: "IPSAS Compliance Assessment",
-                      desc: "International Public Sector Accounting Standards review",
-                      tag: "Standards",
-                      tagColor: "#fef3c7",
-                      tagText: "#92400e",
-                    },
-                    {
-                      icon: <FileText size={18} style={{ color: "#dc2626" }} />,
-                      title: "Outstanding Audit Queries (3-yr)",
-                      desc: "Unresolved queries from prior audit cycles",
-                      tag: "High Priority",
-                      tagColor: "#fee2e2",
-                      tagText: "#991b1b",
-                    },
-                    {
-                      icon: (
-                        <Building2 size={18} style={{ color: "#6b7280" }} />
-                      ),
-                      title: "LGA Organogram & Key Personnel",
-                      desc: "Current organizational structure and contacts",
-                      tag: "Reference",
-                      tagColor: "#f3f4f6",
-                      tagText: "#374151",
-                    },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: "1rem",
-                        border: "1px solid var(--border)",
-                        borderRadius: "6px",
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: "0.85rem",
-                        background: "var(--bg-card)",
-                      }}
-                    >
-                      <div style={{ marginTop: "0.1rem", flexShrink: 0 }}>
-                        {item.icon}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            fontSize: "0.875rem",
-                            marginBottom: "0.25rem",
-                          }}
-                        >
-                          {item.title}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.775rem",
-                            color: "var(--text-3)",
-                            marginBottom: "0.5rem",
-                          }}
-                        >
-                          {item.desc}
-                        </div>
-                        <span
-                          style={{
-                            fontSize: "0.7rem",
-                            fontWeight: 700,
-                            padding: "0.15rem 0.5rem",
-                            borderRadius: "4px",
-                            background: item.tagColor,
-                            color: item.tagText,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.04em",
-                          }}
-                        >
-                          {item.tag}
-                        </span>
-                      </div>
-                      <button
-                        style={{
-                          padding: "0.3rem 0.65rem",
-                          fontSize: "0.775rem",
-                          background: "none",
-                          border: "1px solid var(--border)",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          color: "var(--primary)",
-                          fontWeight: 600,
-                          flexShrink: 0,
-                        }}
-                      >
-                        Access
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {activeTab === "independence" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1.5rem",
-              }}
-            >
-              {myAudits.map((audit) => {
-                const lgaName = getLGAName(audit.lgaId);
-                const declarations = getIndependenceDeclarations(audit.id);
-                const teamMembers = users.filter(
-                  (u) =>
-                    u.id === audit.leadId ||
-                    (audit.teamIds || []).includes(u.id),
-                );
-                const allDeclared =
-                  teamMembers.length > 0 &&
-                  teamMembers.every((tm) =>
-                    declarations.some(
-                      (d) => d.auditorId === tm.id && d.confirmed,
-                    ),
-                  );
-
-                return (
-                  <Card
-                    key={audit.id}
-                    title={`${lgaName} — Independence Declarations`}
-                    subtitle={`${declarations.filter((d) => d.confirmed).length}/${teamMembers.length || 1} declarations filed`}
-                  >
-                    <div style={{ marginBottom: "1rem" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.75rem",
-                          marginBottom: "1rem",
-                        }}
-                      >
-                        <div
-                          style={{
-                            flex: 1,
-                            height: "6px",
-                            background: "var(--border)",
-                            borderRadius: "99px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: "100%",
-                              width: `${teamMembers.length > 0 ? (declarations.filter((d) => d.confirmed).length / teamMembers.length) * 100 : 0}%`,
-                              background: allDeclared ? "#16a34a" : "#d97706",
-                              borderRadius: "99px",
-                              transition: "width 0.4s",
-                            }}
-                          />
-                        </div>
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            color: allDeclared ? "#16a34a" : "#d97706",
-                          }}
-                        >
-                          {allDeclared ? "ALL FILED" : "PENDING"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        background: "#f0f9ff",
-                        border: "1px solid #bae6fd",
-                        borderRadius: "6px",
-                        padding: "1rem",
-                        marginBottom: "1.5rem",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: 700,
-                          fontSize: "0.85rem",
-                          color: "#0c4a6e",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        ISA 220 — Quality Management for an Audit
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.8rem",
-                          color: "#0369a1",
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        Each member of the engagement team must confirm their
-                        independence from the audited entity before the
-                        commencement of fieldwork. Any threats to independence
-                        must be identified together with appropriate safeguards.
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      {(teamMembers.length > 0
-                        ? teamMembers
-                        : [{ id: user!.id, name: user!.name, role: user!.role }]
-                      ).map((member) => {
-                        const decl = declarations.find(
-                          (d) => d.auditorId === member.id,
-                        );
-                        const isSelf = member.id === user!.id;
-                        return (
-                          <div
-                            key={member.id}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "1rem",
-                              padding: "1rem",
-                              borderRadius: "6px",
-                              border: "1px solid",
-                              borderColor: decl?.confirmed
-                                ? "#bbf7d0"
-                                : "var(--border)",
-                              background: decl?.confirmed
-                                ? "#f0fdf4"
-                                : "var(--bg-card)",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "40px",
-                                height: "40px",
-                                borderRadius: "50%",
-                                background: decl?.confirmed
-                                  ? "#16a34a"
-                                  : "#e5e7eb",
-                                color: decl?.confirmed
-                                  ? "white"
-                                  : "var(--text-3)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: 700,
-                                fontSize: "0.85rem",
-                                flexShrink: 0,
-                              }}
-                            >
-                              {member.name
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")
-                                .slice(0, 2)}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div
-                                style={{
-                                  fontWeight: 600,
-                                  fontSize: "0.875rem",
-                                }}
-                              >
-                                {member.name}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: "0.75rem",
-                                  color: "var(--text-3)",
-                                }}
-                              >
-                                {member.role.replace(/_/g, " ")}
-                              </div>
-                              {decl && decl.threats.length > 0 && (
-                                <div style={{ marginTop: "0.35rem" }}>
-                                  {decl.threats.map((t, ti) => (
-                                    <span
-                                      key={ti}
-                                      style={{
-                                        fontSize: "0.68rem",
-                                        fontWeight: 600,
-                                        padding: "0.1rem 0.4rem",
-                                        borderRadius: "3px",
-                                        background: "#fef3c7",
-                                        color: "#92400e",
-                                        marginRight: "0.35rem",
-                                      }}
-                                    >
-                                      Threat: {t}
-                                    </span>
-                                  ))}
-                                  {decl.safeguards.map((s, si) => (
-                                    <span
-                                      key={si}
-                                      style={{
-                                        fontSize: "0.68rem",
-                                        fontWeight: 600,
-                                        padding: "0.1rem 0.4rem",
-                                        borderRadius: "3px",
-                                        background: "#d1fae5",
-                                        color: "#065f46",
-                                        marginRight: "0.35rem",
-                                      }}
-                                    >
-                                      Safeguard: {s}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.5rem",
-                              }}
-                            >
-                              {decl?.confirmed ? (
-                                <span
-                                  style={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "0.35rem",
-                                    fontSize: "0.75rem",
-                                    fontWeight: 700,
-                                    padding: "0.3rem 0.75rem",
-                                    borderRadius: "4px",
-                                    background: "#bbf7d0",
-                                    color: "#166534",
-                                  }}
-                                >
-                                  <CheckCircle size={13} /> Declared{" "}
-                                  {new Date(
-                                    decl.declarationDate,
-                                  ).toLocaleDateString("en-NG")}
-                                </span>
-                              ) : isSelf ? (
-                                <button
-                                  onClick={() => {
-                                    setShowDeclForm(true);
-                                    setDeclForm({
-                                      threats: "",
-                                      safeguards: "",
-                                    });
-                                  }}
-                                  style={{
-                                    padding: "0.4rem 0.85rem",
-                                    background: "#064e3b",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    fontSize: "0.78rem",
-                                    fontWeight: 600,
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  File Declaration
-                                </button>
-                              ) : (
-                                <span
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    fontWeight: 600,
-                                    padding: "0.3rem 0.75rem",
-                                    borderRadius: "4px",
-                                    background: "#fee2e2",
-                                    color: "#991b1b",
-                                  }}
-                                >
-                                  Not Filed
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {showDeclForm && (
-                      <div
-                        style={{
-                          marginTop: "1.5rem",
-                          padding: "1.5rem",
-                          background: "#f8fafc",
-                          borderRadius: "6px",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontWeight: 700,
-                            fontSize: "0.9rem",
-                            marginBottom: "1rem",
-                          }}
-                        >
-                          Independence & Ethics Declaration
-                        </div>
-                        <div
-                          style={{
-                            background: "#fff",
-                            padding: "1.25rem",
-                            borderRadius: "6px",
-                            border: "1px solid var(--border)",
-                            marginBottom: "1rem",
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: "0.85rem",
-                              lineHeight: 1.8,
-                              color: "var(--text-2)",
-                            }}
-                          >
-                            <p
-                              style={{
-                                margin: "0 0 0.75rem 0",
-                                fontWeight: 600,
-                              }}
-                            >
-                              I, {user!.name}, hereby declare that:
-                            </p>
-                            <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
-                              <li>
-                                I have no financial interest, direct or
-                                indirect, in the audited entity.
-                              </li>
-                              <li>
-                                I have no personal or family relationship with
-                                key officials of the entity.
-                              </li>
-                              <li>
-                                I have not provided non-audit services to the
-                                entity in the current or prior period.
-                              </li>
-                              <li>
-                                I am not aware of any other circumstance that
-                                may compromise objectivity.
-                              </li>
-                              <li>
-                                I will conduct this engagement in accordance
-                                with ISSAI and ISA professional standards.
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "1rem",
-                            marginBottom: "1rem",
-                          }}
-                        >
-                          <div>
-                            <label
-                              style={{
-                                fontSize: "0.72rem",
-                                fontWeight: 700,
-                                textTransform: "uppercase",
-                                letterSpacing: "0.06em",
-                                color: "var(--text-3)",
-                                display: "block",
-                                marginBottom: "0.35rem",
-                              }}
-                            >
-                              Identified Threats (if any)
-                            </label>
-                            <input
-                              value={declForm.threats}
-                              onChange={(e) =>
-                                setDeclForm({
-                                  ...declForm,
-                                  threats: e.target.value,
-                                })
-                              }
-                              placeholder="e.g. Familiarity — previously audited same entity"
-                              style={{
-                                width: "100%",
-                                padding: "0.6rem 0.75rem",
-                                border: "1.5px solid var(--border)",
-                                borderRadius: "4px",
-                                fontSize: "0.85rem",
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <label
-                              style={{
-                                fontSize: "0.72rem",
-                                fontWeight: 700,
-                                textTransform: "uppercase",
-                                letterSpacing: "0.06em",
-                                color: "var(--text-3)",
-                                display: "block",
-                                marginBottom: "0.35rem",
-                              }}
-                            >
-                              Safeguards Applied
-                            </label>
-                            <input
-                              value={declForm.safeguards}
-                              onChange={(e) =>
-                                setDeclForm({
-                                  ...declForm,
-                                  safeguards: e.target.value,
-                                })
-                              }
-                              placeholder="e.g. Peer review of all work by independent supervisor"
-                              style={{
-                                width: "100%",
-                                padding: "0.6rem 0.75rem",
-                                border: "1.5px solid var(--border)",
-                                borderRadius: "4px",
-                                fontSize: "0.85rem",
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            gap: "0.75rem",
-                          }}
-                        >
-                          <button
-                            onClick={() => setShowDeclForm(false)}
-                            style={{
-                              padding: "0.5rem 1rem",
-                              border: "1.5px solid var(--border)",
-                              borderRadius: "4px",
-                              background: "transparent",
-                              fontSize: "0.82rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                            }}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => {
-                              addIndependenceDeclaration({
-                                auditId: audit.id,
-                                auditorId: user!.id,
-                                auditorName: user!.name,
-                                confirmed: true,
-                                threats: declForm.threats
-                                  ? declForm.threats
-                                      .split(",")
-                                      .map((t) => t.trim())
-                                      .filter(Boolean)
-                                  : [],
-                                safeguards: declForm.safeguards
-                                  ? declForm.safeguards
-                                      .split(",")
-                                      .map((s) => s.trim())
-                                      .filter(Boolean)
-                                  : [],
-                                declarationDate: new Date().toISOString(),
-                              });
-                              setShowDeclForm(false);
-                            }}
-                            style={{
-                              padding: "0.5rem 1.25rem",
-                              background: "#064e3b",
-                              color: "#fff",
-                              border: "none",
-                              borderRadius: "4px",
-                              fontSize: "0.82rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.4rem",
-                            }}
-                          >
-                            <ShieldCheck size={14} /> Confirm & Sign Declaration
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-
           {activeTab === "letters" && (
             <div style={{ display: "grid", gap: "1.5rem" }}>
               <Card
@@ -1778,268 +644,492 @@ const PreAudit: React.FC<{
             </div>
           )}
 
-          {activeTab === "checklist" && (
-            <>
-              <Card
-                title="Document Request Checklist"
-                subtitle="Tracking of required documentation from LGAs"
-              >
-                <div style={{ overflowX: "auto" }}>
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    <thead
-                      style={{
-                        background: "#f8fafc",
-                        borderBottom: "1px solid var(--border)",
-                      }}
-                    >
-                      <tr>
-                        <th
-                          style={{
-                            textAlign: "left",
-                            padding: "0.75rem 1rem",
-                            color: "var(--text-3)",
-                            fontSize: "0.75rem",
-                            textTransform: "uppercase",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Document Name
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "left",
-                            padding: "0.75rem 1rem",
-                            color: "var(--text-3)",
-                            fontSize: "0.75rem",
-                            textTransform: "uppercase",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Category
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "left",
-                            padding: "0.75rem 1rem",
-                            color: "var(--text-3)",
-                            fontSize: "0.75rem",
-                            textTransform: "uppercase",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Priority
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "left",
-                            padding: "0.75rem 1rem",
-                            color: "var(--text-3)",
-                            fontSize: "0.75rem",
-                            textTransform: "uppercase",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Status
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "left",
-                            padding: "0.75rem 1rem",
-                            color: "var(--text-3)",
-                            fontSize: "0.75rem",
-                            textTransform: "uppercase",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Remarks
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {DOC_CHECKLIST_ITEMS.map((item, i) => {
-                        const isReceived = i < 7; // Mock logic
-                        return (
-                          <tr
-                            key={item.name}
-                            style={{ borderBottom: "1px solid var(--border)" }}
-                          >
-                            <td
-                              style={{
-                                padding: "0.75rem 1rem",
-                                fontWeight: 500,
-                              }}
-                            >
-                              {item.name}
-                            </td>
-                            <td
-                              style={{
-                                padding: "0.75rem 1rem",
-                                color: "var(--text-2)",
-                              }}
-                            >
-                              {item.category}
-                            </td>
-                            <td style={{ padding: "0.75rem 1rem" }}>
-                              <span
-                                style={{
-                                  fontSize: "0.7rem",
-                                  padding: "0.2rem 0.5rem",
-                                  borderRadius: "99px",
-                                  fontWeight: 700,
-                                  background:
-                                    item.priority === "Critical"
-                                      ? "#fee2e2"
-                                      : item.priority === "High"
-                                        ? "#fff7ed"
-                                        : "#f3f4f6",
-                                  color:
-                                    item.priority === "Critical"
-                                      ? "#991b1b"
-                                      : item.priority === "High"
-                                        ? "#c2410c"
-                                        : "#374151",
-                                }}
-                              >
-                                {item.priority}
-                              </span>
-                            </td>
-                            <td style={{ padding: "0.75rem 1rem" }}>
-                              <span
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "0.4rem",
-                                  color: isReceived ? "#059669" : "#d97706",
-                                  fontWeight: 600,
-                                  fontSize: "0.75rem",
-                                  background: isReceived
-                                    ? "#ecfdf5"
-                                    : "#fffbeb",
-                                  padding: "0.2rem 0.6rem",
-                                  borderRadius: "6px",
-                                }}
-                              >
-                                {isReceived ? "Received" : "Pending"}
-                              </span>
-                            </td>
-                            <td
-                              style={{
-                                padding: "0.75rem 1rem",
-                                color: "var(--text-3)",
-                                fontSize: "0.8rem",
-                              }}
-                            >
-                              {isReceived
-                                ? "Verified by Lead"
-                                : "Request sent (2d ago)"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-
-              <div style={{ marginTop: "1.5rem" }}>
-                <Card title="Priority Definitions">
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(200px, 1fr))",
-                      gap: "1rem",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.7rem",
-                          padding: "0.2rem 0.5rem",
-                          borderRadius: "99px",
-                          fontWeight: 700,
-                          background: "#fee2e2",
-                          color: "#991b1b",
-                        }}
-                      >
-                        Critical
-                      </span>
-                      <span
-                        style={{ fontSize: "0.85rem", color: "var(--text-2)" }}
-                      >
-                        Essential for audit commencement.
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.7rem",
-                          padding: "0.2rem 0.5rem",
-                          borderRadius: "99px",
-                          fontWeight: 700,
-                          background: "#fff7ed",
-                          color: "#c2410c",
-                        }}
-                      >
-                        High
-                      </span>
-                      <span
-                        style={{ fontSize: "0.85rem", color: "var(--text-2)" }}
-                      >
-                        Required key financial records.
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.7rem",
-                          padding: "0.2rem 0.5rem",
-                          borderRadius: "99px",
-                          fontWeight: 700,
-                          background: "#f3f4f6",
-                          color: "#374151",
-                        }}
-                      >
-                        Medium/Low
-                      </span>
-                      <span
-                        style={{ fontSize: "0.85rem", color: "var(--text-2)" }}
-                      >
-                        Supporting documents.
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </>
-          )}
-
           {activeTab === "team" && (
             <div style={{ display: "grid", gap: "1.5rem" }}>
+              {/* ── Independence & Ethics Declarations ── */}
+              {myAudits.map((audit) => {
+                const lgaName = getLGAName(audit.lgaId);
+                const declarations = getIndependenceDeclarations(audit.id);
+                const teamMembers = users.filter(
+                  (u) =>
+                    u.id === audit.leadId ||
+                    (audit.teamIds || []).includes(u.id),
+                );
+                const allDeclared =
+                  teamMembers.length > 0 &&
+                  teamMembers.every((tm) =>
+                    declarations.some(
+                      (d) => d.auditorId === tm.id && d.confirmed,
+                    ),
+                  );
+
+                return (
+                  <Card
+                    key={`ind-${audit.id}`}
+                    title={`${lgaName} — Independence & Ethics Declarations`}
+                    subtitle={`${declarations.filter((d) => d.confirmed).length}/${teamMembers.length || 1} declarations filed`}
+                  >
+                    <div style={{ marginBottom: "1rem" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          marginBottom: "1rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            flex: 1,
+                            height: "6px",
+                            background: "var(--border)",
+                            borderRadius: "99px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${teamMembers.length > 0 ? (declarations.filter((d) => d.confirmed).length / teamMembers.length) * 100 : 0}%`,
+                              background: allDeclared ? "#16a34a" : "#d97706",
+                              borderRadius: "99px",
+                              transition: "width 0.4s",
+                            }}
+                          />
+                        </div>
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            color: allDeclared ? "#16a34a" : "#d97706",
+                          }}
+                        >
+                          {allDeclared ? "ALL FILED" : "PENDING"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        background: "#f0f9ff",
+                        border: "1px solid #bae6fd",
+                        borderRadius: "6px",
+                        padding: "1rem",
+                        marginBottom: "1.5rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: "0.85rem",
+                          color: "#0c4a6e",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
+                        ISA 220 — Quality Management for an Audit
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#0369a1",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        Each member of the engagement team must confirm their
+                        independence from the audited entity before the
+                        commencement of fieldwork. Any threats to independence
+                        must be identified together with appropriate safeguards.
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      {(teamMembers.length > 0
+                        ? teamMembers
+                        : [{ id: user!.id, name: user!.name, role: user!.role }]
+                      ).map((member) => {
+                        const decl = declarations.find(
+                          (d) => d.auditorId === member.id,
+                        );
+                        const isSelf = member.id === user!.id;
+                        return (
+                          <div
+                            key={member.id}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "1rem",
+                              padding: "1rem",
+                              borderRadius: "6px",
+                              border: "1px solid",
+                              borderColor: decl?.confirmed
+                                ? "#bbf7d0"
+                                : "var(--border)",
+                              background: decl?.confirmed
+                                ? "#f0fdf4"
+                                : "var(--bg-card)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                borderRadius: "50%",
+                                background: decl?.confirmed
+                                  ? "#16a34a"
+                                  : "#e5e7eb",
+                                color: decl?.confirmed
+                                  ? "white"
+                                  : "var(--text-3)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 700,
+                                fontSize: "0.85rem",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {member.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")
+                                .slice(0, 2)}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div
+                                style={{
+                                  fontWeight: 600,
+                                  fontSize: "0.875rem",
+                                }}
+                              >
+                                {member.name}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "var(--text-3)",
+                                }}
+                              >
+                                {member.role.replace(/_/g, " ")}
+                              </div>
+                              {decl && decl.threats.length > 0 && (
+                                <div style={{ marginTop: "0.35rem" }}>
+                                  {decl.threats.map((t, ti) => (
+                                    <span
+                                      key={ti}
+                                      style={{
+                                        fontSize: "0.68rem",
+                                        fontWeight: 600,
+                                        padding: "0.1rem 0.4rem",
+                                        borderRadius: "3px",
+                                        background: "#fef3c7",
+                                        color: "#92400e",
+                                        marginRight: "0.35rem",
+                                      }}
+                                    >
+                                      Threat: {t}
+                                    </span>
+                                  ))}
+                                  {decl.safeguards.map((sg, si) => (
+                                    <span
+                                      key={si}
+                                      style={{
+                                        fontSize: "0.68rem",
+                                        fontWeight: 600,
+                                        padding: "0.1rem 0.4rem",
+                                        borderRadius: "3px",
+                                        background: "#d1fae5",
+                                        color: "#065f46",
+                                        marginRight: "0.35rem",
+                                      }}
+                                    >
+                                      Safeguard: {sg}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                              }}
+                            >
+                              {decl?.confirmed ? (
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700,
+                                    padding: "0.3rem 0.75rem",
+                                    borderRadius: "4px",
+                                    background: "#bbf7d0",
+                                    color: "#166534",
+                                  }}
+                                >
+                                  <CheckCircle size={13} /> Declared{" "}
+                                  {new Date(
+                                    decl.declarationDate,
+                                  ).toLocaleDateString("en-NG")}
+                                </span>
+                              ) : isSelf ? (
+                                <button
+                                  onClick={() => {
+                                    setShowDeclForm(true);
+                                    setDeclForm({
+                                      threats: "",
+                                      safeguards: "",
+                                    });
+                                  }}
+                                  style={{
+                                    padding: "0.4rem 0.85rem",
+                                    background: "#064e3b",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    fontSize: "0.78rem",
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  File Declaration
+                                </button>
+                              ) : (
+                                <span
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    fontWeight: 600,
+                                    padding: "0.3rem 0.75rem",
+                                    borderRadius: "4px",
+                                    background: "#fee2e2",
+                                    color: "#991b1b",
+                                  }}
+                                >
+                                  Not Filed
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {showDeclForm && (
+                      <div
+                        style={{
+                          marginTop: "1.5rem",
+                          padding: "1.5rem",
+                          background: "#f8fafc",
+                          borderRadius: "6px",
+                          border: "1px solid var(--border)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "0.9rem",
+                            marginBottom: "1rem",
+                          }}
+                        >
+                          Independence & Ethics Declaration
+                        </div>
+                        <div
+                          style={{
+                            background: "#fff",
+                            padding: "1.25rem",
+                            borderRadius: "6px",
+                            border: "1px solid var(--border)",
+                            marginBottom: "1rem",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "0.85rem",
+                              lineHeight: 1.8,
+                              color: "var(--text-2)",
+                            }}
+                          >
+                            <p
+                              style={{
+                                margin: "0 0 0.75rem 0",
+                                fontWeight: 600,
+                              }}
+                            >
+                              I, {user!.name}, hereby declare that:
+                            </p>
+                            <ul style={{ margin: 0, paddingLeft: "1.5rem" }}>
+                              <li>
+                                I have no financial interest, direct or
+                                indirect, in the audited entity.
+                              </li>
+                              <li>
+                                I have no personal or family relationship with
+                                key officials of the entity.
+                              </li>
+                              <li>
+                                I have not provided non-audit services to the
+                                entity in the current or prior period.
+                              </li>
+                              <li>
+                                I am not aware of any other circumstance that
+                                may compromise objectivity.
+                              </li>
+                              <li>
+                                I will conduct this engagement in accordance
+                                with ISSAI and ISA professional standards.
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "1rem",
+                            marginBottom: "1rem",
+                          }}
+                        >
+                          <div>
+                            <label
+                              style={{
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.06em",
+                                color: "var(--text-3)",
+                                display: "block",
+                                marginBottom: "0.35rem",
+                              }}
+                            >
+                              Identified Threats (if any)
+                            </label>
+                            <input
+                              value={declForm.threats}
+                              onChange={(e) =>
+                                setDeclForm({
+                                  ...declForm,
+                                  threats: e.target.value,
+                                })
+                              }
+                              placeholder="e.g. Familiarity — previously audited same entity"
+                              style={{
+                                width: "100%",
+                                padding: "0.6rem 0.75rem",
+                                border: "1.5px solid var(--border)",
+                                borderRadius: "4px",
+                                fontSize: "0.85rem",
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              style={{
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.06em",
+                                color: "var(--text-3)",
+                                display: "block",
+                                marginBottom: "0.35rem",
+                              }}
+                            >
+                              Safeguards Applied
+                            </label>
+                            <input
+                              value={declForm.safeguards}
+                              onChange={(e) =>
+                                setDeclForm({
+                                  ...declForm,
+                                  safeguards: e.target.value,
+                                })
+                              }
+                              placeholder="e.g. Peer review of all work by independent supervisor"
+                              style={{
+                                width: "100%",
+                                padding: "0.6rem 0.75rem",
+                                border: "1.5px solid var(--border)",
+                                borderRadius: "4px",
+                                fontSize: "0.85rem",
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            gap: "0.75rem",
+                          }}
+                        >
+                          <button
+                            onClick={() => setShowDeclForm(false)}
+                            style={{
+                              padding: "0.5rem 1rem",
+                              border: "1.5px solid var(--border)",
+                              borderRadius: "4px",
+                              background: "transparent",
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              addIndependenceDeclaration({
+                                auditId: audit.id,
+                                auditorId: user!.id,
+                                auditorName: user!.name,
+                                confirmed: true,
+                                threats: declForm.threats
+                                  ? declForm.threats
+                                      .split(",")
+                                      .map((t) => t.trim())
+                                      .filter(Boolean)
+                                  : [],
+                                safeguards: declForm.safeguards
+                                  ? declForm.safeguards
+                                      .split(",")
+                                      .map((sg) => sg.trim())
+                                      .filter(Boolean)
+                                  : [],
+                                declarationDate: new Date().toISOString(),
+                              });
+                              setShowDeclForm(false);
+                            }}
+                            style={{
+                              padding: "0.5rem 1.25rem",
+                              background: "#064e3b",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: "4px",
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.4rem",
+                            }}
+                          >
+                            <ShieldCheck size={14} /> Confirm & Sign Declaration
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+
+              {/* ── Team Roster ── */}
               {myAudits.map((audit) => {
                 const lgaName = getLGAName(audit.lgaId);
                 return (

@@ -775,15 +775,54 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-1`,
                 lgaId,
                 mandateId,
-                documentName: "Annual Financial Statement",
-                description: "Audited financial statements for the fiscal year",
-                requiredFormat: "PDF",
+                documentName:
+                  "Unaudited Financial Statements / Unaudited Trial Balance (Current Year)",
+                description:
+                  "Unaudited financial statements or unaudited trial balance for the year to be audited",
+                requiredFormat: "Excel/PDF",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
               },
               {
                 id: `doc-${mandateId}-${lgaId}-2`,
+                lgaId,
+                mandateId,
+                documentName:
+                  "Audited Financial Statements / Audited Trial Balance (Prior Year)",
+                description:
+                  "Audited financial statements or audited trial balance of the prior year to the year being audited",
+                requiredFormat: "Excel/PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-3`,
+                lgaId,
+                mandateId,
+                documentName: "Revenue Records",
+                description:
+                  "Revenue schedules, receipts, and supporting documentation",
+                requiredFormat: "Excel/PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-4`,
+                lgaId,
+                mandateId,
+                documentName: "Current Assets Schedule",
+                description:
+                  "Schedule of current assets including cash, receivables, inventories, and prepayments",
+                requiredFormat: "Excel/PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-5`,
                 lgaId,
                 mandateId,
                 documentName: "Appropriation Law / Approved Budget",
@@ -794,18 +833,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-3`,
-                lgaId,
-                mandateId,
-                documentName: "Trial Balance",
-                description: "Consolidated trial balance",
-                requiredFormat: "Excel/PDF",
-                status: "Not Uploaded",
-                version: 1,
-                dueDate,
-              },
-              {
-                id: `doc-${mandateId}-${lgaId}-4`,
+                id: `doc-${mandateId}-${lgaId}-6`,
                 lgaId,
                 mandateId,
                 documentName: "Cash Books & Bank Reconciliation",
@@ -817,7 +845,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-5`,
+                id: `doc-${mandateId}-${lgaId}-7`,
                 lgaId,
                 mandateId,
                 documentName: "Revenue Receipts & Payment Vouchers",
@@ -828,7 +856,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-6`,
+                id: `doc-${mandateId}-${lgaId}-8`,
                 lgaId,
                 mandateId,
                 documentName: "Payroll Records",
@@ -839,7 +867,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-7`,
+                id: `doc-${mandateId}-${lgaId}-9`,
                 lgaId,
                 mandateId,
                 documentName: "Contract Awards & Procurement Files",
@@ -851,7 +879,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-8`,
+                id: `doc-${mandateId}-${lgaId}-10`,
                 lgaId,
                 mandateId,
                 documentName: "Fixed Asset Register",
@@ -862,7 +890,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-9`,
+                id: `doc-${mandateId}-${lgaId}-11`,
                 lgaId,
                 mandateId,
                 documentName: "Internal Audit Reports",
@@ -873,7 +901,7 @@ export const useAuditStore = create(
                 dueDate,
               },
               {
-                id: `doc-${mandateId}-${lgaId}-10`,
+                id: `doc-${mandateId}-${lgaId}-12`,
                 lgaId,
                 mandateId,
                 documentName: "Executive Committee Minutes",
@@ -3039,7 +3067,7 @@ Lagos State
         })),
     }),
     {
-      name: "audit-storage-v6",
+      name: "audit-storage-v8",
       storage: createJSONStorage(() => localStorage),
     },
   ),

@@ -4499,62 +4499,52 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
       { label: "Low — Significant integrity concerns", value: "4" },
     ],
   },
-
-  // ═══ Materiality Determination (ISA 320) ═══
   {
     id: "q-29",
-    section: "Materiality Determination",
-    question: "What benchmark was used to determine overall materiality?",
+    section: "Risk Assessment",
+    question: "How frequent are significant changes in personnel or accounting systems?",
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Total Revenue (1–2%)", value: "revenue" },
-      { label: "Total Expenditure (1–2%)", value: "expenditure" },
-      { label: "Net Assets / Equity (3–5%)", value: "net_assets" },
-      { label: "Total Assets (0.5–1%)", value: "total_assets" },
+      { label: "Frequent — Multiple changes yearly", value: "frequent" },
+      { label: "Occasional — Some changes", value: "occasional" },
+      { label: "Rare — Systems and personnel are stable", value: "rare" },
     ],
   },
   {
     id: "q-30",
-    section: "Materiality Determination",
-    question:
-      "Are there qualitative materiality factors that could influence the audit opinion?",
+    section: "Risk Assessment",
+    question: "Do you have formal mechanisms in place to assess fraud risks proactively?",
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Regulatory non-compliance issues", value: "regulatory" },
-      { label: "Yes — Sensitive political matters", value: "political" },
-      {
-        label: "Yes — Media attention or public interest",
-        value: "public_interest",
-      },
-      { label: "No — No significant qualitative factors", value: "none" },
+      { label: "Yes — Regular formal assessments", value: "yes_formal" },
+      { label: "Yes — Informal assessments only", value: "yes_informal" },
+      { label: "No — No mechanism in place", value: "no" },
     ],
   },
   {
     id: "q-31",
-    section: "Materiality Determination",
-    question:
-      "What performance materiality percentage was applied relative to overall materiality?",
+    section: "Risk Assessment",
+    question: "Is there a documented business continuity or disaster recovery plan?",
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "50% — High risk entity", value: "50" },
-      { label: "60% — Moderate-high risk", value: "60" },
-      { label: "75% — Moderate risk", value: "75" },
-      { label: "80% — Low risk entity", value: "80" },
+      { label: "Yes — Documented and regularly tested", value: "yes_tested" },
+      { label: "Yes — Documented but rarely tested", value: "yes_untested" },
+      { label: "No — No formal plan", value: "no" },
     ],
   },
   {
     id: "q-32",
-    section: "Materiality Determination",
-    question:
-      "Has the materiality threshold been documented in the audit planning memorandum?",
+    section: "Risk Assessment",
+    question: "Are external compliance and regulatory requirements consistently met on time?",
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Documented and agreed by Audit Lead", value: "yes" },
-      { label: "No — Not yet documented", value: "no" },
+      { label: "Yes — Consistently met on time", value: "yes" },
+      { label: "Partially — Occasional delays or issues", value: "partial" },
+      { label: "No — Frequent delays or compliance failures", value: "no" },
     ],
   },
 
@@ -4654,32 +4644,7 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
       },
       { label: "No — No formal IT policies", value: "no" },
     ],
-  },
-
-  // ═══ Audit Follow-Up (ISA 710) ═══
-  {
-    id: "q-39",
-    section: "Audit Follow-Up",
-    question:
-      "What is the status of Public Accounts Committee (PAC) directive implementation?",
-    type: "multiple-choice",
-    required: true,
-    options: [
-      { label: "Fully implemented — All directives addressed", value: "fully" },
-      {
-        label: "Partially implemented — Some directives outstanding",
-        value: "partial",
-      },
-      {
-        label: "Not implemented — Majority outstanding",
-        value: "not_implemented",
-      },
-      {
-        label: "No PAC directives issued in the last 3 years",
-        value: "none_issued",
-      },
-    ],
-  },
+  }
 ];
 
 export const SEED_QUESTIONNAIRE_RESPONSES: QuestionnaireResponse[] = [

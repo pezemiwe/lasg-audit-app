@@ -21,7 +21,6 @@ import QuestionnairePage from "../Questionnaire";
 import AuditPlanningPage from "../AuditPlanning";
 import FieldworkPage from "../Fieldwork";
 import PostAuditPage from "../PostAudit";
-import ScopeAgreementPage from "../ScopeAgreement";
 import DocumentPortalPage from "../DocumentPortal";
 import ReportsPage from "../Reports";
 import PreAuditPage from "../PreAudit";
@@ -366,14 +365,10 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
-      /* ─── Phase 2b: Planning (Scope Agreement + Audit Strategy) ─── */
+      /* ─── Phase 2b: Planning (Audit Strategy) ─── */
       case "planning":
         return (
           <div className={s.tabContent}>
-            <div className={s.sectionBlock}>
-              <h3 className={s.sectionTitle}>Scope Agreement</h3>
-              <ScopeAgreementPage auditId={audit.id} embedded />
-            </div>
             <div className={s.sectionBlock} style={{ marginTop: "2rem" }}>
               <h3 className={s.sectionTitle}>Audit Plan & Strategy</h3>
               <AuditPlanningPage />
@@ -501,7 +496,7 @@ const AuditDetail: React.FC = () => {
           </button>
           <div>
             <h1 className={s.pageTitle}>
-              {audit.type} Audit - {lga?.name} ({audit.year})
+              {tabs.find((t) => t.id === activeTab)?.label || "Audit Detail"}
             </h1>
             <p className={s.pageSubtitle}>
               {audit.status} Stage • Lead: {audit.leadId || "Unassigned"}
