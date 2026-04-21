@@ -61,6 +61,8 @@ import type {
   SiteVerification,
   FieldworkCompletionMemo,
   FieldworkWorkingPaper,
+  BriefingRecord,
+  EntryMeetingRecord,
 } from "../types";
 import type {
   AuditOutcome,
@@ -314,6 +316,19 @@ export interface AuditStore {
   updateAuditTimelines: (
     auditId: string,
     timelines: Record<string, { startDate: string; endDate: string }>,
+  ) => void;
+  proposeAuditTimelines: (
+    auditId: string,
+    timelines: Record<string, { startDate: string; endDate: string }>,
+  ) => void;
+  approveAuditTimelines: (auditId: string) => void;
+  addBriefingRecord: (
+    auditId: string,
+    record: Omit<BriefingRecord, "id" | "recordedAt">,
+  ) => void;
+  addEntryMeetingRecord: (
+    auditId: string,
+    record: Omit<EntryMeetingRecord, "id" | "recordedAt" | "auditId">,
   ) => void;
 
   createTask: (task: Omit<Task, "id">) => void;
@@ -1299,6 +1314,68 @@ Lagos State
           ),
         })),
 
+      proposeAuditTimelines: (auditId, timelines) =>
+        set((s) => ({
+          audits: s.audits.map((a) =>
+            a.id === auditId
+              ? { ...a, proposedTimelines: timelines, timelinesApproved: false }
+              : a,
+          ),
+        })),
+
+      approveAuditTimelines: (auditId) =>
+        set((s) => ({
+          audits: s.audits.map((a) =>
+            a.id === auditId && a.proposedTimelines
+              ? {
+                  ...a,
+                  phaseTimelines: a.proposedTimelines,
+                  proposedTimelines: undefined,
+                  timelinesApproved: true,
+                }
+              : a,
+          ),
+        })),
+
+      addBriefingRecord: (auditId, record) =>
+        set((s) => ({
+          audits: s.audits.map((a) =>
+            a.id === auditId
+              ? {
+                  ...a,
+                  briefings: [
+                    ...(a.briefings ?? []),
+                    {
+                      ...record,
+                      id: `brief-${Date.now()}`,
+                      recordedAt: new Date().toISOString(),
+                    } as BriefingRecord,
+                  ],
+                }
+              : a,
+          ),
+        })),
+
+      addEntryMeetingRecord: (auditId, record) =>
+        set((s) => ({
+          audits: s.audits.map((a) =>
+            a.id === auditId
+              ? {
+                  ...a,
+                  entryMeetings: [
+                    ...(a.entryMeetings ?? []),
+                    {
+                      ...record,
+                      auditId,
+                      id: `em-${Date.now()}`,
+                      recordedAt: new Date().toISOString(),
+                    } as EntryMeetingRecord,
+                  ],
+                }
+              : a,
+          ),
+        })),
+
       createTask: (task) => {
         const newTask: Task = { ...task, id: `task-${uid()}` };
         set((s) => ({ tasks: [...s.tasks, newTask] }));
@@ -1625,7 +1702,7 @@ Lagos State
           set((s) => ({
             questionnaireResponses: s.questionnaireResponses.map((r) =>
               r.id === existing.id
-                ? { ...r, answer: data.answer, answeredAt: now() }
+                ? { ...r, answer: data.answer, otherExplanation: data.otherExplanation, answeredAt: now() }
                 : r,
             ),
           }));
@@ -3067,8 +3144,13 @@ Lagos State
         })),
     }),
     {
-      name: "audit-storage-v8",
+      name: "audit-storage-v9",
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { questionnaireQuestions, ...rest } = state;
+        return rest as typeof state;
+      },
     },
   ),
 );
