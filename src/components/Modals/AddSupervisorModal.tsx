@@ -44,46 +44,86 @@ const AddSupervisorModal: React.FC<AddSupervisorModalProps> = ({
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        inset: 0,
         backgroundColor: "rgba(0,0,0,0.5)",
+        zIndex: 9999,
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "center",
-        zIndex: 1000,
+        padding: "2rem 1rem",
+        overflowY: "auto",
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={s.card}
         style={{
+          background: "white",
+          borderRadius: "12px",
           width: "100%",
           maxWidth: "500px",
-          maxHeight: "90vh",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          overflow: "hidden",
+          marginBottom: "2rem",
           display: "flex",
           flexDirection: "column",
         }}
       >
         <div
-          className={s.cardHeader}
-          style={{ justifyContent: "space-between" }}
+          style={{
+            background: "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+            padding: "1.5rem 2rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <h3 className={s.cardTitle}>Add Supervisor to {zone.name}</h3>
+          <div>
+            <h2
+              style={{
+                color: "white",
+                margin: 0,
+                fontSize: "1.25rem",
+                fontWeight: 700,
+              }}
+            >
+              Add Supervisor
+            </h2>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.75)",
+                margin: "0.25rem 0 0",
+                fontSize: "0.85rem",
+              }}
+            >
+              Assign a supervisor to {zone.name}
+            </p>
+          </div>
           <button
             onClick={onClose}
             style={{
-              background: "none",
+              background: "rgba(255,255,255,0.15)",
               border: "none",
+              borderRadius: "8px",
+              color: "white",
               cursor: "pointer",
-              color: "#64748b",
+              padding: "0.5rem",
+              display: "flex",
+              alignItems: "center",
             }}
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className={s.cardBody} style={{ padding: "1.5rem" }}>
+        <div
+          style={{
+            padding: "1.5rem 2rem",
+            maxHeight: "70vh",
+            overflowY: "auto",
+          }}
+        >
           <div className={s.formGroup}>
             <label className={s.formLabel}>Search Supervisors</label>
             <div style={{ position: "relative" }}>

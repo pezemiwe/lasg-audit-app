@@ -5,6 +5,7 @@ import { useAuditStore } from "../../store/useAuditStore";
 import ProfessionalTextarea from "../../components/UI/ProfessionalTextarea";
 import ps from "../../styles/pages.module.css";
 import {
+  X,
   ShieldCheck,
   FileText,
   ClipboardList,
@@ -2127,46 +2128,73 @@ const PreAudit: React.FC<{
               <div
                 style={{
                   position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "1rem",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.5)",
                   zIndex: 2147483000,
-                  isolation: "isolate",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "center",
+                  padding: "2rem 1rem",
+                  overflowY: "auto",
                 }}
+                className="backdrop-blur-sm animate-in fade-in duration-200"
               >
                 <div
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "rgba(0,0,0,0.5)",
-                    zIndex: -9,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 2,
-                    background: "#fff",
-                    padding: "2rem",
-                    borderRadius: "8px",
-                    width: "600px",
-                    maxWidth: "95vw",
-                    maxHeight: "90vh",
-                    overflowY: "auto",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
-                    border: "1px solid var(--border)",
+                    background: "white",
+                    borderRadius: "12px",
+                    width: "100%",
+                    maxWidth: "600px",
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                    overflow: "hidden",
+                    marginBottom: "2rem",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <h3 style={{ marginBottom: "1.5rem", fontWeight: 700 }}>
-                    Record Entry Meeting
-                  </h3>
                   <div
                     style={{
+                      background:
+                        "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                      padding: "1.5rem 2rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div>
+                      <h2
+                        style={{
+                          color: "white",
+                          margin: 0,
+                          fontSize: "1.25rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Record Entry Meeting
+                      </h2>
+                    </div>
+                    <button
+                      onClick={() => setShowMeetingModal(false)}
+                      style={{
+                        background: "rgba(255,255,255,0.15)",
+                        border: "none",
+                        borderRadius: "8px",
+                        color: "white",
+                        cursor: "pointer",
+                        padding: "0.5rem",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      padding: "1.5rem 2rem",
+                      maxHeight: "75vh",
+                      overflowY: "auto",
                       display: "flex",
                       flexDirection: "column",
                       gap: "1rem",
@@ -2504,56 +2532,82 @@ const PreAudit: React.FC<{
               <div
                 style={{
                   position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "1rem",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.5)",
                   zIndex: 2147483000,
-                  isolation: "isolate",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "center",
+                  padding: "2rem 1rem",
+                  overflowY: "auto",
                 }}
+                className="backdrop-blur-sm animate-in fade-in duration-200"
               >
                 <div
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "rgba(0,0,0,0.5)",
-                    zIndex: 0,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 2,
-                    background: "var(--bg-card)",
-                    padding: "2rem",
-                    borderRadius: "8px",
-                    width: "620px",
-                    maxWidth: "95vw",
-                    maxHeight: "90vh",
-                    overflowY: "auto",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
-                    border: "1px solid var(--border)",
-                    backgroundColor: "#fff",
+                    background: "white",
+                    borderRadius: "12px",
+                    width: "100%",
+                    maxWidth: "620px",
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                    overflow: "hidden",
+                    marginBottom: "2rem",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <h3 style={{ marginBottom: "0.25rem", fontWeight: 700 }}>
-                    Record Team Briefing
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "0.82rem",
-                      color: "var(--text-3)",
-                      marginBottom: "1.5rem",
-                    }}
-                  >
-                    Pre-fieldwork briefing conducted by the Audit Lead
-                  </p>
                   <div
                     style={{
+                      background:
+                        "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                      padding: "1.5rem 2rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div>
+                      <h2
+                        style={{
+                          color: "white",
+                          margin: 0,
+                          fontSize: "1.25rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Record Team Briefing
+                      </h2>
+                      <p
+                        style={{
+                          color: "rgba(255,255,255,0.75)",
+                          margin: "0.25rem 0 0",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        Pre-fieldwork briefing conducted by the Audit Lead
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowBriefingModal(false)}
+                      style={{
+                        background: "rgba(255,255,255,0.15)",
+                        border: "none",
+                        borderRadius: "8px",
+                        color: "white",
+                        cursor: "pointer",
+                        padding: "0.5rem",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      padding: "1.5rem 2rem",
+                      maxHeight: "75vh",
+                      overflowY: "auto",
                       display: "flex",
                       flexDirection: "column",
                       gap: "1rem",

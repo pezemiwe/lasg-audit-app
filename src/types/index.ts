@@ -79,6 +79,7 @@ export interface Mandate {
 export type AuditPhase =
   | "Engagement"
   | "Planning"
+  | "Risk Assessment"
   | "Fieldwork"
   | "Quality Review"
   | "Reporting"
@@ -134,6 +135,9 @@ export interface Audit {
   entryMeetingNotes?: string;
   entryMeetings?: EntryMeetingRecord[];
   briefings?: BriefingRecord[];
+  documentsSignedOff?: boolean;
+  documentsSignedOffAt?: string;
+  documentsSignedOffBy?: string;
 }
 
 export type RiskLevel = "Low" | "Medium" | "High" | "Critical";

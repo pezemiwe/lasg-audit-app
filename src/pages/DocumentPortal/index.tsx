@@ -17,9 +17,11 @@ import {
   AlertTriangle,
   RotateCw,
   Trash2,
+  ShieldCheck,
 } from "lucide-react";
 import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
 import s from "../../styles/pages.module.css";
+import { saveFile } from "../../utils/fileStorage";
 
 const docStatusVariant = (status: DocumentUploadStatus) => {
   switch (status) {
@@ -155,7 +157,8 @@ const DocumentPortalPage: React.FC<{
     event.target.value = "";
   };
 
-  const performUpload = (docId: string, docName: string, file: File) => {
+  const performUpload = async (docId: string, docName: string, file: File) => {
+    await saveFile(docId, file);
     const store = useAuditStore.getState();
     store.reviewDocument(docId, "", false);
     const doc = store.documentUploads.find((d) => d.id === docId);
@@ -324,6 +327,7 @@ const DocumentPortalPage: React.FC<{
                         <button
                           onClick={() =>
                             setPreviewDoc({
+                              id: detailDoc.id,
                               name: detailDoc.documentName,
                               type: detailDoc.requiredFormat,
                               uploadedBy: detailDoc.uploadedBy,
@@ -331,12 +335,13 @@ const DocumentPortalPage: React.FC<{
                                 detailDoc.uploadedAt ||
                                 new Date().toISOString(),
                               size: detailDoc.fileSize,
+                              fileName: detailDoc.fileName,
                             })
                           }
-                          className="p-1 hover:bg-gray-100 rounded text-blue-600 transition-colors flex items-center gap-1 text-xs border border-blue-200"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 rounded-md border border-blue-200 shadow-sm transition-all"
                           title="Preview Document"
                         >
-                          <Eye size={12} /> Preview
+                          <Eye size={14} /> Preview
                         </button>
                       </div>
                     </span>
@@ -370,7 +375,14 @@ const DocumentPortalPage: React.FC<{
             <div className={s.cardHeader}>
               <h3 className={s.cardTitle}>Actions</h3>
             </div>
-            <div className={s.cardBody}>
+            <div
+              className={s.cardBody}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flexGrow: 1,
+              }}
+            >
               {isLGA &&
                 (detailDoc.status === "Not Uploaded" ||
                   detailDoc.status === "Rejected") && (
@@ -431,7 +443,13 @@ const DocumentPortalPage: React.FC<{
               )}
 
               {isAdmin && canApprove && detailDoc.status === "Uploaded" && (
-                <div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    flexGrow: 1,
+                  }}
+                >
                   <p
                     style={{
                       fontSize: "0.85rem",
@@ -442,18 +460,37 @@ const DocumentPortalPage: React.FC<{
                     Review the uploaded document and approve or reject with
                     feedback.
                   </p>
-                  <div style={{ marginBottom: "1rem" }}>
+                  <div
+                    style={{
+                      marginBottom: "1rem",
+                      display: "flex",
+                      flexDirection: "column",
+                      flexGrow: 1,
+                    }}
+                  >
                     <label className={s.formLabel}>
                       Rejection Reason (if rejecting)
                     </label>
                     <textarea
                       className={s.formTextarea}
+                      style={{
+                        flexGrow: 1,
+                        minHeight: "150px",
+                        resize: "none",
+                      }}
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
                       placeholder="Provide specific feedback on what needs to be corrected"
                     />
                   </div>
-                  <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.75rem",
+                      flexShrink: 0,
+                      marginTop: "auto",
+                    }}
+                  >
                     <button
                       className={s.btnPrimary}
                       onClick={() => handleReview(detailDoc.id, true)}
@@ -534,6 +571,50 @@ const DocumentPortalPage: React.FC<{
         </div>
       )}
 
+      {/* Notifications Area */}
+      {(() => {
+        if (!canApprove || selectedLgaId === "all") return null;
+        const audit = audits.find(
+          (a) => a.mandateId === selectedMandateId && a.lgaId === selectedLgaId,
+        );
+        if (!audit) return null;
+
+        const docsForLga = allMandateDocs.filter(
+          (d) => d.lgaId === selectedLgaId,
+        );
+        if (docsForLga.length === 0) return null;
+
+        const allUploadedOrApproved = docsForLga.every(
+          (d) => d.status === "Approved" || d.status === "Uploaded",
+        );
+
+        if (allUploadedOrApproved && !audit.documentsSignedOff) {
+          return (
+            <div
+              style={{
+                backgroundColor: "#fff3cd",
+                border: "1px solid #fde047",
+                color: "#991b1b",
+                padding: "1rem",
+                borderRadius: "8px",
+                marginBottom: "1.5rem",
+                display: "flex",
+                gap: "0.75rem",
+                alignItems: "center",
+              }}
+            >
+              <AlertTriangle size={20} />
+              <div>
+                <strong>Action Required:</strong> All documents have been
+                received. Please review the documents and initiate the sign-off
+                process below.
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
       <div className={s.kpiRow}>
         <div className={s.kpiCard}>
           <div className={s.kpiIconBlue}>
@@ -572,6 +653,67 @@ const DocumentPortalPage: React.FC<{
           </div>
         </div>
       </div>
+
+      {canApprove &&
+        selectedLgaId !== "all" &&
+        (() => {
+          const audit = audits.find(
+            (a) =>
+              a.mandateId === selectedMandateId && a.lgaId === selectedLgaId,
+          );
+          if (!audit) return null;
+
+          const docsForLga = allMandateDocs.filter(
+            (d) => d.lgaId === selectedLgaId,
+          );
+          const allUploadedOrApproved =
+            docsForLga.length > 0 &&
+            docsForLga.every(
+              (d) => d.status === "Approved" || d.status === "Uploaded",
+            );
+
+          return (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: "1rem",
+              }}
+            >
+              <button
+                className={`${s.btnPrimary} ${audit.documentsSignedOff ? s.btnSuccess : ""}`}
+                disabled={audit.documentsSignedOff || !allUploadedOrApproved}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to sign-off and attest that all required documents have been received for this audit? This action cannot be undone.",
+                    )
+                  ) {
+                    useAuditStore
+                      .getState()
+                      .signOffDocuments(audit.id, user.id);
+                  }
+                }}
+                style={{
+                  opacity:
+                    audit.documentsSignedOff || !allUploadedOrApproved
+                      ? 0.6
+                      : 1,
+                }}
+              >
+                {audit.documentsSignedOff ? (
+                  <>
+                    <CheckCircle2 size={16} /> Signed-Off By Lead
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck size={16} /> Sign-Off & Attest Documents
+                  </>
+                )}
+              </button>
+            </div>
+          );
+        })()}
 
       <div className={s.card}>
         <div className={s.cardHeader}>
@@ -649,18 +791,12 @@ const DocumentPortalPage: React.FC<{
                     {!isLGA && !embedded && <th>Council</th>}
                     <th>Document</th>
                     <th>Format</th>
-                    {!embedded && <th>Due Date</th>}
-                    {!embedded && <th>Status</th>}
-                    {!embedded && <th>Version</th>}
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredDocs.map((doc) => {
                     const lga = lgas.find((l) => l.id === doc.lgaId);
-                    const overdue =
-                      doc.status !== "Approved" &&
-                      new Date(doc.dueDate) < new Date();
                     return (
                       <tr key={doc.id}>
                         {!isLGA && !embedded && (
@@ -684,36 +820,6 @@ const DocumentPortalPage: React.FC<{
                           </div>
                         </td>
                         <td>{doc.requiredFormat}</td>
-                        {!embedded && (
-                          <td>
-                            <span
-                              style={{
-                                color: overdue ? "#dc2626" : "inherit",
-                                fontWeight: overdue ? 600 : 400,
-                              }}
-                            >
-                              {new Date(doc.dueDate).toLocaleDateString()}
-                              {overdue && (
-                                <AlertTriangle
-                                  size={12}
-                                  style={{
-                                    marginLeft: "0.35rem",
-                                    verticalAlign: "middle",
-                                  }}
-                                />
-                              )}
-                            </span>
-                          </td>
-                        )}
-                        {!embedded && (
-                          <td>
-                            <StatusBadge
-                              label={doc.status}
-                              variant={docStatusVariant(doc.status)}
-                            />
-                          </td>
-                        )}
-                        {!embedded && <td>v{doc.version}</td>}
                         <td>
                           <div className={s.tableActions}>
                             {/* Hidden file input */}

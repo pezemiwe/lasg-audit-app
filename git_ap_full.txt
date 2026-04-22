@@ -1,221 +1,3 @@
-ï»¿import React, { useState, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
-import { useAuditStore, type AuditStore } from "../../store/useAuditStore";
-import { useAuth } from "../../hooks/useAuth";
-import StatusBadge from "../../components/UI/StatusBadge";
-import WorkProgrammeSection from "../../components/AuditPlanning/WorkProgrammeSection";
-import type {
-  RiskLevel,
-  RiskMatrix,
-  EntityProfile,
-  AuditStrategy,
-  AuditStrategyStatus,
-  AnalyticFlag,
-  PreliminaryAnalytic,
-} from "../../types";
-import {
-  ClipboardList,
-  Building2,
-  BarChart3,
-  Calculator,
-  AlertTriangle,
-  FileText,
-  BookOpen,
-  ChevronRight,
-  ChevronLeft,
-  Check,
-  Plus,
-  Pencil,
-  X,
-  Save,
-  Sparkles,
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Search,
-  Info,
-  Target,
-  Layers,
-  Download,
-} from "lucide-react";
-import s from "../../styles/pages.module.css";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-
-const RISK_LEVELS: RiskLevel[] = ["Low", "Medium", "High", "Critical"];
-
-const RISK_AREAS = [
-  "Revenue & Receipts",
-  "Expenditure & Payments",
-  "Payroll & Personnel Costs",
-  "Bank & Cash Management",
-  "Procurement & Contracts",
-  "Fixed Assets & Capital Projects",
-  "Grants & Transfers",
-  "Tax & Deductions",
-];
-
-const MATERIALITY_BASES = [
-  "Total Revenue",
-  "Total Expenditure",
-  "Net Assets",
-  "Total Assets",
-  "Surplus/Deficit",
-];
-
-const FRAMEWORKS = [
-  "IPSAS Accrual Basis",
-  "IPSAS Cash Basis",
-  "Modified Cash Basis",
-  "Nigerian SAS",
-];
-
-const IT_SYSTEMS = [
-  "SIFMIS",
-  "IPPIS",
-  "GIFMIS",
-  "Manual Spreadsheets",
-  "Custom ERP",
-  "Sage",
-  "QuickBooks",
-];
-
-const STEP_CONFIG = [
-  {
-    key: "entity",
-    label: "Entity Understanding",
-    icon: Building2,
-    shortLabel: "Entity",
-  },
-  {
-    key: "analytics",
-    label: "Preliminary Analytics",
-    icon: BarChart3,
-    shortLabel: "Analytics",
-  },
-  {
-    key: "materiality",
-    label: "Materiality Determination",
-    icon: Calculator,
-    shortLabel: "Materiality",
-  },
-  {
-    key: "risk",
-    label: "Risk Assessment",
-    icon: AlertTriangle,
-    shortLabel: "Risk",
-  },
-  {
-    key: "strategy",
-    label: "Audit Strategy",
-    icon: FileText,
-    shortLabel: "Strategy",
-  },
-  {
-    key: "programme",
-    label: "Audit Programme",
-    icon: BookOpen,
-    shortLabel: "Programme",
-  },
-] as const;
-
-type StepKey = (typeof STEP_CONFIG)[number]["key"];
-
-const riskColor: Record<
-  RiskLevel,
-  { bg: string; text: string; border: string }
-> = {
-  Low: { bg: "#f0fdf4", text: "#166534", border: "#bbf7d0" },
-  Medium: { bg: "#fffbeb", text: "#92400e", border: "#fde68a" },
-  High: { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
-  Critical: { bg: "#fdf2f8", text: "#9d174d", border: "#fbcfe8" },
-};
-
-const flagConfig: Record<
-  AnalyticFlag,
-  { bg: string; text: string; icon: React.ElementType }
-> = {
-  Favorable: { bg: "#f0fdf4", text: "#166534", icon: TrendingDown },
-  Adverse: { bg: "#fffbeb", text: "#92400e", icon: TrendingUp },
-  Neutral: { bg: "#f8fafc", text: "#475569", icon: Minus },
-  Investigate: { bg: "#fef2f2", text: "#991b1b", icon: Search },
-};
-
-const calculateOverallRisk = (
-  inherent: RiskLevel,
-  control: RiskLevel,
-  detection: RiskLevel,
-): RiskLevel => {
-  const map: Record<RiskLevel, number> = {
-    Low: 1,
-    Medium: 2,
-    High: 3,
-    Critical: 4,
-  };
-  const avg = (map[inherent] + map[control] + map[detection]) / 3;
-  if (avg >= 3.5) return "Critical";
-  if (avg >= 2.5) return "High";
-  if (avg >= 1.5) return "Medium";
-  return "Low";
-};
-
-const fmtCurrency = (n: number) =>
-  "Î“Ã©Âª" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
-
-const fmtPercent = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
-
-const Card: React.FC<{
-  title: string;
-  subtitle?: string;
-  actions?: React.ReactNode;
-  children: React.ReactNode;
-  noPad?: boolean;
-}> = ({ title, subtitle, actions, children, noPad }) => (
-  <div className={s.card}>
-    <div className={s.cardHeader}>
-      <div>
-        <div className={s.cardTitle}>{title}</div>
-        {subtitle && (
-          <div
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-3)",
-              marginTop: "0.15rem",
-            }}
-          >
-            {subtitle}
-          </div>
-        )}
-      </div>
-      {actions}
-    </div>
-    <div className={noPad ? undefined : s.cardBody}>{children}</div>
-  </div>
-);
-
-const RiskBadge: React.FC<{ level: RiskLevel }> = ({ level }) => (
-  <span
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "0.3rem",
-      fontSize: "0.72rem",
-      fontWeight: 700,
-      padding: "0.2rem 0.55rem",
-      borderRadius: "4px",
-      background: riskColor[level].bg,
-      color: riskColor[level].text,
-      border: `1px solid ${riskColor[level].border}`,
-      textTransform: "uppercase",
-      letterSpacing: "0.04em",
-    }}
-  >
-    <Shield size={11} />
-    {level}
-  </span>
-);
-
 const AuditPlanning: React.FC = () => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -329,7 +111,7 @@ const AuditPlanning: React.FC = () => {
         <div>
           <div className={s.pageTitle}>Audit Planning</div>
           <div className={s.pageSubtitle}>
-            ISA 300 - Planning an Audit of Financial Statements
+            ISA 300 GÇö Planning an Audit of Financial Statements
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -344,7 +126,7 @@ const AuditPlanning: React.FC = () => {
                 store.lgas.find((l) => l.id === a.lgaId)?.name || a.lgaId;
               return (
                 <option key={a.id} value={a.id}>
-                  {name} - FY {a.year}
+                  {name} GÇö FY {a.year}
                 </option>
               );
             })}
@@ -633,7 +415,7 @@ const EntityUnderstandingStep: React.FC<{
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         <Card
-          title={`Entity Profile - ${profile.entityName}`}
+          title={`Entity Profile GÇö ${profile.entityName}`}
           subtitle={`${profile.councilType} | ${zone?.name || ""} Zone | FY ${audit.year}`}
           actions={
             <button className={s.btnOutline} onClick={() => setEditing(true)}>
@@ -649,7 +431,7 @@ const EntityUnderstandingStep: React.FC<{
             }}
           >
             <InfoRow label="Council Type" value={profile.councilType} />
-            <InfoRow label="Zone" value={zone?.name || "-"} />
+            <InfoRow label="Zone" value={zone?.name || "GÇö"} />
             <InfoRow
               label="Established"
               value={String(profile.establishedYear)}
@@ -658,11 +440,15 @@ const EntityUnderstandingStep: React.FC<{
               label="Population (est.)"
               value={profile.population.toLocaleString()}
             />
-            <InfoRow label="Chairman / Council Manager" value={profile.chairmanName || "-"} />
-            <InfoRow label="Treasurer" value={profile.treasurerName || "-"} />
+            <InfoRow label="Chairman" value={profile.chairmanName || "GÇö"} />
+            <InfoRow label="Treasurer" value={profile.treasurerName || "GÇö"} />
+            <InfoRow
+              label="Council Manager"
+              value={profile.councilManagerName || "GÇö"}
+            />
             <InfoRow
               label="Internal Auditor"
-              value={profile.internalAuditorName || "-"}
+              value={profile.internalAuditorName || "GÇö"}
             />
           </div>
         </Card>
@@ -670,7 +456,7 @@ const EntityUnderstandingStep: React.FC<{
         <div className={s.gridTwoCols}>
           <Card
             title="Financial Reporting Framework"
-            subtitle="ISA 315 - Applicable Framework"
+            subtitle="ISA 315 GÇö Applicable Framework"
           >
             <div
               style={{
@@ -789,7 +575,7 @@ const EntityUnderstandingStep: React.FC<{
 
         <Card
           title="Prior Year Findings Carried Forward"
-          subtitle="ISA 315 - Previous audit observations requiring follow-up"
+          subtitle="ISA 315 GÇö Previous audit observations requiring follow-up"
         >
           {profile.priorYearFindings.length === 0 ? (
             <div
@@ -893,7 +679,7 @@ const EntityUnderstandingStep: React.FC<{
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <Card
-        title="Entity Understanding - Data Collection"
+        title="Entity Understanding GÇö Data Collection"
         subtitle="ISA 315: Obtain understanding of the entity and its environment"
       >
         <div
@@ -924,61 +710,56 @@ const EntityUnderstandingStep: React.FC<{
         <div className={s.formGrid}>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Entity Name</label>
-            <div
+            <input
               className={s.formInput}
-              style={{
-                background: "#f8fafc",
-                color: "#475569",
-                cursor: "default",
-                pointerEvents: "none",
-              }}
-            >
-              {form.entityName}
-            </div>
+              value={form.entityName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, entityName: e.target.value }))
+              }
+            />
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Council Type</label>
-            <div
-              className={s.formInput}
-              style={{
-                background: "#f8fafc",
-                color: "#475569",
-                cursor: "default",
-                pointerEvents: "none",
-              }}
+            <select
+              className={s.formSelect}
+              value={form.councilType}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  councilType: e.target.value as "LGA" | "LCDA",
+                }))
+              }
             >
-              {form.councilType === "LGA"
-                ? "Local Government Area (LGA)"
-                : "Local Council Development Area (LCDA)"}
-            </div>
+              <option value="LGA">Local Government Area (LGA)</option>
+              <option value="LCDA">
+                Local Council Development Area (LCDA)
+              </option>
+            </select>
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Year Established</label>
-            <div
+            <input
+              type="number"
               className={s.formInput}
-              style={{
-                background: "#f8fafc",
-                color: "#475569",
-                cursor: "default",
-                pointerEvents: "none",
-              }}
-            >
-              {form.establishedYear}
-            </div>
+              value={form.establishedYear}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  establishedYear: Number(e.target.value),
+                }))
+              }
+            />
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Population (Est.)</label>
-            <div
+            <input
+              type="number"
               className={s.formInput}
-              style={{
-                background: "#f8fafc",
-                color: "#475569",
-                cursor: "default",
-                pointerEvents: "none",
-              }}
-            >
-              {Number(form.population).toLocaleString()}
-            </div>
+              value={form.population}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, population: Number(e.target.value) }))
+              }
+            />
           </div>
         </div>
       </Card>
@@ -989,14 +770,14 @@ const EntityUnderstandingStep: React.FC<{
       >
         <div className={s.formGrid}>
           <div className={s.formGroup}>
-            <label className={s.formLabel}>Chairman / Council Manager</label>
+            <label className={s.formLabel}>Chairman</label>
             <input
               className={s.formInput}
               value={form.chairmanName}
               onChange={(e) =>
                 setForm((f) => ({ ...f, chairmanName: e.target.value }))
               }
-              placeholder="Name of Chairman or Council Manager"
+              placeholder="Name of LGA Chairman"
             />
           </div>
           <div className={s.formGroup}>
@@ -1008,6 +789,17 @@ const EntityUnderstandingStep: React.FC<{
                 setForm((f) => ({ ...f, treasurerName: e.target.value }))
               }
               placeholder="Name of Council Treasurer"
+            />
+          </div>
+          <div className={s.formGroup}>
+            <label className={s.formLabel}>Council Manager</label>
+            <input
+              className={s.formInput}
+              value={form.councilManagerName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, councilManagerName: e.target.value }))
+              }
+              placeholder="Name of Council Manager"
             />
           </div>
           <div className={s.formGroup}>
@@ -1372,7 +1164,7 @@ const PreliminaryAnalyticsStep: React.FC<{
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         <Card
           title="Preliminary Analytical Procedures"
-          subtitle="ISA 520 - Analytical Procedures as Risk Assessment"
+          subtitle="ISA 520 GÇö Analytical Procedures as Risk Assessment"
         >
           <div
             style={{
@@ -1691,7 +1483,7 @@ const PreliminaryAnalyticsStep: React.FC<{
                     </div>
                     <div style={{ fontSize: "0.8rem", color: "#7f1d1d" }}>
                       Variance of {fmtPercent(a.variancePercent)} ({a.category})
-                      - requires explanation from management and may indicate
+                      GÇö requires explanation from management and may indicate
                       elevated risk of material misstatement.
                     </div>
                     {a.investigationNote && (
@@ -1778,7 +1570,7 @@ const MaterialityStep: React.FC<{
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <Card
         title="Materiality Determination"
-        subtitle="ISA 320 - Materiality in Planning and Performing an Audit"
+        subtitle="ISA 320 GÇö Materiality in Planning and Performing an Audit"
       >
         <div
           style={{
@@ -1821,7 +1613,7 @@ const MaterialityStep: React.FC<{
               </select>
             </div>
             <div className={s.formGroup} style={{ marginBottom: "1.25rem" }}>
-              <label className={s.formLabel}>Basis Amount (Î“Ã©Âª)</label>
+              <label className={s.formLabel}>Basis Amount (Géª)</label>
               <input
                 type="number"
                 className={s.formInput}
@@ -2087,7 +1879,7 @@ const RiskMatrixStep: React.FC<{
 
   const overall = calculateOverallRisk(inherent, control, detection);
 
-  // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Link to Questionnaire Risk Assessment Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+  // GöÇGöÇGöÇ Link to Questionnaire Risk Assessment GöÇGöÇGöÇ
   const questionnaireResponses = store.questionnaireResponses.filter(
     (r) => r.auditId === audit.id,
   );
@@ -2195,7 +1987,7 @@ const RiskMatrixStep: React.FC<{
       controlRisk: controlLevel,
       detectionRisk:
         fraudRisk === "Critical" || fraudRisk === "High" ? "High" : "Medium",
-      mitigationPlan: `${q24 === "yes" ? "Fraud indicators identified - extend testing scope. " : ""}Test payment authorisation controls and verify expenditure against approved budget.`,
+      mitigationPlan: `${q24 === "yes" ? "Fraud indicators identified GÇö extend testing scope. " : ""}Test payment authorisation controls and verify expenditure against approved budget.`,
     });
 
     riskEntries.push({
@@ -2203,7 +1995,7 @@ const RiskMatrixStep: React.FC<{
       inherentRisk: personnelRisk,
       controlRisk: controlLevel,
       detectionRisk: "Medium",
-      mitigationPlan: `${q29 === "frequent" ? "Frequent personnel changes noted - verify staff records for ghost workers. " : ""}Test payroll calculations and reconcile to financial statements.`,
+      mitigationPlan: `${q29 === "frequent" ? "Frequent personnel changes noted GÇö verify staff records for ghost workers. " : ""}Test payroll calculations and reconcile to financial statements.`,
     });
 
     riskEntries.push({
@@ -2220,7 +2012,7 @@ const RiskMatrixStep: React.FC<{
       inherentRisk: relatedPartyRisk === "Low" ? mgmtRisk : relatedPartyRisk,
       controlRisk: controlLevel,
       detectionRisk: relatedPartyRisk === "High" ? "High" : "Medium",
-      mitigationPlan: `${q25?.includes("yes") ? "Related-party transactions identified - apply ISA 550 procedures. " : ""}Review procurement processes for compliance and value-for-money.`,
+      mitigationPlan: `${q25?.includes("yes") ? "Related-party transactions identified GÇö apply ISA 550 procedures. " : ""}Review procurement processes for compliance and value-for-money.`,
     });
 
     riskEntries.push({
@@ -2234,7 +2026,7 @@ const RiskMatrixStep: React.FC<{
           ? ("High" as RiskLevel)
           : controlLevel,
       detectionRisk: assetRisk === "High" ? "High" : "Medium",
-      mitigationPlan: `${q20 === "none" ? "No formal asset register - perform physical verification. " : q20 === "incomplete" ? "Asset register incomplete - reconcile and verify key items. " : ""}Test capital project expenditure against approvals.`,
+      mitigationPlan: `${q20 === "none" ? "No formal asset register GÇö perform physical verification. " : q20 === "incomplete" ? "Asset register incomplete GÇö reconcile and verify key items. " : ""}Test capital project expenditure against approvals.`,
     });
 
     riskEntries.push({
@@ -2345,7 +2137,7 @@ const RiskMatrixStep: React.FC<{
     return grid;
   }, [risks]);
 
-  // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Report data Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+  // GöÇGöÇGöÇ Report data GöÇGöÇGöÇ
   const totalRisks = risks.length;
   const criticalRisks = risks.filter((r) => r.overallRisk === "Critical");
   const highRisks = risks.filter((r) => r.overallRisk === "High");
@@ -2398,7 +2190,7 @@ const RiskMatrixStep: React.FC<{
       if (y + needed > 792 - 60) addPage();
     };
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Cover Page Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Cover Page GöÇGöÇGöÇ
     doc.setFillColor(3, 105, 161);
     doc.rect(0, 0, W, 160, "F");
     doc.setFont("helvetica", "normal");
@@ -2412,11 +2204,11 @@ const RiskMatrixStep: React.FC<{
     doc.text("Risk Assessment Report", W / 2, 90, { align: "center" });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
-    doc.text(`${lgaName} - ${audit.type} Audit (${audit.year})`, W / 2, 115, {
+    doc.text(`${lgaName} GÇö ${audit.type} Audit (${audit.year})`, W / 2, 115, {
       align: "center",
     });
     doc.setFontSize(9);
-    const metaLine = `Prepared: ${reportDate}  |  By: ${preparer?.name || user.id}${materialityData ? `  |  Materiality: Î“Ã©Âª${Number(materialityData.overallMateriality || 0).toLocaleString()}` : ""}`;
+    const metaLine = `Prepared: ${reportDate}  |  By: ${preparer?.name || user.id}${materialityData ? `  |  Materiality: Géª${Number(materialityData.overallMateriality || 0).toLocaleString()}` : ""}`;
     doc.text(metaLine, W / 2, 140, { align: "center" });
 
     y = 200;
@@ -2451,7 +2243,7 @@ const RiskMatrixStep: React.FC<{
     });
     y += 70;
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Section 1: Executive Summary Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Section 1: Executive Summary GöÇGöÇGöÇ
     const sectionHead = (num: number, title: string) => {
       checkPage(40);
       doc.setDrawColor(...accent);
@@ -2490,22 +2282,22 @@ const RiskMatrixStep: React.FC<{
       doc.setTextColor(...ink);
     }
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Section 2: Methodology Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Section 2: Methodology GöÇGöÇGöÇ
     sectionHead(2, "Risk Assessment Methodology");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     const methLines = doc.splitTextToSize(
       "The risk assessment was performed in accordance with ISA 315 (Revised 2019) and ISSAI 1315. Each identified risk area was evaluated across three dimensions:\n\n" +
-        "(a) Inherent Risk - The susceptibility of an assertion to a misstatement that could be material, before consideration of related controls.\n\n" +
-        "(b) Control Risk - The risk that a misstatement could occur and not be prevented or detected on a timely basis by the entity's internal controls.\n\n" +
-        "(c) Detection Risk - The risk that audit procedures will not detect a misstatement that exists and could be material.",
+        "(a) Inherent Risk GÇö The susceptibility of an assertion to a misstatement that could be material, before consideration of related controls.\n\n" +
+        "(b) Control Risk GÇö The risk that a misstatement could occur and not be prevented or detected on a timely basis by the entity's internal controls.\n\n" +
+        "(c) Detection Risk GÇö The risk that audit procedures will not detect a misstatement that exists and could be material.",
       W - MX * 2,
     );
     checkPage(methLines.length * 13);
     doc.text(methLines, MX, y);
     y += methLines.length * 13 + 10;
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Section 3: Risk Matrix Table Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Section 3: Risk Matrix Table GöÇGöÇGöÇ
     sectionHead(3, "Detailed Risk Assessment Matrix");
     autoTable(doc, {
       startY: y,
@@ -2529,7 +2321,7 @@ const RiskMatrixStep: React.FC<{
         r.controlRisk,
         r.detectionRisk,
         r.overallRisk,
-        r.mitigationPlan || "-",
+        r.mitigationPlan || "GÇö",
         r.status,
       ]),
       styles: {
@@ -2571,7 +2363,7 @@ const RiskMatrixStep: React.FC<{
       (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
         .finalY + 16;
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Section 4: Significant Risk Areas Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Section 4: Significant Risk Areas GöÇGöÇGöÇ
     if (criticalRisks.length > 0 || highRisks.length > 0) {
       sectionHead(4, "Significant Risk Areas Requiring Enhanced Procedures");
       [...criticalRisks, ...highRisks].forEach((r) => {
@@ -2599,7 +2391,7 @@ const RiskMatrixStep: React.FC<{
       });
     }
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Conclusion Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Conclusion GöÇGöÇGöÇ
     const cSec = criticalRisks.length > 0 || highRisks.length > 0 ? 5 : 4;
     sectionHead(cSec, "Conclusion & Recommendations");
     doc.setFont("helvetica", "normal");
@@ -2637,7 +2429,7 @@ const RiskMatrixStep: React.FC<{
     });
     y += 20;
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Sign-off Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Sign-off GöÇGöÇGöÇ
     checkPage(70);
     doc.setDrawColor(...ruleClr);
     doc.setLineWidth(0.5);
@@ -2665,7 +2457,7 @@ const RiskMatrixStep: React.FC<{
       }
     });
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Page numbers Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Page numbers GöÇGöÇGöÇ
     const totalPages = doc.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
@@ -2677,7 +2469,7 @@ const RiskMatrixStep: React.FC<{
       });
     }
 
-    // Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Trigger download Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    // GöÇGöÇGöÇ Trigger download GöÇGöÇGöÇ
     doc.save(
       `Risk_Assessment_Report_${lgaName.replace(/\s+/g, "_")}_${audit.year}.pdf`,
     );
@@ -2730,7 +2522,7 @@ const RiskMatrixStep: React.FC<{
             marginTop: "0.25rem",
           }}
         >
-          {lgaName} - {audit.type} Audit ({audit.year})
+          {lgaName} GÇö {audit.type} Audit ({audit.year})
         </div>
         <div
           style={{
@@ -3105,7 +2897,7 @@ const RiskMatrixStep: React.FC<{
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      {/* Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Action Bar: Generate Report + Save Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ */}
+      {/* GöÇGöÇGöÇ Action Bar: Generate Report + Save GöÇGöÇGöÇ */}
       {risks.length > 0 && (
         <div
           style={{
@@ -3165,7 +2957,7 @@ const RiskMatrixStep: React.FC<{
               <div className={s.kpiMeta}>
                 {risks.length > 0
                   ? `${Math.round((riskCounts[level] / risks.length) * 100)}% of total`
-                  : "-"}
+                  : "GÇö"}
               </div>
             </div>
           </div>
@@ -3265,7 +3057,7 @@ const RiskMatrixStep: React.FC<{
 
       <Card
         title="Risk Assessment Matrix"
-        subtitle="ISA 315 - Identifying and Assessing the Risks of Material Misstatement"
+        subtitle="ISA 315 GÇö Identifying and Assessing the Risks of Material Misstatement"
         actions={
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button
@@ -3549,7 +3341,7 @@ const RiskMatrixStep: React.FC<{
                         }}
                         title={items.map((i) => i.area).join(", ")}
                       >
-                        {items.length || "-"}
+                        {items.length || "GÇö"}
                       </div>
                     );
                   })}
@@ -3567,13 +3359,13 @@ const RiskMatrixStep: React.FC<{
                 letterSpacing: "0.06em",
               }}
             >
-              Î“Ã¥Ã‰ Control Risk Î“Ã¥Ã†
+              GåÉ Control Risk GåÆ
             </div>
           </div>
         )}
       </Card>
 
-      {/* Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ Report Modal Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡ */}
+      {/* GöÇGöÇGöÇ Report Modal GöÇGöÇGöÇ */}
       {showReportModal && risks.length > 0 && (
         <div
           style={{
@@ -3623,7 +3415,7 @@ const RiskMatrixStep: React.FC<{
                     color: "#64748b",
                   }}
                 >
-                  {lgaName} - {audit.type} Audit ({audit.year})
+                  {lgaName} GÇö {audit.type} Audit ({audit.year})
                 </p>
               </div>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -3754,7 +3546,7 @@ const AuditStrategyStep: React.FC<{
                   marginTop: "0.2rem",
                 }}
               >
-                {lgaName} - FY {audit.year} | ISA 300.7
+                {lgaName} GÇö FY {audit.year} | ISA 300.7
               </div>
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -4020,8 +3812,8 @@ const AuditStrategyStep: React.FC<{
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <Card
-        title="Audit Strategy - Configuration"
-        subtitle="ISA 300.7 - The auditor shall establish an overall audit strategy"
+        title="Audit Strategy GÇö Configuration"
+        subtitle="ISA 300.7 GÇö The auditor shall establish an overall audit strategy"
       >
         <div
           style={{
@@ -4356,7 +4148,7 @@ const ProgrammeStep: React.FC<{
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <Card
         title="Audit Programme Generation"
-        subtitle="ISA 300.9 - The auditor shall develop an audit plan"
+        subtitle="ISA 300.9 GÇö The auditor shall develop an audit plan"
       >
         <div
           style={{

@@ -289,6 +289,7 @@ export interface AuditStore {
   updateMandateStatus: (id: string, status: MandateStatus) => void;
   acceptMandate: (mandateId: string, lgaId: string) => void;
   ensureDocumentsExist: (mandateId: string, lgaId: string) => void;
+  signOffDocuments: (auditId: string, userId: string) => void;
 
   addSupervisor: (zoneId: string, supervisorId: string) => void;
   removeSupervisor: (zoneId: string, supervisorId: string) => void;
@@ -970,21 +971,41 @@ export const useAuditStore = create(
         });
       },
 
+      signOffDocuments: (auditId, userId) => {
+        set((s) => {
+          const newAudits = [...s.audits];
+          const aIdx = newAudits.findIndex((a) => a.id === auditId);
+          if (aIdx >= 0) {
+            newAudits[aIdx] = {
+              ...newAudits[aIdx],
+              documentsSignedOff: true,
+              documentsSignedOffAt: new Date().toISOString(),
+              documentsSignedOffBy: userId,
+            };
+          }
+          return { audits: newAudits };
+        });
+        get().addToast({
+          type: "success",
+          title: "Sign-off Complete",
+          message: "All requested documents have been signed-off successfully.",
+        });
+      },
+
       ensureDocumentsExist: (mandateId, lgaId) => {
         set((s) => {
           const mandate = s.mandates.find((m) => m.id === mandateId);
           const dueDate = mandate?.endDate || new Date().toISOString();
 
-          // Define the full list of 10 Required Documents
+          // Define the full list of Required Documents
           const allRequiredDocs: DocumentUpload[] = [
             {
               id: `doc-${mandateId}-${lgaId}-1`,
               lgaId,
               mandateId,
-              documentName: "Annual Financial Statements",
-              description:
-                "Complete audited or unaudited financial statements for the period.",
-              requiredFormat: "PDF",
+              documentName: "Unaudited Financial Statement for current year",
+              description: "Current year un-audited financial statement",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -993,10 +1014,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-2`,
               lgaId,
               mandateId,
-              documentName: "Approved Budget",
-              description:
-                "Current and preceding year approved budget documents",
-              requiredFormat: "PDF",
+              documentName: "Audited Financial Statement for previous year",
+              description: "Previous year audited financial statement",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1005,10 +1025,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-3`,
               lgaId,
               mandateId,
-              documentName: "Bank Statements",
-              description:
-                "Bank statements for all LGA accounts covering 12 months",
-              requiredFormat: "PDF",
+              documentName: "Unaudited Trial Balance for current year",
+              description: "Current year unaudited trial balance",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1017,9 +1036,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-4`,
               lgaId,
               mandateId,
-              documentName: "Trial Balance",
-              description: "Consolidated trial balance for the fiscal year",
-              requiredFormat: "Excel/PDF",
+              documentName: "Audited trial balance for previous year",
+              description: "Previous year audited trial balance",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1028,9 +1047,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-5`,
               lgaId,
               mandateId,
-              documentName: "Payment Vouchers",
-              description: "Sampled payment vouchers above threshold",
-              requiredFormat: "PDF",
+              documentName: "Contract Register",
+              description: "Register of all contracts awarded",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1039,10 +1058,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-6`,
               lgaId,
               mandateId,
-              documentName: "Contract Register",
-              description:
-                "Register of all contracts awarded during the period",
-              requiredFormat: "Excel/PDF",
+              documentName: "Asset Register",
+              description: "Register of fixed assets",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1051,8 +1069,8 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-7`,
               lgaId,
               mandateId,
-              documentName: "Asset Register",
-              description: "Updated register of fixed assets and properties",
+              documentName: "Approved Budget",
+              description: "Approved budget document",
               requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
@@ -1062,9 +1080,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-8`,
               lgaId,
               mandateId,
-              documentName: "Payroll Schedule",
-              description: "Monthly payroll summary and nominal roll",
-              requiredFormat: "Excel",
+              documentName: "Bank Statements",
+              description: "LGA Bank Statements",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1073,10 +1091,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-9`,
               lgaId,
               mandateId,
-              documentName: "Executive Committee Minutes",
-              description:
-                "Minutes of meetings involving key financial decisions",
-              requiredFormat: "PDF",
+              documentName: "Balance sheet",
+              description: "Balance sheet",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1085,9 +1102,185 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-10`,
               lgaId,
               mandateId,
-              documentName: "Internal Audit Report",
-              description: "Quarterly internal audit reports for the period",
-              requiredFormat: "PDF",
+              documentName: "Payroll schedules",
+              description: "Payroll schedules",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-11`,
+              lgaId,
+              mandateId,
+              documentName: "Payment vouchers",
+              description: "Payment vouchers",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-12`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Cash and Cash Equivalent",
+              description: "Schedule for Cash and Cash Equivalent",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-13`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Receivables",
+              description: "Schedule for Receivables",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-14`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Prepayments",
+              description: "Schedule for Prepayments",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-15`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Inventories",
+              description: "Schedule for Inventories",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-16`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Loan Granted (Local Govt. Loan Fund)",
+              description: "Schedule for Loan Granted (Local Govt. Loan Fund)",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-17`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Investments",
+              description: "Schedule for Investments",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-18`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Property, Plant and Equipment (PPE)",
+              description: "Schedule for Property, Plant and Equipment (PPE)",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-19`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Investment Properties",
+              description: "Schedule for Investment Properties",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-20`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Intangible Assets (Advances)",
+              description: "Schedule for Intangible Assets (Advances)",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-21`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Deposits",
+              description: "Schedule for Deposits",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-22`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Short Term Loans and Debts",
+              description: "Schedule for Short Term Loans and Debts",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-23`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Payables (Accrued Expenses)",
+              description: "Schedule for Payables (Accrued Expenses)",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-24`,
+              lgaId,
+              mandateId,
+              documentName: "Schdule for Long Term Borrowing",
+              description: "Schdule for Long Term Borrowing",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-25`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Reserves",
+              description: "Schedule for Reserves",
+              requiredFormat: "Excel",
+              status: "Not Uploaded",
+              version: 1,
+              dueDate,
+            },
+            {
+              id: `doc-${mandateId}-${lgaId}-26`,
+              lgaId,
+              mandateId,
+              documentName: "Schedule for Accumulated Surpluses/(Deficits)",
+              description: "Schedule for Accumulated Surpluses/(Deficits)",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1099,28 +1292,37 @@ export const useAuditStore = create(
             (d) => d.mandateId === mandateId && d.lgaId === lgaId,
           );
 
+          // Get docs running outside this mandate/lga context so we can keep them
+          const otherDocs = s.documentUploads.filter(
+            (d) => !(d.mandateId === mandateId && d.lgaId === lgaId),
+          );
+
+          const requiredNames = allRequiredDocs.map((r) => r.documentName);
+          const validExistingDocs = existingDocs.filter((d) =>
+            requiredNames.includes(d.documentName),
+          );
+
           const missingDocs = allRequiredDocs.filter((req) => {
-            // Check if a document with this name already exists for this mandate/LGA
-            // Also check somewhat fuzzy to avoid "Annual Financial Statement" vs "Statements" duplicates if desired
-            // But here we rely on exact match or we'll just have duplicates which is better than missing docs
-            const exists = existingDocs.some(
+            const exists = validExistingDocs.some(
               (ex) => ex.documentName === req.documentName,
             );
             return !exists;
           });
 
-          if (missingDocs.length === 0) return {}; // All good
+          // If no docs are missing and none are obsolete, no-op
+          if (
+            missingDocs.length === 0 &&
+            existingDocs.length === validExistingDocs.length
+          )
+            return {};
 
-          // Force update with new docs
-          if (missingDocs.length > 0) {
-            get().addToast({
-              type: "info",
-              title: "System Update",
-              message: `Added ${missingDocs.length} missing required documents for this mandate.`,
-            });
-          }
-
-          return { documentUploads: [...s.documentUploads, ...missingDocs] };
+          return {
+            documentUploads: [
+              ...otherDocs,
+              ...validExistingDocs,
+              ...missingDocs,
+            ],
+          };
         });
       },
 
@@ -1702,7 +1904,12 @@ Lagos State
           set((s) => ({
             questionnaireResponses: s.questionnaireResponses.map((r) =>
               r.id === existing.id
-                ? { ...r, answer: data.answer, otherExplanation: data.otherExplanation, answeredAt: now() }
+                ? {
+                    ...r,
+                    answer: data.answer,
+                    otherExplanation: data.otherExplanation,
+                    answeredAt: now(),
+                  }
                 : r,
             ),
           }));

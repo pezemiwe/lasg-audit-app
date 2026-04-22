@@ -25,6 +25,7 @@ import DocumentPortalPage from "../DocumentPortal";
 import ReportsPage from "../Reports";
 import PreAuditPage from "../PreAudit";
 
+
 const AuditDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ const AuditDetail: React.FC = () => {
   const PHASES = [
     "Engagement",
     "Planning",
+    "Risk Assessment",
     "Fieldwork",
     "Reporting",
     "Quality Review",
@@ -184,33 +186,43 @@ const AuditDetail: React.FC = () => {
                     width: "100%",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.75rem",
+                    }}
+                  >
                     <h3 className={s.cardTitle}>Phase Timelines</h3>
                     {audit.proposedTimelines && !audit.timelinesApproved && (
-                      <span style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "4px",
-                        background: "#fef3c7",
-                        color: "#92400e",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}>
+                      <span
+                        style={{
+                          fontSize: "0.7rem",
+                          fontWeight: 700,
+                          padding: "0.2rem 0.6rem",
+                          borderRadius: "4px",
+                          background: "#fef3c7",
+                          color: "#92400e",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
                         Pending Approval
                       </span>
                     )}
                     {audit.timelinesApproved && (
-                      <span style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "4px",
-                        background: "#d1fae5",
-                        color: "#065f46",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}>
+                      <span
+                        style={{
+                          fontSize: "0.7rem",
+                          fontWeight: 700,
+                          padding: "0.2rem 0.6rem",
+                          borderRadius: "4px",
+                          background: "#d1fae5",
+                          color: "#065f46",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
                         Approved
                       </span>
                     )}
@@ -219,10 +231,15 @@ const AuditDetail: React.FC = () => {
                     {!isEditingTimelines && user.role === "AUDIT_LEAD" && (
                       <button
                         className={s.btnSecondary}
-                        style={{ fontSize: "0.875rem", padding: "0.25rem 0.75rem" }}
+                        style={{
+                          fontSize: "0.875rem",
+                          padding: "0.25rem 0.75rem",
+                        }}
                         onClick={handleEditTimelines}
                       >
-                        {audit.proposedTimelines ? "Edit Proposal" : "Set Timelines"}
+                        {audit.proposedTimelines
+                          ? "Edit Proposal"
+                          : "Set Timelines"}
                       </button>
                     )}
                     {!isEditingTimelines &&
@@ -231,7 +248,10 @@ const AuditDetail: React.FC = () => {
                       !audit.timelinesApproved && (
                         <button
                           className={s.btnPrimary}
-                          style={{ fontSize: "0.875rem", padding: "0.25rem 0.75rem" }}
+                          style={{
+                            fontSize: "0.875rem",
+                            padding: "0.25rem 0.75rem",
+                          }}
                           onClick={() => approveAuditTimelines(audit.id)}
                         >
                           Approve Timelines
@@ -271,12 +291,16 @@ const AuditDetail: React.FC = () => {
                         className={s.card}
                         style={{ padding: "0.75rem", border: "1px solid #eee" }}
                       >
-                        <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
+                        <div
+                          style={{ fontWeight: 600, marginBottom: "0.5rem" }}
+                        >
                           {phase}
                         </div>
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: "0.75rem", color: "#666" }}>
+                            <label
+                              style={{ fontSize: "0.75rem", color: "#666" }}
+                            >
                               Start
                             </label>
                             <input
@@ -288,7 +312,10 @@ const AuditDetail: React.FC = () => {
                                 setTimelineForm({
                                   ...timelineForm,
                                   [phase]: {
-                                    ...(timelineForm[phase] || { startDate: "", endDate: "" }),
+                                    ...(timelineForm[phase] || {
+                                      startDate: "",
+                                      endDate: "",
+                                    }),
                                     startDate: e.target.value,
                                   },
                                 })
@@ -296,7 +323,13 @@ const AuditDetail: React.FC = () => {
                             />
                           </div>
                           <div style={{ flex: 1 }}>
-                            <label style={{ display: "block", fontSize: "0.75rem", color: "#666" }}>
+                            <label
+                              style={{
+                                display: "block",
+                                fontSize: "0.75rem",
+                                color: "#666",
+                              }}
+                            >
                               End
                             </label>
                             <input
@@ -308,7 +341,10 @@ const AuditDetail: React.FC = () => {
                                 setTimelineForm({
                                   ...timelineForm,
                                   [phase]: {
-                                    ...(timelineForm[phase] || { startDate: "", endDate: "" }),
+                                    ...(timelineForm[phase] || {
+                                      startDate: "",
+                                      endDate: "",
+                                    }),
                                     endDate: e.target.value,
                                   },
                                 })
@@ -322,38 +358,71 @@ const AuditDetail: React.FC = () => {
                 ) : (
                   <>
                     {audit.proposedTimelines && !audit.timelinesApproved && (
-                      <div style={{ marginBottom: "1rem", fontSize: "0.8rem", color: "#92400e", background: "#fef9c3", padding: "0.6rem 1rem", borderRadius: "6px", border: "1px solid #fde68a" }}>
-                        These timelines were proposed by the Audit Lead and are awaiting supervisor approval.
+                      <div
+                        style={{
+                          marginBottom: "1rem",
+                          fontSize: "0.8rem",
+                          color: "#92400e",
+                          background: "#fef9c3",
+                          padding: "0.6rem 1rem",
+                          borderRadius: "6px",
+                          border: "1px solid #fde68a",
+                        }}
+                      >
+                        These timelines were proposed by the Audit Lead and are
+                        awaiting supervisor approval.
                       </div>
                     )}
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                        gridTemplateColumns:
+                          "repeat(auto-fill, minmax(200px, 1fr))",
                         gap: "1rem",
                       }}
                     >
                       {(() => {
                         const timelines = audit.phaseTimelines ?? {};
                         const proposed = audit.proposedTimelines;
-                        const displayTimelines = proposed && !audit.timelinesApproved ? proposed : timelines;
+                        const displayTimelines =
+                          proposed && !audit.timelinesApproved
+                            ? proposed
+                            : timelines;
                         const entries = Object.entries(displayTimelines);
-                        return entries.length > 0 ? entries.map(([phase, dates]) => (
+                        return entries.length > 0 ? (
+                          entries.map(([phase, dates]) => (
+                            <div
+                              key={phase}
+                              className={s.card}
+                              style={{
+                                padding: "0.75rem",
+                                background: "#f9fafb",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "0.875rem",
+                                  fontWeight: 600,
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                {phase}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "#4b5563",
+                                }}
+                              >
+                                <div>Start: {dates.startDate || "Not set"}</div>
+                                <div>End: {dates.endDate || "Not set"}</div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
                           <div
-                            key={phase}
-                            className={s.card}
-                            style={{ padding: "0.75rem", background: "#f9fafb" }}
+                            style={{ fontStyle: "italic", color: "#6b7280" }}
                           >
-                            <div style={{ fontSize: "0.875rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-                              {phase}
-                            </div>
-                            <div style={{ fontSize: "0.75rem", color: "#4b5563" }}>
-                              <div>Start: {dates.startDate || "Not set"}</div>
-                              <div>End: {dates.endDate || "Not set"}</div>
-                            </div>
-                          </div>
-                        )) : (
-                          <div style={{ fontStyle: "italic", color: "#6b7280" }}>
                             No phase timelines set.
                           </div>
                         );
