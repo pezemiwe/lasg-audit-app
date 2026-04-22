@@ -28,51 +28,63 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        inset: 0,
         backgroundColor: "rgba(0,0,0,0.5)",
+        zIndex: 9999,
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "center",
-        zIndex: 1000,
+        padding: "2rem 1rem",
+        overflowY: "auto",
       }}
       onClick={onClose}
     >
       <div
-        className={s.card}
         style={{
+          background: "white",
+          borderRadius: "12px",
           width: "100%",
           maxWidth: isMandateLetter ? "850px" : "550px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          overflow: "hidden",
+          marginBottom: "2rem",
           display: "flex",
           flexDirection: "column",
-          gap: "0",
-          backgroundColor: "#fff",
-          maxHeight: "90vh",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className={s.cardHeader}
           style={{
+            background: "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+            padding: "1.5rem 2rem",
+            display: "flex",
+            alignItems: "center",
             justifyContent: "space-between",
-            borderBottom: "1px solid #e2e8f0",
-            padding: "1rem 1.5rem",
           }}
         >
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
-          >
-            <h3 className={s.cardTitle}>{notification.title}</h3>
+          <div>
+            <h2
+              style={{
+                color: "white",
+                margin: 0,
+                fontSize: "1.25rem",
+                fontWeight: 700,
+              }}
+            >
+              {notification.title}
+            </h2>
           </div>
           <button
             onClick={onClose}
             style={{
-              background: "none",
+              background: "rgba(255,255,255,0.15)",
               border: "none",
+              borderRadius: "8px",
+              color: "white",
               cursor: "pointer",
-              color: "#64748b",
+              padding: "0.5rem",
+              display: "flex",
+              alignItems: "center",
             }}
           >
             <X size={20} />
@@ -81,9 +93,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
 
         <div
           style={{
-            padding: "1.5rem",
+            padding: "1.5rem 2rem",
             lineHeight: "1.6",
             color: "#334155",
+            maxHeight: "70vh",
             overflowY: "auto",
           }}
         >

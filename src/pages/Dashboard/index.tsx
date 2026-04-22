@@ -716,135 +716,150 @@ const Dashboard: React.FC = () => {
           <div
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.5)",
+              inset: 0,
+              background: "rgba(0,0,0,0.5)",
+              zIndex: 9999,
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "center",
-              zIndex: 1000,
-              backdropFilter: "blur(4px)",
+              padding: "2rem 1rem",
+              overflowY: "auto",
             }}
+            className="backdrop-blur-sm animate-in fade-in duration-200"
           >
             <div
               style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
-                width: "90%",
-                maxWidth: "500px",
-                padding: "1.5rem",
-                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+                background: "white",
+                borderRadius: "12px",
+                width: "100%",
+                maxWidth: "600px",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                overflow: "hidden",
+                marginBottom: "2rem",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              <h3
-                style={{
-                  fontSize: "1.25rem",
-                  fontWeight: 700,
-                  marginBottom: "1rem",
-                  color: "var(--text)",
-                }}
-              >
-                Assign Audit Lead
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  color: "var(--text-2)",
-                  marginBottom: "1rem",
-                  lineHeight: 1.5,
-                }}
-              >
-                Select an Audit Lead for{" "}
-                <strong>
-                  {myLGAs.find((l) => l.id === assigningLgaId)?.name}
-                </strong>
-                .
-              </p>
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    marginBottom: "0.5rem",
-                    color: "var(--text-2)",
-                  }}
-                >
-                  Select Lead Auditor
-                </label>
-                <select
-                  style={{
-                    width: "100%",
-                    padding: "0.6rem",
-                    border: "1px solid var(--border)",
-                    borderRadius: "4px",
-                    fontSize: "0.9rem",
-                  }}
-                  value={selectedLeadId}
-                  onChange={(e) => setSelectedLeadId(e.target.value)}
-                >
-                  <option value="">Select Auditor...</option>
-                  {leads.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <div
                 style={{
+                  background:
+                    "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                  padding: "1.5rem 2rem",
                   display: "flex",
-                  justifyContent: "flex-end",
-                  gap: "0.75rem",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                <button
-                  className={s.btnSecondary}
-                  onClick={() => {
-                    setAssigningLgaId(null);
-                    setSelectedLeadId("");
+                <h2
+                  style={{
+                    color: "white",
+                    margin: 0,
+                    fontSize: "1.25rem",
+                    fontWeight: 700,
                   }}
                 >
-                  Cancel
-                </button>
-                <button
-                  className={s.btnPrimary}
-                  onClick={() => {
-                    if (!selectedLeadId) {
-                      addToast({
-                        type: "error",
-                        title: "Please select a lead",
-                      });
-                      return;
-                    }
-                    const lga = myLGAs.find((l) => l.id === assigningLgaId);
-                    if (!lga) return;
-                    const lgaAudit = audits.find((a) => a.lgaId === lga.id);
-                    if (!lgaAudit) {
-                      // If no audit exists (shouldn't happen if initialized properly), maybe create one?
-                      // For now, assume generic audit ID if missing
-                      assignLeadFn(
-                        lga.id,
-                        selectedLeadId,
-                        `audit-${lga.id}`,
-                        "mandate-default",
-                      );
-                    } else {
-                      assignLeadFn(
-                        lga.id,
-                        selectedLeadId,
-                        lgaAudit.id,
-                        lgaAudit.mandateId,
-                      );
-                    }
-                    setAssigningLgaId(null);
-                    setSelectedLeadId("");
+                  Assign Audit Lead
+                </h2>
+              </div>
+              <div style={{ padding: "1.5rem 2rem" }}>
+                <p
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "var(--text-2)",
+                    marginBottom: "1rem",
+                    lineHeight: 1.5,
                   }}
                 >
-                  Confirm Assignment
-                </button>
+                  Select an Audit Lead for{" "}
+                  <strong>
+                    {myLGAs.find((l) => l.id === assigningLgaId)?.name}
+                  </strong>
+                  .
+                </p>
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      marginBottom: "0.5rem",
+                      color: "var(--text-2)",
+                    }}
+                  >
+                    Select Lead Auditor
+                  </label>
+                  <select
+                    style={{
+                      width: "100%",
+                      padding: "0.6rem",
+                      border: "1px solid var(--border)",
+                      borderRadius: "4px",
+                      fontSize: "0.9rem",
+                    }}
+                    value={selectedLeadId}
+                    onChange={(e) => setSelectedLeadId(e.target.value)}
+                  >
+                    <option value="">Select Auditor...</option>
+                    {leads.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: "0.75rem",
+                  }}
+                >
+                  <button
+                    className={s.btnSecondary}
+                    onClick={() => {
+                      setAssigningLgaId(null);
+                      setSelectedLeadId("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className={s.btnPrimary}
+                    onClick={() => {
+                      if (!selectedLeadId) {
+                        addToast({
+                          type: "error",
+                          title: "Please select a lead",
+                        });
+                        return;
+                      }
+                      const lga = myLGAs.find((l) => l.id === assigningLgaId);
+                      if (!lga) return;
+                      const lgaAudit = audits.find((a) => a.lgaId === lga.id);
+                      if (!lgaAudit) {
+                        // If no audit exists (shouldn't happen if initialized properly), maybe create one?
+                        // For now, assume generic audit ID if missing
+                        assignLeadFn(
+                          lga.id,
+                          selectedLeadId,
+                          `audit-${lga.id}`,
+                          "mandate-default",
+                        );
+                      } else {
+                        assignLeadFn(
+                          lga.id,
+                          selectedLeadId,
+                          lgaAudit.id,
+                          lgaAudit.mandateId,
+                        );
+                      }
+                      setAssigningLgaId(null);
+                      setSelectedLeadId("");
+                    }}
+                  >
+                    Confirm Assignment
+                  </button>
+                </div>
               </div>
             </div>
           </div>

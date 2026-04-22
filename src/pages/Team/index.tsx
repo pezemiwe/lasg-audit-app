@@ -139,35 +139,72 @@ const TeamManagementPage: React.FC = () => {
           <div
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              inset: 0,
               background: "rgba(0,0,0,0.5)",
-              zIndex: 200,
+              zIndex: 9999,
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "center",
+              padding: "2rem 1rem",
+              overflowY: "auto",
             }}
           >
             <div
-              className={s.card}
-              style={{ width: "400px", maxWidth: "90%", marginBottom: 0 }}
+              style={{
+                background: "white",
+                borderRadius: "12px",
+                width: "100%",
+                maxWidth: "600px",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                overflow: "hidden",
+                marginBottom: "2rem",
+              }}
             >
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Register New Audit Lead</h3>
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                  padding: "1.5rem 2rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <h2
+                    style={{
+                      color: "white",
+                      margin: 0,
+                      fontSize: "1.25rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Register New Audit Lead
+                  </h2>
+                </div>
                 <button
                   onClick={() => setShowCreateLead(false)}
                   style={{
-                    background: "transparent",
+                    background: "rgba(255,255,255,0.15)",
                     border: "none",
+                    borderRadius: "8px",
+                    color: "white",
                     cursor: "pointer",
+                    padding: "0.5rem",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
-              <div className={s.cardBody}>
+              <div
+                style={{
+                  padding: "1.5rem 2rem",
+                  maxHeight: "70vh",
+                  overflowY: "auto",
+                }}
+              >
                 <div style={{ marginBottom: "1rem" }}>
                   <label className={s.label}>Full Name</label>
                   <input
@@ -224,6 +261,8 @@ const TeamManagementPage: React.FC = () => {
                     display: "flex",
                     justifyContent: "flex-end",
                     gap: "1rem",
+                    paddingTop: "1.5rem",
+                    borderTop: "1px solid #e2e8f0",
                   }}
                 >
                   <button

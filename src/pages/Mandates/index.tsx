@@ -675,71 +675,79 @@ const MandatesPage: React.FC = () => {
           <div
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.5)",
+              inset: 0,
+              background: "rgba(0,0,0,0.5)",
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "center",
-              zIndex: 1000,
-              backdropFilter: "blur(4px)",
+              zIndex: 9999,
+              padding: "2rem 1rem",
+              overflowY: "auto",
             }}
+            className="backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setSelectedComplianceLgaId(null)}
           >
             <div
-              className={s.card}
               style={{
-                width: "90%",
+                background: "white",
+                borderRadius: "12px",
+                width: "100%",
                 maxWidth: "800px",
-                maxHeight: "85vh",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
                 overflow: "hidden",
-                margin: "0",
+                marginBottom: "2rem",
                 display: "flex",
                 flexDirection: "column",
-                animation: "scaleIn 0.2s ease-out",
+                minHeight: "50vh",
+                maxHeight: "90vh",
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                className={s.cardHeader}
                 style={{
+                  background:
+                    "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                  padding: "1.5rem 2rem",
+                  display: "flex",
+                  alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "1.25rem 1.5rem",
-                  borderBottom: "1px solid #e2e8f0",
+                  flexShrink: 0,
                 }}
               >
                 <div>
-                  <h3 className={s.cardTitle}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: "1.25rem",
+                      color: "white",
+                      fontWeight: 700,
+                    }}
+                  >
                     {lgas.find((l) => l.id === selectedComplianceLgaId)?.name}{" "}
                     LGA
                   </h3>
                   <p
                     style={{
+                      margin: "0.25rem 0 0",
                       fontSize: "0.85rem",
-                      color: "var(--text-3)",
-                      margin: 0,
-                      marginTop: "0.25rem",
+                      color: "rgba(255,255,255,0.75)",
                     }}
                   >
-                    Compliance Checklist • {selected.title}
+                    Compliance Checklist — {selected.title}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedComplianceLgaId(null)}
                   style={{
-                    background: "none",
+                    background: "rgba(255,255,255,0.15)",
                     border: "none",
+                    borderRadius: "8px",
+                    color: "white",
                     cursor: "pointer",
-                    color: "#64748b",
                     padding: "0.5rem",
-                    borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
                   }}
-                  className={s.iconBtn}
                 >
                   <X size={20} />
                 </button>
