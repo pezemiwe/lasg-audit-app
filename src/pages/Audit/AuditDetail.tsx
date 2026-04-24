@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useCallback } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import StatusBadge from "../../components/UI/StatusBadge";
@@ -25,7 +25,6 @@ import DocumentPortalPage from "../DocumentPortal";
 import ReportsPage from "../Reports";
 import PreAuditPage from "../PreAudit";
 
-
 const AuditDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,21 +37,30 @@ const AuditDetail: React.FC = () => {
   const audit = audits.find((a) => a.id === id);
   const lga = lgas.find((l) => l.id === audit?.lgaId);
 
-  const [activeTab, setActiveTab] = useState("engagement");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "engagement";
+  const setActiveTab = useCallback(
+    (tab: string) =>
+      setSearchParams(
+        (prev) => {
+          prev.set("tab", tab);
+          return prev;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
 
-  // Auto-switch to Post-Audit if Completed, Reporting if in Reporting phase
+  // Auto-switch to the right tab on first visit (only if no tab in URL)
   React.useEffect(() => {
-    if (audit?.status === "Completed") {
-      setActiveTab("post-audit");
-    } else if (audit?.status === "Reporting") {
-      setActiveTab("reporting");
-    } else if (audit?.status === "Fieldwork") {
-      setActiveTab("fieldwork");
-    }
+    if (searchParams.has("tab")) return;
+    if (audit?.status === "Completed") setActiveTab("post-audit");
+    else if (audit?.status === "Reporting") setActiveTab("reporting");
+    else if (audit?.status === "Fieldwork") setActiveTab("fieldwork");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audit?.status]);
 
   const [isEditingTimelines, setIsEditingTimelines] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [timelineForm, setTimelineForm] = useState<
     Record<string, { startDate: string; endDate: string }>
   >({});
@@ -454,7 +462,7 @@ const AuditDetail: React.FC = () => {
           <div className={s.tabContent}>
             <div className={s.sectionBlock} style={{ marginTop: "2rem" }}>
               <h3 className={s.sectionTitle}>Audit Plan & Strategy</h3>
-              <AuditPlanningPage />
+              <AuditPlanningPage auditId={audit.id} embedded />
             </div>
           </div>
         );

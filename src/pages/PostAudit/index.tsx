@@ -1,4 +1,5 @@
-﻿import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import { MOCK_USERS } from "../../mock/data";
@@ -177,7 +178,7 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
       (a) => a.status === "Completed" || a.status === "Reporting",
     ).sort((a,b) => (a.status === 'Completed' ? -1 : 1));
     */
-  }, [audits, user, isHLGA, isLead, isAG, isSupervisor]);
+  }, [audits, user]);
 
   const [selectedAuditId, setSelectedAuditId] = useState<string>(
     auditId || eligibleAudits[0]?.id || "",
@@ -187,7 +188,27 @@ const PostAuditPage: React.FC<PostAuditPageProps> = ({
     if (auditId) setSelectedAuditId(auditId);
   }, [auditId]);
 
-  const [activeTab, setActiveTab] = useState<TabKey>("summary");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [localTab, setLocalTab] = useState<TabKey>("summary");
+  const activeTab: TabKey = embedded
+    ? localTab
+    : (searchParams.get("tab") as TabKey) || "summary";
+  const setActiveTab = useCallback(
+    (key: TabKey) => {
+      if (embedded) {
+        setLocalTab(key);
+      } else {
+        setSearchParams(
+          (prev) => {
+            prev.set("tab", key);
+            return prev;
+          },
+          { replace: true },
+        );
+      }
+    },
+    [embedded, setSearchParams],
+  );
 
   const selectedAudit = audits.find((a) => a.id === selectedAuditId);
   const selectedLga = lgas.find((l) => l.id === selectedAudit?.lgaId);

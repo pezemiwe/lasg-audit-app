@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import StatusBadge from "../../components/UI/StatusBadge";
@@ -48,10 +49,32 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
     }
   }, [auditId]);
 
-  const [activeSection, setActiveSection] = useState<string>("");
+  const [searchParamsQ, setSearchParamsQ] = useSearchParams();
+  const [localSection, setLocalSection] = useState<string>("");
+  const activeSection = embedded
+    ? localSection
+    : searchParamsQ.get("section") || "";
+  const setActiveSection = (sec: string) => {
+    if (embedded) {
+      setLocalSection(sec);
+    } else {
+      setSearchParamsQ(
+        (prev) => {
+          prev.set("section", sec);
+          return prev;
+        },
+        { replace: true },
+      );
+    }
+  };
+
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
-  const [otherExplanations, setOtherExplanations] = useState<Record<string, string>>({});
-  const [editingQuestions, setEditingQuestions] = useState<Set<string>>(new Set());
+  const [otherExplanations, setOtherExplanations] = useState<
+    Record<string, string>
+  >({});
+  const [editingQuestions, setEditingQuestions] = useState<Set<string>>(
+    new Set(),
+  );
   const [showReport, setShowReport] = useState(false);
   const [sectionError, setSectionError] = useState<string | null>(null);
 
@@ -63,6 +86,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
     if (!activeSection && sections.length > 0) {
       setActiveSection(sections[0]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections, activeSection]);
 
   const auditResponses = useMemo(
@@ -269,7 +293,7 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           gap: "1rem",
           marginBottom: "1.5rem",
         }}
@@ -370,12 +394,19 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
             gap: "0.75rem",
           }}
         >
-          <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: 600 }}>
+          <span
+            style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: 600 }}
+          >
             {sectionError}
           </span>
           <button
             onClick={() => setSectionError(null)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626" }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#dc2626",
+            }}
           >
             <X size={16} />
           </button>
@@ -402,16 +433,19 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
               </span>
             )}
           </div>
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            {totalProgress.answered === totalProgress.total && totalProgress.total > 0 && (
-              <button
-                className={s.btnPrimary}
-                style={{ background: "#064e3b", borderColor: "#064e3b" }}
-                onClick={() => setShowReport(true)}
-              >
-                <FileText size={14} /> Generate Report
-              </button>
-            )}
+          <div
+            style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}
+          >
+            {totalProgress.answered === totalProgress.total &&
+              totalProgress.total > 0 && (
+                <button
+                  className={s.btnPrimary}
+                  style={{ background: "#064e3b", borderColor: "#064e3b" }}
+                  onClick={() => setShowReport(true)}
+                >
+                  <FileText size={14} /> Generate Report
+                </button>
+              )}
             {canEdit && (
               <button className={s.btnPrimary} onClick={handleSaveAll}>
                 <Save size={14} /> Save All Responses
@@ -926,7 +960,8 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
               {/* Header */}
               <div
                 style={{
-                  background: "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
+                  background:
+                    "linear-gradient(135deg, #064e3b 0%, #065f46 100%)",
                   padding: "1.5rem 2rem",
                   display: "flex",
                   alignItems: "center",
@@ -934,11 +969,25 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                 }}
               >
                 <div>
-                  <h2 style={{ color: "white", margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>
+                  <h2
+                    style={{
+                      color: "white",
+                      margin: 0,
+                      fontSize: "1.25rem",
+                      fontWeight: 700,
+                    }}
+                  >
                     Pre-Audit Questionnaire Report
                   </h2>
-                  <p style={{ color: "rgba(255,255,255,0.75)", margin: "0.25rem 0 0", fontSize: "0.85rem" }}>
-                    Comprehensive responses — all {totalProgress.total} questions answered
+                  <p
+                    style={{
+                      color: "rgba(255,255,255,0.75)",
+                      margin: "0.25rem 0 0",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    Comprehensive responses — all {totalProgress.total}{" "}
+                    questions answered
                   </p>
                 </div>
                 <button
@@ -959,7 +1008,13 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
               </div>
 
               {/* Body */}
-              <div style={{ padding: "1.5rem 2rem", maxHeight: "70vh", overflowY: "auto" }}>
+              <div
+                style={{
+                  padding: "1.5rem 2rem",
+                  maxHeight: "70vh",
+                  overflowY: "auto",
+                }}
+              >
                 {sections.map((section) => {
                   const qs = questions.filter((q) => q.section === section);
                   return (
@@ -979,10 +1034,13 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                         {section}
                       </h3>
                       {qs.map((q, idx) => {
-                        const resp = auditResponses.find((r) => r.questionId === q.id);
+                        const resp = auditResponses.find(
+                          (r) => r.questionId === q.id,
+                        );
                         const optionLabel =
                           q.options && resp
-                            ? (q.options.find((o) => o.value === resp.answer)?.label ?? resp.answer)
+                            ? (q.options.find((o) => o.value === resp.answer)
+                                ?.label ?? resp.answer)
                             : resp?.answer;
                         return (
                           <div
@@ -1036,7 +1094,8 @@ const QuestionnairePage: React.FC<QuestionnairePageProps> = ({
                                       color: "#475569",
                                     }}
                                   >
-                                    <em>Explanation:</em> {resp.otherExplanation}
+                                    <em>Explanation:</em>{" "}
+                                    {resp.otherExplanation}
                                   </div>
                                 )}
                               </div>

@@ -543,7 +543,7 @@ const buildAuditCertificate = (
     y,
     "Audit Supervisor",
   );
-  y = drawSignatureBlock(ctx, report.auditLeadSignature, y, "Audit Lead");
+  drawSignatureBlock(ctx, report.auditLeadSignature, y, "Audit Lead");
 };
 
 const buildReport = (ctx: PdfContext, report: AuditReportDocument) => {

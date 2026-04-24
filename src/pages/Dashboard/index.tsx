@@ -1390,7 +1390,7 @@ const Dashboard: React.FC = () => {
             {[
               {
                 title: "Revenue Verification — Cash Collections",
-                desc: "Verify cash collection records for Jan-Feb 2026 across all revenue points in Ikeja LGA. Cross-reference with bank deposits.",
+                desc: "Verify cash collection records for Jan-Feb 2026 across all revenue points in Mushin LGA. Cross-reference with bank deposits.",
                 status: "progress" as const,
                 due: "Mar 5, 2026",
               },

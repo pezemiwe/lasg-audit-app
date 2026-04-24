@@ -159,7 +159,7 @@ export interface RiskMatrix {
   detectionRisk: RiskLevel;
   overallRisk: RiskLevel;
   mitigationPlan: string;
-  status: "Open" | "Mitigated" | "Accepted";
+  status: "Open" | "Mitigated" | "Accepted" | "Pending Approval";
   preparedBy: string;
   createdAt: string;
 }
@@ -641,7 +641,7 @@ export interface ProgrammeTemplate {
   sections: ProgrammeTemplateSection[];
 }
 
-/* ─── Audit Work Programme Deliverables (Big Four Standard) ─── */
+/* ─── Audit Work Programme Deliverables (ISA Standard) ─── */
 
 export type AuditJournalType =
   | "Adjusting"

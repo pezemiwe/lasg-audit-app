@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
 import ProfessionalTextarea from "../../components/UI/ProfessionalTextarea";
@@ -90,9 +91,28 @@ const PreAudit: React.FC<{
     addEntryMeetingRecord,
   } = useAuditStore();
 
-  const [activeTab, setActiveTab] = useState<"letters" | "meetings" | "team">(
+  /* ─── Tab persistence: use URL params when standalone, local state when embedded ─── */
+  const [searchParamsPA, setSearchParamsPA] = useSearchParams();
+  const [localTab, setLocalTab] = useState<"letters" | "meetings" | "team">(
     "letters",
   );
+  const activeTab = embedded
+    ? localTab
+    : (searchParamsPA.get("tab") as "letters" | "meetings" | "team") ||
+      "letters";
+  const setActiveTab = (id: "letters" | "meetings" | "team") => {
+    if (embedded) {
+      setLocalTab(id);
+    } else {
+      setSearchParamsPA(
+        (prev) => {
+          prev.set("tab", id);
+          return prev;
+        },
+        { replace: true },
+      );
+    }
+  };
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showBriefingModal, setShowBriefingModal] = useState(false);
   const [showDeclForm, setShowDeclForm] = useState(false);
@@ -225,8 +245,9 @@ const PreAudit: React.FC<{
       <div
         style={{
           display: "flex",
+          flexDirection: embedded ? "row" : "column",
           gap: "2rem",
-          alignItems: "flex-start",
+          alignItems: embedded ? "flex-start" : "stretch",
           width: "100%",
         }}
       >
@@ -296,9 +317,9 @@ const PreAudit: React.FC<{
         </div>
 
         {/* Content Area */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, width: "100%" }}>
           {activeTab === "letters" && (
-            <div style={{ display: "grid", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gap: "1.5rem", width: "100%" }}>
               <Card
                 title="Notification Letters"
                 subtitle="Manage and send audit notification letters to LGAs"

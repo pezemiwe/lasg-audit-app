@@ -26,7 +26,7 @@ const TeamManagementPage: React.FC = () => {
   const sendInvitation = useAuditStore((st) => st.sendInvitation);
   const openModal = useAuditStore((st) => st.openModal);
   const addToast = useAuditStore((st) => st.addToast);
-  const users = useAuditStore((st) => st.users) || [];
+  const users = useAuditStore((st) => st.users);
   const addUser = useAuditStore((st) => st.addUser);
 
   const [assigningLga, setAssigningLga] = useState<string | null>(null);

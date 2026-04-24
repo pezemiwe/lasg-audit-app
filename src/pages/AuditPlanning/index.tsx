@@ -17,7 +17,6 @@ import {
   ClipboardList,
   Building2,
   BarChart3,
-  Calculator,
   AlertTriangle,
   FileText,
   BookOpen,
@@ -38,6 +37,7 @@ import {
   Target,
   Layers,
   Download,
+  Trash2,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
 import { jsPDF } from "jspdf";
@@ -89,34 +89,16 @@ const STEP_CONFIG = [
     shortLabel: "Entity",
   },
   {
-    key: "analytics",
-    label: "Preliminary Analytics",
+    key: "analytical-review",
+    label: "Analytical Review",
     icon: BarChart3,
-    shortLabel: "Analytics",
-  },
-  {
-    key: "materiality",
-    label: "Materiality Determination",
-    icon: Calculator,
-    shortLabel: "Materiality",
+    shortLabel: "Analytical Review",
   },
   {
     key: "risk",
     label: "Risk Assessment",
     icon: AlertTriangle,
     shortLabel: "Risk",
-  },
-  {
-    key: "strategy",
-    label: "Audit Strategy",
-    icon: FileText,
-    shortLabel: "Strategy",
-  },
-  {
-    key: "programme",
-    label: "Audit Programme",
-    icon: BookOpen,
-    shortLabel: "Programme",
   },
 ] as const;
 
@@ -161,7 +143,7 @@ const calculateOverallRisk = (
 };
 
 const fmtCurrency = (n: number) =>
-  "Γéª" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
+  "₦" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
 
 const fmtPercent = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 
@@ -216,7 +198,15 @@ const RiskBadge: React.FC<{ level: RiskLevel }> = ({ level }) => (
   </span>
 );
 
-const AuditPlanning: React.FC = () => {
+interface AuditPlanningProps {
+  auditId?: string;
+  embedded?: boolean;
+}
+
+const AuditPlanning: React.FC<AuditPlanningProps> = ({
+  auditId: propAuditId,
+  embedded,
+}) => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const store = useAuditStore();
@@ -225,7 +215,14 @@ const AuditPlanning: React.FC = () => {
   const stepIdx = STEP_CONFIG.findIndex((sc) => sc.key === currentStep);
 
   const setStep = useCallback(
-    (key: StepKey) => setSearchParams({ step: key }),
+    (key: StepKey) =>
+      setSearchParams(
+        (prev) => {
+          prev.set("step", key);
+          return prev;
+        },
+        { replace: true },
+      ),
     [setSearchParams],
   );
 
@@ -263,7 +260,7 @@ const AuditPlanning: React.FC = () => {
   }, [user, store.audits, store.zones, store.lgas]);
 
   const [selectedAuditId, setSelectedAuditId] = useState<string>(
-    myAudits[0]?.id || "",
+    propAuditId || myAudits[0]?.id || "",
   );
   const audit = store.audits.find((a) => a.id === selectedAuditId);
   const lgaName = audit
@@ -282,26 +279,24 @@ const AuditPlanning: React.FC = () => {
     () => (audit ? store.getAuditRiskMatrices(audit.id) : []),
     [audit, store],
   );
-  const strategy = audit ? store.getAuditStrategy(audit.id) : undefined;
-  const programme = audit ? store.getAuditProgramme(audit.id) : undefined;
-
   const stepCompletion = useMemo(
     () => ({
       entity: !!entityProfile,
-      analytics: analytics.length > 0,
-      materiality: !!materialityData,
+      "analytical-review": analytics.length > 0 || !!materialityData,
       risk: risks.length > 0,
-      strategy: !!strategy,
-      programme: !!programme,
     }),
-    [entityProfile, analytics, materialityData, risks, strategy, programme],
+    [entityProfile, analytics, materialityData, risks],
   );
 
   const completedCount = Object.values(stepCompletion).filter(Boolean).length;
 
+  // Persisted across step navigation
+  const [arDocType, setArDocType] = useState<ArDocType | null>(null);
+  const [arPhase, setArPhase] = useState<"select" | "imported">("select");
+
   if (!user) return null;
 
-  if (myAudits.length === 0) {
+  if (myAudits.length === 0 && !embedded) {
     return (
       <div>
         <div className={s.pageHeader}>
@@ -321,45 +316,52 @@ const AuditPlanning: React.FC = () => {
         </div>
       </div>
     );
+  } else if (myAudits.length === 0 && embedded) {
+    return null;
   }
 
   return (
     <div>
-      <div className={s.pageHeader}>
-        <div>
-          <div className={s.pageTitle}>Audit Planning</div>
-          <div className={s.pageSubtitle}>
-            ISA 300 - Planning an Audit of Financial Statements
+      {!embedded && (
+        <div className={s.pageHeader}>
+          <div>
+            <div className={s.pageTitle}>Audit Planning</div>
+            <div className={s.pageSubtitle}>
+              ISA 300 - Planning an Audit of Financial Statements
+            </div>
+          </div>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+          >
+            <select
+              className={s.formSelect}
+              value={selectedAuditId}
+              onChange={(e) => setSelectedAuditId(e.target.value)}
+              style={{ minWidth: "220px" }}
+            >
+              {myAudits.map((a) => {
+                const name =
+                  store.lgas.find((l) => l.id === a.lgaId)?.name || a.lgaId;
+                return (
+                  <option key={a.id} value={a.id}>
+                    {name} - FY {a.year}
+                  </option>
+                );
+              })}
+            </select>
+            <span className={s.pageBadge}>
+              <ClipboardList size={13} />
+              {completedCount}/{STEP_CONFIG.length} Steps
+            </span>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <select
-            className={s.formSelect}
-            value={selectedAuditId}
-            onChange={(e) => setSelectedAuditId(e.target.value)}
-            style={{ minWidth: "220px" }}
-          >
-            {myAudits.map((a) => {
-              const name =
-                store.lgas.find((l) => l.id === a.lgaId)?.name || a.lgaId;
-              return (
-                <option key={a.id} value={a.id}>
-                  {name} - FY {a.year}
-                </option>
-              );
-            })}
-          </select>
-          <span className={s.pageBadge}>
-            <ClipboardList size={13} />
-            {completedCount}/{STEP_CONFIG.length} Steps
-          </span>
-        </div>
-      </div>
+      )}
 
       <div
         style={{
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           gap: "0",
           padding: "0.75rem 1rem",
           background: "var(--bg-card)",
@@ -482,23 +484,18 @@ const AuditPlanning: React.FC = () => {
               user={user}
             />
           )}
-          {currentStep === "analytics" && (
-            <PreliminaryAnalyticsStep
+          {currentStep === "analytical-review" && (
+            <AnalyticalReviewStep
               audit={audit}
               lgaName={lgaName}
               analytics={analytics}
-              store={store}
-              user={user}
-            />
-          )}
-          {currentStep === "materiality" && (
-            <MaterialityStep
-              audit={audit}
-              lgaName={lgaName}
               materialityData={materialityData}
-              analytics={analytics}
               store={store}
               user={user}
+              arDocType={arDocType}
+              setArDocType={setArDocType}
+              arPhase={arPhase}
+              setArPhase={setArPhase}
             />
           )}
           {currentStep === "risk" && (
@@ -510,28 +507,7 @@ const AuditPlanning: React.FC = () => {
               materialityData={materialityData}
               store={store}
               user={user}
-            />
-          )}
-          {currentStep === "strategy" && (
-            <AuditStrategyStep
-              audit={audit}
-              lgaName={lgaName}
-              strategy={strategy}
-              risks={risks}
-              materialityData={materialityData}
-              entityProfile={entityProfile}
-              store={store}
-              user={user}
-            />
-          )}
-          {currentStep === "programme" && (
-            <ProgrammeStep
-              audit={audit}
-              lgaName={lgaName}
-              programme={programme}
-              risks={risks}
-              store={store}
-              user={user}
+              arDocType={arDocType}
             />
           )}
         </>
@@ -658,7 +634,10 @@ const EntityUnderstandingStep: React.FC<{
               label="Population (est.)"
               value={profile.population.toLocaleString()}
             />
-            <InfoRow label="Chairman / Council Manager" value={profile.chairmanName || "-"} />
+            <InfoRow
+              label="Chairman / Council Manager"
+              value={profile.chairmanName || "-"}
+            />
             <InfoRow label="Treasurer" value={profile.treasurerName || "-"} />
             <InfoRow
               label="Internal Auditor"
@@ -968,17 +947,15 @@ const EntityUnderstandingStep: React.FC<{
           </div>
           <div className={s.formGroup}>
             <label className={s.formLabel}>Population (Est.)</label>
-            <div
+            <input
+              type="number"
               className={s.formInput}
-              style={{
-                background: "#f8fafc",
-                color: "#475569",
-                cursor: "default",
-                pointerEvents: "none",
-              }}
-            >
-              {Number(form.population).toLocaleString()}
-            </div>
+              value={form.population}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, population: Number(e.target.value) }))
+              }
+              placeholder="Estimated population size"
+            />
           </div>
         </div>
       </Card>
@@ -1821,7 +1798,7 @@ const MaterialityStep: React.FC<{
               </select>
             </div>
             <div className={s.formGroup} style={{ marginBottom: "1.25rem" }}>
-              <label className={s.formLabel}>Basis Amount (Γéª)</label>
+              <label className={s.formLabel}>Basis Amount (₦)</label>
               <input
                 type="number"
                 className={s.formInput}
@@ -2065,6 +2042,2811 @@ const MaterialityStep: React.FC<{
   );
 };
 
+// ─── Analytical Review — Data Types & Mock Data ──────────────────────────────
+type ArDocType = "fs" | "tb";
+
+type ArRow = {
+  id: string;
+  section: string;
+  account: string;
+  code: string;
+  note: string;
+  prior: number;
+  budget: number;
+  current: number;
+  bold: boolean;
+  type: "line" | "total" | "pbt";
+};
+
+// ── Financial Statements (LASG — Statement of Receipts, Payments & Balance Sheet)
+const MOCK_FS: ArRow[] = [
+  // Statutory Allocation
+  {
+    id: "sa1",
+    section: "stat_allocation",
+    account: "Share of Federation Account",
+    code: "110101",
+    note: "1",
+    prior: 21_416_629_548.03,
+    budget: 34_504_683_806.26,
+    current: 24_016_697_963.76,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "sa2",
+    section: "stat_allocation",
+    account: "Share of Value Added Tax (VAT)",
+    code: "110102",
+    note: "1",
+    prior: 13_439_277_698.24,
+    budget: 13_297_636_023.83,
+    current: 16_376_112_962.45,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "sa3",
+    section: "stat_allocation",
+    account: "Excess Crude Oil and Others",
+    code: "110103",
+    note: "1",
+    prior: 1_708_289_140.28,
+    budget: 3_973_974_438.06,
+    current: 2_376_096_887.7,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "sa0",
+    section: "stat_allocation",
+    account: "Sub-Total Statutory Allocation – B",
+    code: "",
+    note: "",
+    prior: 36_564_196_386.55,
+    budget: 51_776_294_268.15,
+    current: 42_768_907_813.91,
+    bold: true,
+    type: "total",
+  },
+  // Independent Revenue
+  {
+    id: "ir1",
+    section: "indep_revenue",
+    account: "Licences General",
+    code: "120201",
+    note: "2",
+    prior: 177_289_475.46,
+    budget: 404_212_371.2,
+    current: 111_663_938.05,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir2",
+    section: "indep_revenue",
+    account: "Fees General",
+    code: "120204",
+    note: "2",
+    prior: 1_268_080_923.21,
+    budget: 1_539_356_994.63,
+    current: 1_374_341_588.49,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir3",
+    section: "indep_revenue",
+    account: "Fines General",
+    code: "120205",
+    note: "2",
+    prior: 100_487_021.52,
+    budget: 61_788_157.36,
+    current: 140_277_235.22,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir4",
+    section: "indep_revenue",
+    account: "Sales General",
+    code: "120206",
+    note: "2",
+    prior: 20_545_691.13,
+    budget: 99_474_648.44,
+    current: 43_973_403.79,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir5",
+    section: "indep_revenue",
+    account: "Earnings General",
+    code: "120207",
+    note: "2",
+    prior: 463_386_866.41,
+    budget: 665_991_030.62,
+    current: 554_481_617.21,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir6",
+    section: "indep_revenue",
+    account: "Rent on Government Building General",
+    code: "120208",
+    note: "2",
+    prior: 3_719_367.0,
+    budget: 4_440_400.0,
+    current: 2_615_000.0,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir7",
+    section: "indep_revenue",
+    account: "Rent on Land and Others General",
+    code: "120211",
+    note: "2",
+    prior: 1_910_000.0,
+    budget: 0,
+    current: 0,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir8",
+    section: "indep_revenue",
+    account: "Repayment General",
+    code: "120213",
+    note: "2",
+    prior: 6_619_144.15,
+    budget: 14_100_000.0,
+    current: 68_610.53,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir9",
+    section: "indep_revenue",
+    account: "Investment Income",
+    code: "120214",
+    note: "2",
+    prior: 20_168_254.25,
+    budget: 1_221_000.0,
+    current: 14_614_496.11,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ir0",
+    section: "indep_revenue",
+    account: "Sub-Total Independent Revenue – C",
+    code: "",
+    note: "",
+    prior: 2_062_206_743.13,
+    budget: 2_790_584_602.25,
+    current: 2_242_035_889.4,
+    bold: true,
+    type: "total",
+  },
+  {
+    id: "tr0",
+    section: "indep_revenue",
+    account: "Total Receipts (A+B+C)",
+    code: "",
+    note: "",
+    prior: 65_810_087_500.24,
+    budget: 54_566_878_870.4,
+    current: 66_072_546_352.47,
+    bold: true,
+    type: "pbt",
+  },
+  // Recurrent Expenditure
+  {
+    id: "re1",
+    section: "recurrent_exp",
+    account: "Salaries and Wages",
+    code: "210101",
+    note: "3",
+    prior: 8_558_209_791.98,
+    budget: 14_064_061_407.55,
+    current: 8_791_586_592.4,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "re2",
+    section: "recurrent_exp",
+    account: "Overhead Cost",
+    code: "220201",
+    note: "3",
+    prior: 3_530_965_160.64,
+    budget: 5_741_671_538.0,
+    current: 3_524_747_933.0,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "re3",
+    section: "recurrent_exp",
+    account: "SUBEB and other Transfers to Local Govt. Entities",
+    code: "220701",
+    note: "4",
+    prior: 23_723_414_450.47,
+    budget: 24_052_296_156.57,
+    current: 29_440_245_648.14,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "re4",
+    section: "recurrent_exp",
+    account: "Depreciation",
+    code: "",
+    note: "",
+    prior: 0,
+    budget: 0,
+    current: 0,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "re0",
+    section: "recurrent_exp",
+    account: "Sub-Total Recurrent Expenditure: E",
+    code: "",
+    note: "",
+    prior: 35_812_589_403.09,
+    budget: 43_858_029_102.12,
+    current: 41_756_580_173.54,
+    bold: true,
+    type: "total",
+  },
+  // Capital Expenditure
+  {
+    id: "ce1",
+    section: "capital_exp",
+    account: "Land and Building General",
+    code: "320101",
+    note: "5",
+    prior: 2_844_509_732.43,
+    budget: 4_342_968_838.66,
+    current: 1_958_879_274.27,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ce2",
+    section: "capital_exp",
+    account: "Infrastructure General",
+    code: "320102",
+    note: "5",
+    prior: 1_894_947_839.89,
+    budget: 2_235_036_218.73,
+    current: 2_029_268_557.32,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ce3",
+    section: "capital_exp",
+    account: "Furniture and Fittings General",
+    code: "320106",
+    note: "5",
+    prior: 390_131_100.74,
+    budget: 998_404_370.55,
+    current: 221_942_263.84,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ce4",
+    section: "capital_exp",
+    account: "Intangible Assets",
+    code: "320301",
+    note: "5",
+    prior: 3_806_306_774.63,
+    budget: 4_575_429_491.77,
+    current: 3_542_741_260.02,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ce0",
+    section: "capital_exp",
+    account: "Sub-Total Capital Expenditure: F",
+    code: "",
+    note: "",
+    prior: 8_935_895_447.69,
+    budget: 12_151_838_919.71,
+    current: 7_752_831_355.45,
+    bold: true,
+    type: "total",
+  },
+  {
+    id: "te0",
+    section: "capital_exp",
+    account: "Total Expenditure: G = E + F",
+    code: "",
+    note: "",
+    prior: 44_748_484_850.78,
+    budget: 56_009_868_021.83,
+    current: 49_509_411_528.99,
+    bold: true,
+    type: "total",
+  },
+  // Net Financial Position
+  {
+    id: "np1",
+    section: "net_position",
+    account: "Net Assets/Equity As At 31/12/2022",
+    code: "",
+    note: "",
+    prior: 21_061_602_649.16,
+    budget: 0,
+    current: 16_563_134_973.39,
+    bold: true,
+    type: "pbt",
+  },
+  // Current Assets
+  {
+    id: "ca1",
+    section: "current_assets",
+    account: "Cash and Cash Equivalent",
+    code: "310101",
+    note: "6",
+    prior: 11_541_651_876.29,
+    budget: 0,
+    current: 10_374_823_274.66,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ca2",
+    section: "current_assets",
+    account: "Receivables",
+    code: "310601",
+    note: "6",
+    prior: 0,
+    budget: 0,
+    current: 0,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ca3",
+    section: "current_assets",
+    account: "Prepayments",
+    code: "310801",
+    note: "6",
+    prior: 163_519_279.06,
+    budget: 0,
+    current: 185_464_180.78,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ca4",
+    section: "current_assets",
+    account: "Inventories",
+    code: "310501",
+    note: "6",
+    prior: 914_750.0,
+    budget: 0,
+    current: 2_505_548.28,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "ca0",
+    section: "current_assets",
+    account: "Total Current Assets: A",
+    code: "",
+    note: "",
+    prior: 11_706_085_905.35,
+    budget: 0,
+    current: 10_562_793_003.72,
+    bold: true,
+    type: "total",
+  },
+  // Non-Current Assets
+  {
+    id: "nca1",
+    section: "noncurrent_assets",
+    account: "Loan Granted (Local Govt. Loan Fund)",
+    code: "311001",
+    note: "6",
+    prior: 23_729_606.0,
+    budget: 0,
+    current: 22_272_059.55,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "nca2",
+    section: "noncurrent_assets",
+    account: "Investments",
+    code: "310901",
+    note: "6",
+    prior: 68_001_845.17,
+    budget: 0,
+    current: 34_755_408.52,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "nca3",
+    section: "noncurrent_assets",
+    account: "Property, Plant and Equipment (PPE)",
+    code: "320101",
+    note: "6",
+    prior: 4_075_437_800.19,
+    budget: 0,
+    current: 2_461_953_648.89,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "nca4",
+    section: "noncurrent_assets",
+    account: "Investment Properties",
+    code: "320201",
+    note: "6",
+    prior: 275_238_227.7,
+    budget: 0,
+    current: 14_245_020.0,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "nca5",
+    section: "noncurrent_assets",
+    account: "Intangible Assets (Advances)",
+    code: "320301",
+    note: "6",
+    prior: 8_661_691_022.52,
+    budget: 0,
+    current: 15_688_857_012.72,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "nca0",
+    section: "noncurrent_assets",
+    account: "Total Non-Current Assets: B",
+    code: "",
+    note: "",
+    prior: 13_104_098_501.58,
+    budget: 0,
+    current: 18_222_083_149.68,
+    bold: true,
+    type: "total",
+  },
+  {
+    id: "ta0",
+    section: "noncurrent_assets",
+    account: "Total Assets: C = A+B",
+    code: "",
+    note: "",
+    prior: 24_810_184_406.93,
+    budget: 0,
+    current: 28_784_876_153.4,
+    bold: true,
+    type: "total",
+  },
+  // Current Liabilities
+  {
+    id: "cl1",
+    section: "current_liab",
+    account: "Deposits",
+    code: "410101",
+    note: "7",
+    prior: 7_067_683_145.77,
+    budget: 0,
+    current: 6_312_275_758.54,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "cl2",
+    section: "current_liab",
+    account: "Short Term Loans and Debts",
+    code: "410201",
+    note: "7",
+    prior: 487_148_610.2,
+    budget: 0,
+    current: 517_583_646.94,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "cl3",
+    section: "current_liab",
+    account: "Payables (Accrued Expenses)",
+    code: "410401",
+    note: "7",
+    prior: 517_573_892.32,
+    budget: 0,
+    current: 718_770_313.51,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "cl0",
+    section: "current_liab",
+    account: "Total Current Liabilities: D",
+    code: "",
+    note: "",
+    prior: 8_072_405_648.29,
+    budget: 0,
+    current: 7_548_629_718.99,
+    bold: true,
+    type: "total",
+  },
+  // Non-Current Liabilities
+  {
+    id: "nl1",
+    section: "noncurrent_liab",
+    account: "Long Term Borrowing",
+    code: "420301",
+    note: "7",
+    prior: 174_643_785.25,
+    budget: 0,
+    current: 174_643_785.25,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "nl0",
+    section: "noncurrent_liab",
+    account: "Total Non-Current Liabilities: E",
+    code: "",
+    note: "",
+    prior: 174_643_785.25,
+    budget: 0,
+    current: 174_643_785.25,
+    bold: true,
+    type: "total",
+  },
+  {
+    id: "tl0",
+    section: "noncurrent_liab",
+    account: "Total Liabilities: F = D+E",
+    code: "",
+    note: "",
+    prior: 8_247_049_433.54,
+    budget: 0,
+    current: 7_723_273_504.24,
+    bold: true,
+    type: "total",
+  },
+  {
+    id: "ng0",
+    section: "noncurrent_liab",
+    account: "Net Assets: G = C-F",
+    code: "",
+    note: "",
+    prior: 16_563_134_973.39,
+    budget: 0,
+    current: 21_061_602_649.16,
+    bold: true,
+    type: "pbt",
+  },
+  // Net Assets / Equity
+  {
+    id: "eq1",
+    section: "equity",
+    account: "Reserves: H",
+    code: "430301",
+    note: "8",
+    prior: 21_061_602_649.16,
+    budget: 0,
+    current: 27_183_684_570.56,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "eq2",
+    section: "equity",
+    account: "Accumulated Surpluses/(Deficits): I",
+    code: "430201",
+    note: "8",
+    prior: -4_498_467_675.77,
+    budget: 0,
+    current: -6_122_081_921.4,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "eq0",
+    section: "equity",
+    account: "Total Net Assets/Equity: G = H+I",
+    code: "",
+    note: "",
+    prior: 16_563_134_973.39,
+    budget: 0,
+    current: 21_061_602_649.16,
+    bold: true,
+    type: "pbt",
+  },
+];
+
+// ── Trial Balance (General Ledger summary — working data)
+const MOCK_TB: ArRow[] = [
+  {
+    id: "tb-r1",
+    section: "revenue",
+    account: "Federal Statutory Allocation",
+    code: "1001",
+    note: "",
+    prior: 21_416_629_548.03,
+    budget: 34_504_683_806.26,
+    current: 24_016_697_963.76,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r2",
+    section: "revenue",
+    account: "Value Added Tax (VAT) Share",
+    code: "1002",
+    note: "",
+    prior: 13_439_277_698.24,
+    budget: 13_297_636_023.83,
+    current: 16_376_112_962.45,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r3",
+    section: "revenue",
+    account: "Direct Assessment Tax",
+    code: "1101",
+    note: "",
+    prior: 480_000_000,
+    budget: 600_000_000,
+    current: 510_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r4",
+    section: "revenue",
+    account: "Market Levies & Fees",
+    code: "1102",
+    note: "",
+    prior: 320_000_000,
+    budget: 400_000_000,
+    current: 290_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r5",
+    section: "revenue",
+    account: "Non-Tax Revenue — Fees & Charges",
+    code: "1201",
+    note: "",
+    prior: 195_000_000,
+    budget: 250_000_000,
+    current: 180_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r6",
+    section: "revenue",
+    account: "Federal Grants",
+    code: "1301",
+    note: "",
+    prior: 280_000_000,
+    budget: 350_000_000,
+    current: 310_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r7",
+    section: "revenue",
+    account: "International Aid Grants",
+    code: "1302",
+    note: "",
+    prior: 140_000_000,
+    budget: 200_000_000,
+    current: 160_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-r0",
+    section: "revenue",
+    account: "Total Revenue",
+    code: "",
+    note: "",
+    prior: 36_270_907_246.27,
+    budget: 49_602_507_630.09,
+    current: 41_843_772_925.21,
+    bold: true,
+    type: "total",
+  },
+  // Personnel
+  {
+    id: "tb-p1",
+    section: "personnel",
+    account: "Basic Salaries — GL 01-06",
+    code: "2101",
+    note: "",
+    prior: 980_000_000,
+    budget: 1_200_000_000,
+    current: 1_050_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-p2",
+    section: "personnel",
+    account: "Basic Salaries — GL 07-12",
+    code: "2102",
+    note: "",
+    prior: 1_450_000_000,
+    budget: 1_800_000_000,
+    current: 1_620_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-p3",
+    section: "personnel",
+    account: "Basic Salaries — GL 13+",
+    code: "2103",
+    note: "",
+    prior: 820_000_000,
+    budget: 1_000_000_000,
+    current: 900_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-p4",
+    section: "personnel",
+    account: "Allowances & Benefits",
+    code: "2110",
+    note: "",
+    prior: 430_000_000,
+    budget: 550_000_000,
+    current: 480_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-p5",
+    section: "personnel",
+    account: "PAYE & Pension Deductions",
+    code: "2120",
+    note: "",
+    prior: 240_000_000,
+    budget: 300_000_000,
+    current: 270_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-p0",
+    section: "personnel",
+    account: "Total Personnel Costs",
+    code: "",
+    note: "",
+    prior: 3_920_000_000,
+    budget: 4_850_000_000,
+    current: 4_320_000_000,
+    bold: true,
+    type: "total",
+  },
+  // Overhead
+  {
+    id: "tb-o1",
+    section: "overhead",
+    account: "Transport & Travelling",
+    code: "2201",
+    note: "",
+    prior: 185_000_000,
+    budget: 220_000_000,
+    current: 195_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-o2",
+    section: "overhead",
+    account: "Utilities (Power & Water)",
+    code: "2202",
+    note: "",
+    prior: 210_000_000,
+    budget: 250_000_000,
+    current: 230_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-o3",
+    section: "overhead",
+    account: "Maintenance — Buildings",
+    code: "2203",
+    note: "",
+    prior: 160_000_000,
+    budget: 200_000_000,
+    current: 175_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-o4",
+    section: "overhead",
+    account: "Consultancy & Professional Fees",
+    code: "2204",
+    note: "",
+    prior: 490_000_000,
+    budget: 600_000_000,
+    current: 520_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-o5",
+    section: "overhead",
+    account: "Printing & Stationery",
+    code: "2205",
+    note: "",
+    prior: 95_000_000,
+    budget: 120_000_000,
+    current: 105_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-o0",
+    section: "overhead",
+    account: "Total Overhead Costs",
+    code: "",
+    note: "",
+    prior: 1_140_000_000,
+    budget: 1_390_000_000,
+    current: 1_225_000_000,
+    bold: true,
+    type: "total",
+  },
+  // Capital
+  {
+    id: "tb-c1",
+    section: "capital",
+    account: "Construction — Roads & Drainage",
+    code: "3101",
+    note: "",
+    prior: 980_000_000,
+    budget: 1_500_000_000,
+    current: 820_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-c2",
+    section: "capital",
+    account: "Construction — Public Buildings",
+    code: "3102",
+    note: "",
+    prior: 1_250_000_000,
+    budget: 1_800_000_000,
+    current: 1_100_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-c3",
+    section: "capital",
+    account: "Equipment & Furniture",
+    code: "3103",
+    note: "",
+    prior: 350_000_000,
+    budget: 500_000_000,
+    current: 300_000_000,
+    bold: false,
+    type: "line",
+  },
+  {
+    id: "tb-c0",
+    section: "capital",
+    account: "Total Capital Expenditure",
+    code: "",
+    note: "",
+    prior: 2_580_000_000,
+    budget: 3_800_000_000,
+    current: 2_220_000_000,
+    bold: true,
+    type: "total",
+  },
+  // Net Surplus
+  {
+    id: "tb-s1",
+    section: "net_surplus",
+    account: "Net Surplus / (Deficit)",
+    code: "9001",
+    note: "",
+    prior: 28_630_907_246.27,
+    budget: 39_562_507_630.09,
+    current: 34_078_772_925.21,
+    bold: true,
+    type: "pbt",
+  },
+];
+
+const AR_FS_SECTIONS = [
+  "stat_allocation",
+  "indep_revenue",
+  "recurrent_exp",
+  "capital_exp",
+  "net_position",
+  "current_assets",
+  "noncurrent_assets",
+  "current_liab",
+  "noncurrent_liab",
+  "equity",
+];
+const AR_FS_LABELS: Record<string, string> = {
+  stat_allocation: "Statutory Allocation",
+  indep_revenue: "Independent Revenue",
+  recurrent_exp: "Recurrent Expenditure",
+  capital_exp: "Capital Expenditure",
+  net_position: "Net Financial Position",
+  current_assets: "Current Assets",
+  noncurrent_assets: "Non-Current Assets",
+  current_liab: "Current Liabilities",
+  noncurrent_liab: "Non-Current Liabilities",
+  equity: "Net Assets / Equity",
+};
+const AR_TB_SECTIONS = [
+  "revenue",
+  "personnel",
+  "overhead",
+  "capital",
+  "net_surplus",
+];
+const AR_TB_LABELS: Record<string, string> = {
+  revenue: "Revenue Accounts",
+  personnel: "Personnel Cost Ledger",
+  overhead: "Overhead & Administrative Costs",
+  capital: "Capital Expenditure",
+  net_surplus: "Net Surplus / (Deficit)",
+};
+
+const arFmt = (n: number) =>
+  n === 0
+    ? "—"
+    : "₦" +
+      Math.abs(n).toLocaleString("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+const arFmtPct = (n: number) => (n >= 0 ? "+" : "") + n.toFixed(1) + "%";
+
+// ─── Analytical Review Step — Progressive Reveal ─────────────────────────────
+const AnalyticalReviewStep: React.FC<{
+  audit: AuditStore["audits"][0];
+  lgaName: string;
+  analytics: PreliminaryAnalytic[];
+  materialityData: AuditStore["materiality"][0] | undefined;
+  store: AuditStore;
+  user: NonNullable<ReturnType<typeof useAuth>["user"]>;
+  arDocType: ArDocType | null;
+  setArDocType: (v: ArDocType | null) => void;
+  arPhase: "select" | "imported";
+  setArPhase: (v: "select" | "imported") => void;
+}> = ({
+  audit,
+  lgaName,
+  analytics,
+  materialityData,
+  store,
+  user,
+  arDocType,
+  setArDocType,
+  arPhase,
+  setArPhase,
+}) => {
+  const phase = arPhase;
+  const setPhase = setArPhase;
+  const docType = arDocType;
+  const setDocType = setArDocType;
+  const [innerTab, setInnerTab] = useState<"analytics" | "materiality">(
+    "analytics",
+  );
+  const [viewMode, setViewMode] = useState<"table" | "charts">("table");
+  const [subjectivePct, setSubjectivePct] = useState(10);
+  const [specialItems, setSpecialItems] = useState<Set<string>>(
+    new Set<string>(),
+  );
+
+  const toggleSpecial = (id: string) =>
+    setSpecialItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // LGA code prefix — first 2 letters of first word, uppercase
+  const lgaPrefix = lgaName.replace(/\s.*/, "").slice(0, 2).toUpperCase();
+
+  // ── Materiality state — basis is fixed as Profit Before Tax (PBT) ──
+  const FIXED_BASIS = "Profit Before Tax (PBT)";
+  const totalRevenue = useMemo(
+    () =>
+      analytics
+        .filter((a) => a.category === "Revenue")
+        .reduce((s, r) => s + r.currentYear, 0),
+    [analytics],
+  );
+  const [basisAmount, setBasisAmount] = useState(
+    materialityData?.basisAmount || totalRevenue || 66_072_546_352,
+  );
+  const [percentage, setPercentage] = useState(
+    materialityData?.percentage || 5,
+  );
+  const [perfPct, setPerfPct] = useState(
+    materialityData
+      ? Math.round(
+          (materialityData.performanceMateriality /
+            materialityData.overallMateriality) *
+            100,
+        )
+      : 70,
+  );
+  const overallMateriality = Math.round(basisAmount * (percentage / 100));
+  const performanceMateriality = Math.round(
+    overallMateriality * (perfPct / 100),
+  );
+  const trivialThreshold = Math.round(overallMateriality * 0.05);
+
+  const handleSaveMat = () => {
+    store.setAuditMateriality({
+      auditId: audit.id,
+      basis: FIXED_BASIS,
+      basisAmount,
+      percentage,
+      overallMateriality,
+      performanceMateriality,
+      clearlyTrivialThreshold: trivialThreshold,
+      preparedBy: user.id,
+    });
+    store.logActivity({
+      userId: user.id,
+      action: "SET_MATERIALITY",
+      details: `Materiality set: ${fmtCurrency(overallMateriality)} (${percentage}% of ${FIXED_BASIS})`,
+      entityType: "audit",
+      entityId: audit.id,
+    });
+  };
+
+  // ── Phase 1: Document selection cards ────────────────────────────────────────
+  if (phase === "select") {
+    return (
+      <div className={s.card}>
+        <div className={s.cardHeader}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+          >
+            <div
+              style={{
+                padding: "0.5rem",
+                background: "#eff6ff",
+                color: "#2563eb",
+                borderRadius: "8px",
+              }}
+            >
+              <Layers size={20} />
+            </div>
+            <div>
+              <h3 className={s.cardTitle} style={{ margin: 0 }}>
+                Import Financial Document for Analysis
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "0.78rem",
+                  color: "var(--text-3)",
+                  marginTop: "0.1rem",
+                }}
+              >
+                ISA 520 — Select the document type uploaded by the Head of Local
+                Government
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className={s.cardBody}>
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text-2)",
+              marginBottom: "1.75rem",
+              lineHeight: 1.7,
+            }}
+          >
+            The following documents have been uploaded by the Head of Local
+            Government. Select a document type to import — each package contains
+            both the <strong>Current Year (Unaudited)</strong> and{" "}
+            <strong>Prior Year (Audited)</strong> figures.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "1.5rem",
+              marginBottom: "2rem",
+            }}
+          >
+            {(["fs", "tb"] as const).map((type) => {
+              const isFS = type === "fs";
+              const active = docType === type;
+              const cyCode = `${lgaPrefix}-${isFS ? "FS" : "TB"}-CY-2022`;
+              const pyCode = `${lgaPrefix}-${isFS ? "FS" : "TB"}-PY-2021`;
+              return (
+                <button
+                  key={type}
+                  onClick={() => setDocType(type)}
+                  style={{
+                    all: "unset",
+                    cursor: "pointer",
+                    border: `2px solid ${active ? "#2563eb" : "#e2e8f0"}`,
+                    borderRadius: "14px",
+                    padding: "1.75rem",
+                    background: active ? "#eff6ff" : "white",
+                    boxShadow: active
+                      ? "0 0 0 4px rgba(37,99,235,0.1)"
+                      : "0 1px 4px rgba(0,0,0,0.06)",
+                    transition: "all 0.15s",
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1.25rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.875rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "12px",
+                        background: active ? "#dbeafe" : "#f1f5f9",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: active ? "#1d4ed8" : "#64748b",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isFS ? <FileText size={24} /> : <Layers size={24} />}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: "1rem",
+                          color: "#0f172a",
+                        }}
+                      >
+                        {isFS ? "Financial Statements" : "Trial Balance"}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#64748b",
+                          marginTop: "0.2rem",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {isFS
+                          ? "IPSAS — Statement of Receipts, Payments & Balance Sheet"
+                          : "General Ledger — Full Chart of Accounts Summary"}
+                      </div>
+                    </div>
+                    {active && (
+                      <div
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "50%",
+                          background: "#2563eb",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Check size={14} style={{ color: "white" }} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    {[
+                      {
+                        label: "FY 2022 — Current Year (Unaudited / Draft)",
+                        icon: "📄",
+                        note: "Uploaded by HLG",
+                        code: cyCode,
+                      },
+                      {
+                        label: "FY 2021 — Prior Year (Audited)",
+                        icon: "✅",
+                        note: "Verified & signed",
+                        code: pyCode,
+                      },
+                    ].map((doc) => (
+                      <div
+                        key={doc.code}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.6rem",
+                          padding: "0.6rem 0.875rem",
+                          borderRadius: "8px",
+                          background: active
+                            ? "rgba(37,99,235,0.07)"
+                            : "#f8fafc",
+                          border: `1px solid ${active ? "#bfdbfe" : "#e2e8f0"}`,
+                        }}
+                      >
+                        <span style={{ fontSize: "1rem" }}>{doc.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              fontSize: "0.8rem",
+                              fontWeight: 600,
+                              color: "#1e293b",
+                            }}
+                          >
+                            {doc.label}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>
+                            {doc.note}
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            fontFamily: "monospace",
+                            fontSize: "0.68rem",
+                            fontWeight: 700,
+                            color: active ? "#1d4ed8" : "#94a3b8",
+                            background: active ? "#dbeafe" : "#f1f5f9",
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "6px",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {doc.code}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              className={s.btnPrimary}
+              disabled={!docType}
+              onClick={() => {
+                if (docType) {
+                  setPhase("imported");
+                  setInnerTab("analytics");
+                  setViewMode("table");
+                }
+              }}
+              style={{
+                opacity: docType ? 1 : 0.45,
+                cursor: docType ? "pointer" : "not-allowed",
+              }}
+            >
+              <Sparkles size={14} /> Import to Analyse
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Phase 2: Analytics + Materiality (inner tabs) ────────────────────────────
+  const isFS = docType === "fs";
+  const data = isFS ? MOCK_FS : MOCK_TB;
+  const sections = isFS ? AR_FS_SECTIONS : AR_TB_SECTIONS;
+  const secLabels = isFS ? AR_FS_LABELS : AR_TB_LABELS;
+  const docLabel = isFS ? "Financial Statements" : "Trial Balance";
+
+  const grouped: Record<string, ArRow[]> = {};
+  data.forEach((row) => {
+    if (!grouped[row.section]) grouped[row.section] = [];
+    grouped[row.section].push(row);
+  });
+
+  // Chart groups — top 5 line items per financial category
+  const FS_CHART_GROUPS = [
+    {
+      label: "Top Revenue / Expected",
+      color: "#2563eb",
+      sections: ["stat_allocation", "indep_revenue"],
+    },
+    {
+      label: "Top Assets",
+      color: "#16a34a",
+      sections: ["current_assets", "noncurrent_assets"],
+    },
+    {
+      label: "Top Liabilities",
+      color: "#dc2626",
+      sections: ["current_liab", "noncurrent_liab"],
+    },
+    {
+      label: "Expenditure",
+      color: "#d97706",
+      sections: ["recurrent_exp", "capital_exp"],
+    },
+  ];
+  const TB_CHART_GROUPS = [
+    { label: "Top Revenue", color: "#2563eb", sections: ["revenue"] },
+    { label: "Personnel Costs", color: "#dc2626", sections: ["personnel"] },
+    { label: "Overhead Costs", color: "#d97706", sections: ["overhead"] },
+    { label: "Capital Expenditure", color: "#7c3aed", sections: ["capital"] },
+  ];
+  const chartGroups = (isFS ? FS_CHART_GROUPS : TB_CHART_GROUPS)
+    .map((group) => ({
+      ...group,
+      items: group.sections
+        .flatMap((sec) =>
+          data.filter((r) => r.section === sec && r.type === "line"),
+        )
+        .sort((a, b) => Math.abs(b.current) - Math.abs(a.current))
+        .map((r) => ({
+          label: r.account,
+          cy: Math.abs(r.current),
+          py: Math.abs(r.prior),
+        })),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {/* Inner tab bar */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          borderBottom: "2px solid #e2e8f0",
+        }}
+      >
+        {(["analytics", "materiality"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setInnerTab(tab)}
+            style={{
+              all: "unset",
+              cursor: "pointer",
+              padding: "0.75rem 1.75rem",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              color: innerTab === tab ? "#2563eb" : "#64748b",
+              borderBottom:
+                innerTab === tab
+                  ? "2px solid #2563eb"
+                  : "2px solid transparent",
+              marginBottom: "-2px",
+              transition: "all 0.15s",
+            }}
+          >
+            {tab === "analytics" ? "Analytics" : "Materiality"}
+          </button>
+        ))}
+        <div
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            paddingBottom: "0.6rem",
+          }}
+        >
+          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+            Imported: <strong style={{ color: "#0f172a" }}>{docLabel}</strong>
+          </span>
+          <button
+            className={s.btnSecondary}
+            style={{ fontSize: "0.72rem", padding: "0.25rem 0.7rem" }}
+            onClick={() => setPhase("select")}
+          >
+            Change
+          </button>
+        </div>
+      </div>
+
+      {/* ── Analytics Tab ── */}
+      {innerTab === "analytics" && (
+        <div className={s.card}>
+          <div
+            className={s.cardHeader}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.75rem",
+            }}
+          >
+            <div>
+              <h3 className={s.cardTitle} style={{ margin: 0 }}>
+                Year-on-Year Analytical Review
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "0.78rem",
+                  color: "var(--text-3)",
+                  marginTop: "0.1rem",
+                }}
+              >
+                ISA 520 — Comparing FY 2022 (Current Year) against FY 2021
+                (Prior Year) for {lgaName}
+              </p>
+            </div>
+
+            {/* Table / Charts toggle pill */}
+            <div
+              style={{
+                display: "flex",
+                background: "#f1f5f9",
+                borderRadius: "8px",
+                padding: "3px",
+                gap: "2px",
+              }}
+            >
+              {(["table", "charts"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  style={{
+                    all: "unset",
+                    cursor: "pointer",
+                    padding: "0.35rem 1rem",
+                    borderRadius: "6px",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    background: viewMode === mode ? "white" : "transparent",
+                    color: viewMode === mode ? "#0f172a" : "#64748b",
+                    boxShadow:
+                      viewMode === mode ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {mode === "table" ? "Table" : "Charts"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={s.cardBody}>
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                borderRadius: "6px",
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                marginBottom: "1.5rem",
+                fontSize: "0.82rem",
+                color: "#1e40af",
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>ISA 520 Methodology:</strong> Each line item is
+              automatically classified as <strong>Performance</strong> (CY value
+              &ge; Performance Materiality), <strong>Subjective</strong> (|Δ%|
+              &ge; your subjective threshold), or manually marked as{" "}
+              <strong>Special</strong> by the auditor.
+            </div>
+
+            {/* ── Selection Criteria Panel (table mode only) ── */}
+            {viewMode === "table" && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: "0.75rem",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                {/* Performance card */}
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "8px",
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "0.15rem 0.55rem",
+                        borderRadius: "10px",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        background: "#2563eb",
+                        color: "white",
+                      }}
+                    >
+                      Performance
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color: "#1e40af",
+                      }}
+                    >
+                      Auto
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.74rem",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    CY value &ge; Performance Materiality (
+                    {fmtCurrency(performanceMateriality)}). Auto-assigned.
+                  </p>
+                </div>
+
+                {/* Subjective card */}
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "8px",
+                    background: "#fffbeb",
+                    border: "1px solid #fde68a",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "0.15rem 0.55rem",
+                        borderRadius: "10px",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        background: "#d97706",
+                        color: "white",
+                      }}
+                    >
+                      Subjective
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color: "#92400e",
+                      }}
+                    >
+                      Auto
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.74rem",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Any item where |Δ%| &ge; threshold below.
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <label
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 600,
+                        color: "#78350f",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Threshold:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      step={1}
+                      value={subjectivePct}
+                      onChange={(e) => setSubjectivePct(Number(e.target.value))}
+                      style={{
+                        width: "52px",
+                        padding: "0.2rem 0.4rem",
+                        borderRadius: "5px",
+                        border: "1px solid #fcd34d",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        textAlign: "center",
+                        background: "#fef9c3",
+                        color: "#78350f",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        color: "#78350f",
+                      }}
+                    >
+                      %
+                    </span>
+                  </div>
+                </div>
+
+                {/* Special card */}
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "8px",
+                    background: "#faf5ff",
+                    border: "1px solid #e9d5ff",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "0.15rem 0.55rem",
+                        borderRadius: "10px",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        background: "#7c3aed",
+                        color: "white",
+                      }}
+                    >
+                      Special
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color: "#6d28d9",
+                      }}
+                    >
+                      Manual
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.74rem",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Items not auto-classified. Click the "+ Special" button in
+                    any row to mark it for special attention.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ── Table View ── */}
+            {viewMode === "table" && (
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "0.82rem",
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        background: "#f8fafc",
+                        borderBottom: "2px solid #e2e8f0",
+                      }}
+                    >
+                      <th
+                        style={{
+                          padding: "0.75rem 1rem",
+                          textAlign: "left",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Description
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.5rem",
+                          textAlign: "center",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Code
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 1rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        PY 2021 (₦)
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 1rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        CY 2022 (₦)
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Variance
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Delta %
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.75rem",
+                          textAlign: "center",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Selection
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sections
+                      .filter((sec) => grouped[sec])
+                      .map((section) => (
+                        <React.Fragment key={section}>
+                          <tr>
+                            <td
+                              colSpan={7}
+                              style={{
+                                padding: "0.6rem 1rem",
+                                background: "#f1f5f9",
+                                fontWeight: 700,
+                                fontSize: "0.72rem",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                color: "#334155",
+                                borderTop: "2px solid #e2e8f0",
+                              }}
+                            >
+                              {secLabels[section] ?? section}
+                            </td>
+                          </tr>
+                          {grouped[section]
+                            .filter((row) => row.type === "line")
+                            .map((row) => {
+                              const variance = row.current - row.prior;
+                              const pct =
+                                row.prior !== 0
+                                  ? (variance / Math.abs(row.prior)) * 100
+                                  : 0;
+                              const flagged = !row.bold && Math.abs(pct) >= 10;
+                              const isPerfLabel =
+                                !row.bold &&
+                                Math.abs(row.current) >= performanceMateriality;
+                              const isSubjLabel =
+                                !row.bold &&
+                                !isPerfLabel &&
+                                Math.abs(pct) >= subjectivePct;
+                              const isSpecialLabel =
+                                !row.bold &&
+                                !isPerfLabel &&
+                                !isSubjLabel &&
+                                specialItems.has(row.id);
+                              return (
+                                <tr
+                                  key={row.id}
+                                  style={{
+                                    borderBottom: "1px solid #f1f5f9",
+                                    background: row.bold
+                                      ? "#fafbfe"
+                                      : isSpecialLabel
+                                        ? "#faf5ff"
+                                        : isPerfLabel
+                                          ? "#eff6ff"
+                                          : isSubjLabel
+                                            ? "#fffbeb"
+                                            : "white",
+                                  }}
+                                >
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      fontWeight: row.bold ? 700 : 500,
+                                      color: row.bold
+                                        ? "#0f172a"
+                                        : "var(--text)",
+                                      paddingLeft: row.bold
+                                        ? "1rem"
+                                        : "1.75rem",
+                                    }}
+                                  >
+                                    {row.account}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.5rem",
+                                      textAlign: "center",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.72rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    {row.code
+                                      ? `${lgaPrefix}-${row.code}`
+                                      : "—"}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      textAlign: "right",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.8rem",
+                                      color: "#475569",
+                                    }}
+                                  >
+                                    {arFmt(row.prior)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      textAlign: "right",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.8rem",
+                                      fontWeight: row.bold ? 800 : 600,
+                                      color: "#0f172a",
+                                    }}
+                                  >
+                                    {arFmt(row.current)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 0.75rem",
+                                      textAlign: "right",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.8rem",
+                                      fontWeight: 600,
+                                      color:
+                                        variance >= 0 ? "#059669" : "#dc2626",
+                                    }}
+                                  >
+                                    {row.current === 0 && row.prior === 0
+                                      ? "—"
+                                      : (variance >= 0 ? "+" : "") +
+                                        arFmt(variance)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 0.75rem",
+                                      textAlign: "right",
+                                    }}
+                                  >
+                                    {row.current === 0 && row.prior === 0 ? (
+                                      <span
+                                        style={{
+                                          color: "#cbd5e1",
+                                          fontSize: "0.75rem",
+                                        }}
+                                      >
+                                        —
+                                      </span>
+                                    ) : (
+                                      <span
+                                        style={{
+                                          fontFamily: "monospace",
+                                          fontSize: "0.8rem",
+                                          fontWeight: 700,
+                                          color: flagged
+                                            ? "#dc2626"
+                                            : row.bold
+                                              ? "#0f172a"
+                                              : "#475569",
+                                        }}
+                                      >
+                                        {arFmtPct(pct)}
+                                      </span>
+                                    )}
+                                  </td>
+                                  {/* Selection column */}
+                                  <td
+                                    style={{
+                                      padding: "0.4rem 0.75rem",
+                                      textAlign: "center",
+                                      verticalAlign: "middle",
+                                    }}
+                                  >
+                                    {row.bold ? (
+                                      <span
+                                        style={{
+                                          color: "#cbd5e1",
+                                          fontSize: "0.75rem",
+                                        }}
+                                      >
+                                        —
+                                      </span>
+                                    ) : isPerfLabel ? (
+                                      <span
+                                        style={{
+                                          display: "inline-block",
+                                          padding: "0.2rem 0.55rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          background: "#2563eb",
+                                          color: "white",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Performance
+                                      </span>
+                                    ) : isSubjLabel ? (
+                                      <span
+                                        style={{
+                                          display: "inline-block",
+                                          padding: "0.2rem 0.55rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          background: "#d97706",
+                                          color: "white",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Subjective
+                                      </span>
+                                    ) : isSpecialLabel ? (
+                                      <button
+                                        onClick={() => toggleSpecial(row.id)}
+                                        style={{
+                                          all: "unset",
+                                          cursor: "pointer",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.25rem",
+                                          padding: "0.2rem 0.55rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          background: "#7c3aed",
+                                          color: "white",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                        title="Click to deselect"
+                                      >
+                                        Special ×
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => toggleSpecial(row.id)}
+                                        style={{
+                                          all: "unset",
+                                          cursor: "pointer",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.2rem",
+                                          padding: "0.15rem 0.5rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.68rem",
+                                          fontWeight: 600,
+                                          background: "#f1f5f9",
+                                          color: "#64748b",
+                                          border: "1px dashed #cbd5e1",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                        title="Mark as Special"
+                                      >
+                                        + Special
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </React.Fragment>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ── Charts View ── */}
+            {viewMode === "charts" && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1.5rem",
+                }}
+              >
+                {/* ── Top-item summary cards (one per group) ── */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${Math.min(chartGroups.length, 4)}, 1fr)`,
+                    gap: "0.75rem",
+                  }}
+                >
+                  {chartGroups.map((group) => {
+                    const top = group.items[0];
+                    if (!top) return null;
+                    const variance = top.cy - top.py;
+                    const up = variance >= 0;
+                    const delta = top.py > 0 ? (variance / top.py) * 100 : 0;
+                    return (
+                      <div
+                        key={group.label}
+                        style={{
+                          padding: "0.875rem 1rem",
+                          borderRadius: "8px",
+                          background: "#f8fafc",
+                          border: `1px solid ${group.color}40`,
+                          borderLeft: `4px solid ${group.color}`,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.4rem",
+                            marginBottom: "0.45rem",
+                          }}
+                        >
+                          <span
+                            style={{
+                              padding: "0.15rem 0.55rem",
+                              borderRadius: "10px",
+                              fontSize: "0.68rem",
+                              fontWeight: 700,
+                              background: group.color,
+                              color: "white",
+                            }}
+                          >
+                            {group.label}
+                          </span>
+                        </div>
+                        <p
+                          style={{
+                            margin: "0 0 0.3rem 0",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                            color: "#0f172a",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {top.label}
+                        </p>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: "0.74rem",
+                            color: "#475569",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          CY:{" "}
+                          <strong style={{ color: group.color }}>
+                            {arFmt(top.cy)}
+                          </strong>
+                          {"  "}
+                          <span
+                            style={{
+                              fontSize: "0.68rem",
+                              fontWeight: 700,
+                              color: up ? "#166534" : "#b91c1c",
+                            }}
+                          >
+                            {up ? "Up" : "Down"} {arFmtPct(Math.abs(delta))}
+                          </span>
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* ── Full comparison panels ── */}
+                {chartGroups.map((group) => {
+                  const groupMax = Math.max(
+                    ...group.items.map((i) => Math.max(i.cy, i.py)),
+                    1,
+                  );
+                  return (
+                    <div
+                      key={group.label}
+                      style={{
+                        background: "#f8fafc",
+                        borderRadius: "12px",
+                        border: "1px solid #e2e8f0",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {/* Group header */}
+                      <div
+                        style={{
+                          padding: "0.65rem 1.25rem",
+                          borderBottom: "2px solid #e2e8f0",
+                          background: "white",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "10px",
+                            height: "10px",
+                            borderRadius: "50%",
+                            background: group.color,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "0.82rem",
+                            color: "#0f172a",
+                          }}
+                        >
+                          {group.label}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "0.7rem",
+                            color: "#94a3b8",
+                            marginLeft: "auto",
+                          }}
+                        >
+                          {group.items.length} item
+                          {group.items.length !== 1 ? "s" : ""} · CY vs PY
+                        </span>
+                      </div>
+                      {/* Items */}
+                      <div
+                        style={{
+                          padding: "0.85rem 1.25rem",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.75rem",
+                        }}
+                      >
+                        {group.items.map((item, idx) => {
+                          const cyPct =
+                            groupMax > 0 ? (item.cy / groupMax) * 100 : 0;
+                          const pyPct =
+                            groupMax > 0 ? (item.py / groupMax) * 100 : 0;
+                          const variance = item.cy - item.py;
+                          const delta =
+                            item.py > 0 ? (variance / item.py) * 100 : 0;
+                          const up = variance >= 0;
+                          const isLast = idx === group.items.length - 1;
+                          return (
+                            <div
+                              key={item.label}
+                              style={{
+                                paddingBottom: isLast ? 0 : "0.65rem",
+                                borderBottom: isLast
+                                  ? "none"
+                                  : "1px solid #f1f5f9",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  marginBottom: "0.35rem",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "0.78rem",
+                                    fontWeight: 600,
+                                    color: "#334155",
+                                    flex: 1,
+                                    paddingRight: "0.5rem",
+                                  }}
+                                >
+                                  {item.label}
+                                </span>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    gap: "0.5rem",
+                                    alignItems: "center",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "0.71rem",
+                                      color: "#64748b",
+                                    }}
+                                  >
+                                    CY:{" "}
+                                    <strong style={{ color: "#0f172a" }}>
+                                      {arFmt(item.cy)}
+                                    </strong>
+                                  </span>
+                                  <span
+                                    style={{
+                                      padding: "0.1rem 0.4rem",
+                                      borderRadius: "8px",
+                                      fontSize: "0.68rem",
+                                      fontWeight: 700,
+                                      background: up ? "#dcfce7" : "#fee2e2",
+                                      color: up ? "#166534" : "#b91c1c",
+                                    }}
+                                  >
+                                    {up ? "Up" : "Down"}{" "}
+                                    {arFmtPct(Math.abs(delta))}
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: "0.28rem",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "0.65rem",
+                                      color: "#94a3b8",
+                                      width: "40px",
+                                      textAlign: "right",
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    PY
+                                  </span>
+                                  <div
+                                    style={{
+                                      flex: 1,
+                                      height: "8px",
+                                      background: "#e2e8f0",
+                                      borderRadius: "4px",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: `${pyPct}%`,
+                                        height: "100%",
+                                        background: "#94a3b8",
+                                        borderRadius: "4px",
+                                        transition: "width 0.4s",
+                                      }}
+                                    />
+                                  </div>
+                                  <span
+                                    style={{
+                                      fontSize: "0.68rem",
+                                      fontFamily: "monospace",
+                                      color: "#64748b",
+                                      width: "100px",
+                                      flexShrink: 0,
+                                      textAlign: "right",
+                                    }}
+                                  >
+                                    {arFmt(item.py)}
+                                  </span>
+                                </div>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "0.65rem",
+                                      color: group.color,
+                                      fontWeight: 700,
+                                      width: "40px",
+                                      textAlign: "right",
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    CY
+                                  </span>
+                                  <div
+                                    style={{
+                                      flex: 1,
+                                      height: "8px",
+                                      background: "#e2e8f0",
+                                      borderRadius: "4px",
+                                      overflow: "hidden",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: `${cyPct}%`,
+                                        height: "100%",
+                                        background: group.color,
+                                        borderRadius: "4px",
+                                        transition: "width 0.4s",
+                                      }}
+                                    />
+                                  </div>
+                                  <span
+                                    style={{
+                                      fontSize: "0.68rem",
+                                      fontFamily: "monospace",
+                                      color: "#0f172a",
+                                      fontWeight: 700,
+                                      width: "100px",
+                                      flexShrink: 0,
+                                      textAlign: "right",
+                                    }}
+                                  >
+                                    {arFmt(item.cy)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Materiality Tab ── */}
+      {innerTab === "materiality" && (
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+        >
+          <Card
+            title="Materiality Determination"
+            subtitle="ISA 320 - Materiality in Planning and Performing an Audit"
+          >
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                borderRadius: "4px",
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                marginBottom: "1.5rem",
+                fontSize: "0.82rem",
+                color: "#1e40af",
+                lineHeight: 1.6,
+              }}
+            >
+              Materiality is the magnitude of misstatements that, individually
+              or in aggregate, could reasonably be expected to influence the
+              economic decisions of users. The auditor sets materiality at both
+              the overall and performance levels.
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1.5rem",
+              }}
+            >
+              {/* Left: inputs */}
+              <div>
+                {/* Fixed basis — no dropdown */}
+                <div
+                  className={s.formGroup}
+                  style={{ marginBottom: "1.25rem" }}
+                >
+                  <label className={s.formLabel}>Benchmark / Basis</label>
+                  <div
+                    style={{
+                      padding: "0.55rem 0.875rem",
+                      borderRadius: "6px",
+                      background: "#f1f5f9",
+                      border: "1px solid #e2e8f0",
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: "#0f172a",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: "#2563eb",
+                        flexShrink: 0,
+                      }}
+                    />
+                    {FIXED_BASIS}
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        fontSize: "0.68rem",
+                        fontWeight: 600,
+                        background: "#dbeafe",
+                        color: "#1d4ed8",
+                        padding: "0.1rem 0.4rem",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      Fixed
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className={s.formGroup}
+                  style={{ marginBottom: "1.25rem" }}
+                >
+                  <label className={s.formLabel}>Basis Amount (₦)</label>
+                  <input
+                    type="number"
+                    className={s.formInput}
+                    value={basisAmount}
+                    onChange={(e) => setBasisAmount(Number(e.target.value))}
+                  />
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--text-3)",
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    {fmtCurrency(basisAmount)}
+                  </div>
+                </div>
+                <div
+                  className={s.formGroup}
+                  style={{ marginBottom: "1.25rem" }}
+                >
+                  <label className={s.formLabel}>
+                    Materiality Percentage (%)
+                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem",
+                    }}
+                  >
+                    <input
+                      type="range"
+                      min={0.5}
+                      max={5}
+                      step={0.25}
+                      value={percentage}
+                      onChange={(e) => setPercentage(Number(e.target.value))}
+                      style={{ flex: 1 }}
+                    />
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        minWidth: "50px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {percentage}%
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--text-3)",
+                      marginTop: "0.15rem",
+                    }}
+                  >
+                    Typical range: 1-2% for revenue/expenditure, 2-5% for assets
+                  </div>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>
+                    Performance Materiality (%)
+                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem",
+                    }}
+                  >
+                    <input
+                      type="range"
+                      min={50}
+                      max={90}
+                      step={5}
+                      value={perfPct}
+                      onChange={(e) => setPerfPct(Number(e.target.value))}
+                      style={{ flex: 1 }}
+                    />
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        minWidth: "50px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {perfPct}%
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--text-3)",
+                      marginTop: "0.15rem",
+                    }}
+                  >
+                    Set lower (50-60%) for higher-risk entities; higher (75-85%)
+                    for lower-risk
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: outputs */}
+              <div>
+                <div
+                  style={{
+                    background: "#f0fdf4",
+                    border: "2px solid #bbf7d0",
+                    borderRadius: "6px",
+                    padding: "1.5rem",
+                    textAlign: "center",
+                    marginBottom: "1.25rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#166534",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Overall Materiality
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "2rem",
+                      fontWeight: 800,
+                      color: "#064e3b",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    {fmtCurrency(overallMateriality)}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#166534",
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    {percentage}% of {FIXED_BASIS} ({fmtCurrency(basisAmount)})
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "1rem",
+                      borderRadius: "6px",
+                      background: "#eff6ff",
+                      border: "1px solid #bfdbfe",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        color: "#1e40af",
+                        marginBottom: "0.3rem",
+                      }}
+                    >
+                      Performance Materiality
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1.35rem",
+                        fontWeight: 700,
+                        color: "#1e3a8a",
+                      }}
+                    >
+                      {fmtCurrency(performanceMateriality)}
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "#3b82f6" }}>
+                      {perfPct}% of overall
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      padding: "1rem",
+                      borderRadius: "6px",
+                      background: "#fefce8",
+                      border: "1px solid #fde68a",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        color: "#92400e",
+                        marginBottom: "0.3rem",
+                      }}
+                    >
+                      Clearly Trivial
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1.35rem",
+                        fontWeight: 700,
+                        color: "#78350f",
+                      }}
+                    >
+                      {fmtCurrency(trivialThreshold)}
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "#d97706" }}>
+                      5% of overall
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "1.25rem",
+                    padding: "0.75rem",
+                    borderRadius: "4px",
+                    border: "1px solid var(--border)",
+                    background: "#f8fafc",
+                    fontSize: "0.8rem",
+                    lineHeight: 1.7,
+                    color: "var(--text-2)",
+                  }}
+                >
+                  <strong>Interpretation:</strong> Misstatements individually
+                  exceeding <strong>{fmtCurrency(overallMateriality)}</strong>{" "}
+                  are considered material. Audit procedures are designed to
+                  detect misstatements exceeding{" "}
+                  <strong>{fmtCurrency(performanceMateriality)}</strong>. Items
+                  below <strong>{fmtCurrency(trivialThreshold)}</strong> are
+                  deemed clearly trivial and will not be accumulated.
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <div className={s.formActions}>
+            <button className={s.btnPrimary} onClick={handleSaveMat}>
+              <Save size={14} /> Save Materiality
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 const RiskMatrixStep: React.FC<{
   audit: AuditStore["audits"][0];
   lgaName: string;
@@ -2073,10 +4855,36 @@ const RiskMatrixStep: React.FC<{
   materialityData: AuditStore["materiality"][0] | undefined;
   store: AuditStore;
   user: NonNullable<ReturnType<typeof useAuth>["user"]>;
-}> = ({ audit, lgaName, risks, analytics, materialityData, store, user }) => {
+  arDocType: ArDocType | null;
+}> = ({
+  audit,
+  lgaName,
+  risks,
+  analytics,
+  materialityData,
+  store,
+  user,
+  arDocType,
+}) => {
+  // ── Risk area groups derived from selected document's line items ──────────
+  const isFS = arDocType !== "tb";
+  const riskSections = isFS ? AR_FS_SECTIONS : AR_TB_SECTIONS;
+  const riskLabels = isFS ? AR_FS_LABELS : AR_TB_LABELS;
+  const riskData = isFS ? MOCK_FS : MOCK_TB;
+  const riskAreaGroups = riskSections
+    .map((sec) => ({
+      label: riskLabels[sec] ?? sec,
+      items: riskData
+        .filter((r) => r.section === sec && r.type === "line")
+        .map((r) => r.account),
+    }))
+    .filter((g) => g.items.length > 0);
+  const firstArea = riskAreaGroups[0]?.items[0] ?? RISK_AREAS[0];
+  const allAreas = riskAreaGroups.flatMap((g) => g.items);
+
   const [showForm, setShowForm] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [area, setArea] = useState(RISK_AREAS[0]);
+  const [area, setArea] = useState(firstArea);
   const [inherent, setInherent] = useState<RiskLevel>("Medium");
   const [control, setControl] = useState<RiskLevel>("Medium");
   const [detection, setDetection] = useState<RiskLevel>("Medium");
@@ -2087,7 +4895,7 @@ const RiskMatrixStep: React.FC<{
 
   const overall = calculateOverallRisk(inherent, control, detection);
 
-  // ΓöÇΓöÇΓöÇ Link to Questionnaire Risk Assessment ΓöÇΓöÇΓöÇ
+  // ─── Link to Questionnaire Risk Assessment ───
   const questionnaireResponses = store.questionnaireResponses.filter(
     (r) => r.auditId === audit.id,
   );
@@ -2185,8 +4993,7 @@ const RiskMatrixStep: React.FC<{
           ? ("High" as RiskLevel)
           : controlLevel,
       detectionRisk: "Medium",
-      mitigationPlan:
-        "Perform detailed substantive testing of revenue streams. Verify completeness of receipts against bank records and budgets.",
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2195,7 +5002,7 @@ const RiskMatrixStep: React.FC<{
       controlRisk: controlLevel,
       detectionRisk:
         fraudRisk === "Critical" || fraudRisk === "High" ? "High" : "Medium",
-      mitigationPlan: `${q24 === "yes" ? "Fraud indicators identified - extend testing scope. " : ""}Test payment authorisation controls and verify expenditure against approved budget.`,
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2203,7 +5010,7 @@ const RiskMatrixStep: React.FC<{
       inherentRisk: personnelRisk,
       controlRisk: controlLevel,
       detectionRisk: "Medium",
-      mitigationPlan: `${q29 === "frequent" ? "Frequent personnel changes noted - verify staff records for ghost workers. " : ""}Test payroll calculations and reconcile to financial statements.`,
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2211,8 +5018,7 @@ const RiskMatrixStep: React.FC<{
       inherentRisk: overallRiskLevel,
       controlRisk: controlLevel,
       detectionRisk: "Medium",
-      mitigationPlan:
-        "Perform independent bank confirmations and reconciliation. Test cash handling controls.",
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2220,7 +5026,7 @@ const RiskMatrixStep: React.FC<{
       inherentRisk: relatedPartyRisk === "Low" ? mgmtRisk : relatedPartyRisk,
       controlRisk: controlLevel,
       detectionRisk: relatedPartyRisk === "High" ? "High" : "Medium",
-      mitigationPlan: `${q25?.includes("yes") ? "Related-party transactions identified - apply ISA 550 procedures. " : ""}Review procurement processes for compliance and value-for-money.`,
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2234,7 +5040,7 @@ const RiskMatrixStep: React.FC<{
           ? ("High" as RiskLevel)
           : controlLevel,
       detectionRisk: assetRisk === "High" ? "High" : "Medium",
-      mitigationPlan: `${q20 === "none" ? "No formal asset register - perform physical verification. " : q20 === "incomplete" ? "Asset register incomplete - reconcile and verify key items. " : ""}Test capital project expenditure against approvals.`,
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2242,8 +5048,7 @@ const RiskMatrixStep: React.FC<{
       inherentRisk: overallRiskLevel,
       controlRisk: internalAuditFactor,
       detectionRisk: "Medium",
-      mitigationPlan:
-        "Verify grant receipts and transfers against allocations. Test compliance with grant conditions.",
+      mitigationPlan: "",
     });
 
     riskEntries.push({
@@ -2256,8 +5061,7 @@ const RiskMatrixStep: React.FC<{
             : "Medium",
       controlRisk: controlLevel,
       detectionRisk: "Medium",
-      mitigationPlan:
-        "Verify tax deductions and remittances. Test compliance with statutory requirements.",
+      mitigationPlan: "",
     });
 
     // Add each entry to store
@@ -2274,7 +5078,7 @@ const RiskMatrixStep: React.FC<{
         controlRisk: entry.controlRisk,
         detectionRisk: entry.detectionRisk,
         overallRisk: computedOverall,
-        mitigationPlan: entry.mitigationPlan,
+        mitigationPlan: "",
         status: "Open",
         preparedBy: user.id,
       });
@@ -2318,7 +5122,7 @@ const RiskMatrixStep: React.FC<{
 
   const resetForm = () => {
     setShowForm(false);
-    setArea(RISK_AREAS[0]);
+    setArea(firstArea);
     setInherent("Medium");
     setControl("Medium");
     setDetection("Medium");
@@ -2345,7 +5149,7 @@ const RiskMatrixStep: React.FC<{
     return grid;
   }, [risks]);
 
-  // ΓöÇΓöÇΓöÇ Report data ΓöÇΓöÇΓöÇ
+  // ─── Report data ───
   const totalRisks = risks.length;
   const criticalRisks = risks.filter((r) => r.overallRisk === "Critical");
   const highRisks = risks.filter((r) => r.overallRisk === "High");
@@ -2398,7 +5202,7 @@ const RiskMatrixStep: React.FC<{
       if (y + needed > 792 - 60) addPage();
     };
 
-    // ΓöÇΓöÇΓöÇ Cover Page ΓöÇΓöÇΓöÇ
+    // ─── Cover Page ───
     doc.setFillColor(3, 105, 161);
     doc.rect(0, 0, W, 160, "F");
     doc.setFont("helvetica", "normal");
@@ -2416,7 +5220,7 @@ const RiskMatrixStep: React.FC<{
       align: "center",
     });
     doc.setFontSize(9);
-    const metaLine = `Prepared: ${reportDate}  |  By: ${preparer?.name || user.id}${materialityData ? `  |  Materiality: Γéª${Number(materialityData.overallMateriality || 0).toLocaleString()}` : ""}`;
+    const metaLine = `Prepared: ${reportDate}  |  By: ${preparer?.name || user.id}${materialityData ? `  |  Materiality: ₦${Number(materialityData.overallMateriality || 0).toLocaleString()}` : ""}`;
     doc.text(metaLine, W / 2, 140, { align: "center" });
 
     y = 200;
@@ -2451,7 +5255,7 @@ const RiskMatrixStep: React.FC<{
     });
     y += 70;
 
-    // ΓöÇΓöÇΓöÇ Section 1: Executive Summary ΓöÇΓöÇΓöÇ
+    // ─── Section 1: Executive Summary ───
     const sectionHead = (num: number, title: string) => {
       checkPage(40);
       doc.setDrawColor(...accent);
@@ -2490,7 +5294,7 @@ const RiskMatrixStep: React.FC<{
       doc.setTextColor(...ink);
     }
 
-    // ΓöÇΓöÇΓöÇ Section 2: Methodology ΓöÇΓöÇΓöÇ
+    // ─── Section 2: Methodology ───
     sectionHead(2, "Risk Assessment Methodology");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
@@ -2505,7 +5309,7 @@ const RiskMatrixStep: React.FC<{
     doc.text(methLines, MX, y);
     y += methLines.length * 13 + 10;
 
-    // ΓöÇΓöÇΓöÇ Section 3: Risk Matrix Table ΓöÇΓöÇΓöÇ
+    // ─── Section 3: Risk Matrix Table ───
     sectionHead(3, "Detailed Risk Assessment Matrix");
     autoTable(doc, {
       startY: y,
@@ -2571,7 +5375,7 @@ const RiskMatrixStep: React.FC<{
       (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
         .finalY + 16;
 
-    // ΓöÇΓöÇΓöÇ Section 4: Significant Risk Areas ΓöÇΓöÇΓöÇ
+    // ─── Section 4: Significant Risk Areas ───
     if (criticalRisks.length > 0 || highRisks.length > 0) {
       sectionHead(4, "Significant Risk Areas Requiring Enhanced Procedures");
       [...criticalRisks, ...highRisks].forEach((r) => {
@@ -2599,7 +5403,7 @@ const RiskMatrixStep: React.FC<{
       });
     }
 
-    // ΓöÇΓöÇΓöÇ Conclusion ΓöÇΓöÇΓöÇ
+    // ─── Conclusion ───
     const cSec = criticalRisks.length > 0 || highRisks.length > 0 ? 5 : 4;
     sectionHead(cSec, "Conclusion & Recommendations");
     doc.setFont("helvetica", "normal");
@@ -2637,7 +5441,7 @@ const RiskMatrixStep: React.FC<{
     });
     y += 20;
 
-    // ΓöÇΓöÇΓöÇ Sign-off ΓöÇΓöÇΓöÇ
+    // ─── Sign-off ───
     checkPage(70);
     doc.setDrawColor(...ruleClr);
     doc.setLineWidth(0.5);
@@ -2665,7 +5469,7 @@ const RiskMatrixStep: React.FC<{
       }
     });
 
-    // ΓöÇΓöÇΓöÇ Page numbers ΓöÇΓöÇΓöÇ
+    // ─── Page numbers ───
     const totalPages = doc.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
@@ -2677,7 +5481,7 @@ const RiskMatrixStep: React.FC<{
       });
     }
 
-    // ΓöÇΓöÇΓöÇ Trigger download ΓöÇΓöÇΓöÇ
+    // ─── Trigger download ───
     doc.save(
       `Risk_Assessment_Report_${lgaName.replace(/\s+/g, "_")}_${audit.year}.pdf`,
     );
@@ -3105,7 +5909,7 @@ const RiskMatrixStep: React.FC<{
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      {/* ΓöÇΓöÇΓöÇ Action Bar: Generate Report + Save ΓöÇΓöÇΓöÇ */}
+      {/* ─── Action Bar: Generate Report + Save ─── */}
       {risks.length > 0 && (
         <div
           style={{
@@ -3285,111 +6089,212 @@ const RiskMatrixStep: React.FC<{
               Heat Map
             </button>
             {!showForm && (
-              <button
-                className={s.btnPrimary}
-                onClick={() => setShowForm(true)}
-              >
-                <Plus size={14} /> Add Risk
-              </button>
+              <>
+                {risks.length > 0 && viewMode === "table" && (
+                  <button
+                    className={s.btnSecondary}
+                    onClick={() => {
+                      if (confirm("Clear all Response / Mitigation fields?")) {
+                        store.clearAllMitigations(audit.id);
+                        store.addToast({
+                          type: "success",
+                          title: "Cleared",
+                          message: "All mitigation fields have been cleared.",
+                        });
+                      }
+                    }}
+                    style={{ borderColor: "#ef4444", color: "#ef4444" }}
+                  >
+                    <Trash2 size={13} /> Clear Textareas
+                  </button>
+                )}
+                <button
+                  className={s.btnPrimary}
+                  onClick={() => setShowForm(true)}
+                >
+                  <Plus size={14} /> Add Risk
+                </button>
+              </>
             )}
           </div>
         }
-        noPad={viewMode === "table" && !showForm}
+        noPad={viewMode === "table"}
       >
+        {/* ── Add Risk Modal ── */}
         {showForm && (
           <div
             style={{
-              padding: "1.5rem",
-              borderBottom: "1px solid var(--border)",
-              background: "#fafafa",
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.45)",
+              zIndex: 1000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1rem",
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) resetForm();
             }}
           >
-            <div className={s.formGrid}>
-              <div className={s.formGroupFull}>
-                <label className={s.formLabel}>Risk Area</label>
-                <select
-                  className={s.formSelect}
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
+            <div
+              style={{
+                background: "white",
+                borderRadius: "14px",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                width: "100%",
+                maxWidth: "640px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+              }}
+            >
+              {/* Modal header */}
+              <div
+                style={{
+                  padding: "1.25rem 1.5rem",
+                  borderBottom: "1px solid #e2e8f0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "1rem",
+                      color: "#0f172a",
+                    }}
+                  >
+                    Add Risk Area
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginTop: "0.15rem",
+                    }}
+                  >
+                    ISA 315 — Identifying and Assessing Risks of Material
+                    Misstatement
+                  </div>
+                </div>
+                <button
+                  onClick={resetForm}
+                  style={{
+                    all: "unset",
+                    cursor: "pointer",
+                    width: "30px",
+                    height: "30px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "6px",
+                    background: "#f1f5f9",
+                    fontSize: "1rem",
+                    color: "#64748b",
+                    flexShrink: 0,
+                  }}
+                  title="Close"
                 >
-                  {RISK_AREAS.map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
-                  ))}
-                </select>
+                  ×
+                }
               </div>
-              <div className={s.formGroup}>
-                <label className={s.formLabel}>Inherent Risk</label>
-                <select
-                  className={s.formSelect}
-                  value={inherent}
-                  onChange={(e) => setInherent(e.target.value as RiskLevel)}
-                >
-                  {RISK_LEVELS.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={s.formGroup}>
-                <label className={s.formLabel}>Control Risk</label>
-                <select
-                  className={s.formSelect}
-                  value={control}
-                  onChange={(e) => setControl(e.target.value as RiskLevel)}
-                >
-                  {RISK_LEVELS.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={s.formGroup}>
-                <label className={s.formLabel}>Detection Risk</label>
-                <select
-                  className={s.formSelect}
-                  value={detection}
-                  onChange={(e) => setDetection(e.target.value as RiskLevel)}
-                >
-                  {RISK_LEVELS.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={s.formGroup}>
-                <label className={s.formLabel}>Computed Overall Risk</label>
-                <div style={{ paddingTop: "0.5rem" }}>
-                  <RiskBadge level={overall} />
+
+              {/* Modal body */}
+              <div style={{ padding: "1.5rem" }}>
+                <div className={s.formGrid}>
+                  <div className={s.formGroupFull}>
+                    <label className={s.formLabel}>
+                      Risk Area (from Financial Statement)
+                    </label>
+                    <select
+                      className={s.formSelect}
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
+                    >
+                      {riskAreaGroups.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.items.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Inherent Risk</label>
+                    <select
+                      className={s.formSelect}
+                      value={inherent}
+                      onChange={(e) => setInherent(e.target.value as RiskLevel)}
+                    >
+                      {RISK_LEVELS.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Control Risk</label>
+                    <select
+                      className={s.formSelect}
+                      value={control}
+                      onChange={(e) => setControl(e.target.value as RiskLevel)}
+                    >
+                      {RISK_LEVELS.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Detection Risk</label>
+                    <select
+                      className={s.formSelect}
+                      value={detection}
+                      onChange={(e) =>
+                        setDetection(e.target.value as RiskLevel)
+                      }
+                    >
+                      {RISK_LEVELS.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={s.formGroup}>
+                    <label className={s.formLabel}>Computed Overall Risk</label>
+                    <div style={{ paddingTop: "0.5rem" }}>
+                      <RiskBadge level={overall} />
+                    </div>
+                  </div>
+                  <div className={s.formGroupFull}>
+                    <label className={s.formLabel}>
+                      Mitigation / Audit Response
+                    </label>
+                    <textarea
+                      className={s.formTextarea}
+                      value={mitigation}
+                      onChange={(e) => setMitigation(e.target.value)}
+                      placeholder="Describe the planned audit response to this risk..."
+                    />
+                  </div>
+                </div>
+                <div className={s.formActions}>
+                  <button className={s.btnSecondary} onClick={resetForm}>
+                    Cancel
+                  </button>
+                  <button className={s.btnPrimary} onClick={handleAdd}>
+                    <Plus size={14} /> Add Risk Entry
+                  </button>
                 </div>
               </div>
-              <div className={s.formGroupFull}>
-                <label className={s.formLabel}>
-                  Mitigation / Audit Response
-                </label>
-                <textarea
-                  className={s.formTextarea}
-                  value={mitigation}
-                  onChange={(e) => setMitigation(e.target.value)}
-                  placeholder="Describe the planned audit response to this risk..."
-                />
-              </div>
-            </div>
-            <div className={s.formActions}>
-              <button className={s.btnSecondary} onClick={resetForm}>
-                Cancel
-              </button>
-              <button
-                className={s.btnPrimary}
-                onClick={handleAdd}
-                disabled={!mitigation.trim()}
-              >
-                <Plus size={14} /> Add Risk Entry
-              </button>
             </div>
           </div>
         )}
@@ -3405,59 +6310,206 @@ const RiskMatrixStep: React.FC<{
                   <th>Detection</th>
                   <th>Overall</th>
                   <th>Response / Mitigation</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {risks.length === 0 ? (
+                {allAreas.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={6}
                       style={{
                         textAlign: "center",
                         padding: "2rem",
                         color: "var(--text-3)",
                       }}
                     >
-                      No risk entries yet.{" "}
-                      {hasQuestionnaireData
-                        ? "Import from your questionnaire responses or add manually."
-                        : "Add risk areas to build the assessment matrix."}
+                      No items available from the selected document.
                     </td>
                   </tr>
                 ) : (
-                  risks.map((r) => (
-                    <tr key={r.id}>
-                      <td style={{ fontWeight: 600 }}>{r.area}</td>
-                      <td>
-                        <RiskBadge level={r.inherentRisk} />
-                      </td>
-                      <td>
-                        <RiskBadge level={r.controlRisk} />
-                      </td>
-                      <td>
-                        <RiskBadge level={r.detectionRisk} />
-                      </td>
-                      <td>
-                        <RiskBadge level={r.overallRisk} />
-                      </td>
-                      <td style={{ fontSize: "0.82rem", maxWidth: "250px" }}>
-                        {r.mitigationPlan}
-                      </td>
-                      <td>
-                        <StatusBadge
-                          label={r.status}
-                          variant={
-                            r.status === "Mitigated"
-                              ? "success"
-                              : r.status === "Accepted"
-                                ? "info"
-                                : "warning"
-                          }
-                        />
-                      </td>
-                    </tr>
-                  ))
+                  allAreas.map((areaItem) => {
+                    const r = risks.find((x) => x.area === areaItem);
+                    return (
+                      <tr key={areaItem}>
+                        <td style={{ fontWeight: 600 }}>{areaItem}</td>
+                        <td>
+                          <select
+                            className={s.formSelect}
+                            style={{
+                              padding: "0.2rem",
+                              fontSize: "0.8rem",
+                              width: "100%",
+                            }}
+                            value={r?.inherentRisk || ""}
+                            onChange={(e) => {
+                              const newLevel = e.target.value as RiskLevel;
+                              if (r) {
+                                store.updateRiskMatrix(r.id, {
+                                  inherentRisk: newLevel,
+                                  overallRisk: calculateOverallRisk(
+                                    newLevel,
+                                    r.controlRisk,
+                                    r.detectionRisk,
+                                  ),
+                                });
+                              } else {
+                                store.addRiskMatrix({
+                                  auditId: audit.id,
+                                  area: areaItem,
+                                  inherentRisk: newLevel,
+                                  controlRisk: "Medium",
+                                  detectionRisk: "Medium",
+                                  overallRisk: calculateOverallRisk(newLevel, "Medium", "Medium"),
+                                  mitigationPlan: "",
+                                  status: "Open",
+                                  preparedBy: user.id,
+                                });
+                              }
+                            }}
+                          >
+                            {!r && <option value="" disabled>Select</option>}
+                            {RISK_LEVELS.map((l) => (
+                              <option key={l} value={l}>
+                                {l}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            className={s.formSelect}
+                            style={{
+                              padding: "0.2rem",
+                              fontSize: "0.8rem",
+                              width: "100%",
+                            }}
+                            value={r?.controlRisk || ""}
+                            onChange={(e) => {
+                              const newLevel = e.target.value as RiskLevel;
+                              if (r) {
+                                store.updateRiskMatrix(r.id, {
+                                  controlRisk: newLevel,
+                                  overallRisk: calculateOverallRisk(
+                                    r.inherentRisk,
+                                    newLevel,
+                                    r.detectionRisk,
+                                  ),
+                                });
+                              } else {
+                                store.addRiskMatrix({
+                                  auditId: audit.id,
+                                  area: areaItem,
+                                  inherentRisk: "Medium",
+                                  controlRisk: newLevel,
+                                  detectionRisk: "Medium",
+                                  overallRisk: calculateOverallRisk("Medium", newLevel, "Medium"),
+                                  mitigationPlan: "",
+                                  status: "Open",
+                                  preparedBy: user.id,
+                                });
+                              }
+                            }}
+                          >
+                            {!r && <option value="" disabled>Select</option>}
+                            {RISK_LEVELS.map((l) => (
+                              <option key={l} value={l}>
+                                {l}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            className={s.formSelect}
+                            style={{
+                              padding: "0.2rem",
+                              fontSize: "0.8rem",
+                              width: "100%",
+                            }}
+                            value={r?.detectionRisk || ""}
+                            onChange={(e) => {
+                              const newLevel = e.target.value as RiskLevel;
+                              if (r) {
+                                store.updateRiskMatrix(r.id, {
+                                  detectionRisk: newLevel,
+                                  overallRisk: calculateOverallRisk(
+                                    r.inherentRisk,
+                                    r.controlRisk,
+                                    newLevel,
+                                  ),
+                                });
+                              } else {
+                                store.addRiskMatrix({
+                                  auditId: audit.id,
+                                  area: areaItem,
+                                  inherentRisk: "Medium",
+                                  controlRisk: "Medium",
+                                  detectionRisk: newLevel,
+                                  overallRisk: calculateOverallRisk("Medium", "Medium", newLevel),
+                                  mitigationPlan: "",
+                                  status: "Open",
+                                  preparedBy: user.id,
+                                });
+                              }
+                            }}
+                          >
+                            {!r && <option value="" disabled>Select</option>}
+                            {RISK_LEVELS.map((l) => (
+                              <option key={l} value={l}>
+                                {l}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          {r ? (
+                            <RiskBadge level={r.overallRisk} />
+                          ) : (
+                            <span style={{ fontSize: "0.8rem", color: "var(--text-3)" }}>
+                              -
+                            </span>
+                          )}
+                        </td>
+                        <td
+                          style={{
+                            fontSize: "0.82rem",
+                            maxWidth: "250px",
+                            padding: "0.5rem",
+                          }}
+                        >
+                          <textarea
+                            className={s.formTextarea}
+                            style={{
+                              minHeight: "40px",
+                              fontSize: "0.8rem",
+                              padding: "0.4rem",
+                            }}
+                            value={r?.mitigationPlan || ""}
+                            onChange={(e) => {
+                              if (r) {
+                                store.updateRiskMatrix(r.id, {
+                                  mitigationPlan: e.target.value,
+                                });
+                              } else {
+                                store.addRiskMatrix({
+                                  auditId: audit.id,
+                                  area: areaItem,
+                                  inherentRisk: "Medium",
+                                  controlRisk: "Medium",
+                                  detectionRisk: "Medium",
+                                  overallRisk: "Medium",
+                                  mitigationPlan: e.target.value,
+                                  status: "Open",
+                                  preparedBy: user.id,
+                                });
+                              }
+                            }}
+                            placeholder="Enter response or mitigation plan..."
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -3567,13 +6619,13 @@ const RiskMatrixStep: React.FC<{
                 letterSpacing: "0.06em",
               }}
             >
-              ΓåÉ Control Risk ΓåÆ
+              | Control Risk |
             </div>
           </div>
         )}
       </Card>
 
-      {/* ΓöÇΓöÇΓöÇ Report Modal ΓöÇΓöÇΓöÇ */}
+      {/* ─── Report Modal ─── */}
       {showReportModal && risks.length > 0 && (
         <div
           style={{
@@ -4503,3 +7555,10 @@ const ProgrammeStep: React.FC<{
 };
 
 export default AuditPlanning;
+// Legacy step components preserved for reference
+export {
+  PreliminaryAnalyticsStep,
+  MaterialityStep,
+  AuditStrategyStep,
+  ProgrammeStep,
+};

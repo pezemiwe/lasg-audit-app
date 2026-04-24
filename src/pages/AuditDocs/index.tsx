@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
 
@@ -192,9 +193,23 @@ const WORKPAPER_CHECKLIST = [
 const AuditDocs: React.FC = () => {
   const { user } = useAuth();
   const { audits, lgas, workpapers, reports } = useAuditStore();
-  const [activeTab, setActiveTab] = useState<
-    "findings" | "workpapers" | "reports" | "completeness"
-  >("findings");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab =
+    (searchParams.get("tab") as
+      | "findings"
+      | "workpapers"
+      | "reports"
+      | "completeness") || "findings";
+  const setActiveTab = (
+    id: "findings" | "workpapers" | "reports" | "completeness",
+  ) =>
+    setSearchParams(
+      (prev) => {
+        prev.set("tab", id);
+        return prev;
+      },
+      { replace: true },
+    );
 
   if (!user) return null;
 

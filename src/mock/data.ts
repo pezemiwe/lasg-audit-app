@@ -1782,7 +1782,7 @@ export const SEED_PROGRAMMES: AuditProgramme[] = [
     id: "prog-1",
     auditId: "audit-1",
     objectives:
-      "To express an opinion on the financial statements of Ikeja LGA for FY 2025",
+      "To express an opinion on the financial statements of Mushin LGA for FY 2025",
     scope:
       "All financial transactions, assets, liabilities and equity for the period 1 January to 31 December 2025",
     riskAreas: ["Revenue", "Payroll", "Assets", "Expenditure"],
@@ -2001,9 +2001,9 @@ export const SEED_PROGRAMMES: AuditProgramme[] = [
       },
     ],
     status: "Approved",
-    preparedBy: "user-lead-1",
+    preparedBy: "Mr. Adewale Ogunjobi",
     submittedAt: "2026-02-28T10:00:00Z",
-    approvedBy: "user-sup-ikeja",
+    approvedBy: "Mrs. Folashade Adekunle",
     approvedAt: "2026-03-01T09:00:00Z",
   },
 ];
@@ -2614,7 +2614,7 @@ export const PROGRAMME_TEMPLATES: ProgrammeTemplate[] = [
   },
 ];
 
-/* ─── Audit Journals (Big Four Deliverable) ─── */
+/* ─── Audit Journals (ISA Deliverable) ─── */
 
 export const SEED_AUDIT_JOURNALS: AuditJournal[] = [
   {
@@ -2734,7 +2734,7 @@ export const SEED_AUDIT_JOURNALS: AuditJournal[] = [
   },
 ];
 
-/* ─── Audit Comments / Management Letter Points (Big Four Deliverable) ─── */
+/* ─── Audit Comments / Management Letter Points (ISA Deliverable) ─── */
 
 export const SEED_AUDIT_COMMENTS: AuditComment[] = [
   {
@@ -2855,7 +2855,7 @@ export const SEED_AUDIT_COMMENTS: AuditComment[] = [
   },
 ];
 
-/* ─── Financial Statements Tracking (Big Four Deliverable) ─── */
+/* ─── Financial Statements Tracking (ISA Deliverable) ─── */
 
 export const SEED_FINANCIAL_STATEMENTS: FinancialStatementItem[] = [
   {
@@ -2930,7 +2930,7 @@ export const SEED_FINANCIAL_STATEMENTS: FinancialStatementItem[] = [
   },
 ];
 
-/* ─── Completion Checklist (Big Four Standard) ─── */
+/* ─── Completion Checklist (ISA Standard) ─── */
 
 export const SEED_COMPLETION_CHECKLIST: CompletionChecklistItem[] = [
   {
@@ -3062,7 +3062,7 @@ export const SEED_COMPLETION_CHECKLIST: CompletionChecklistItem[] = [
   },
 ];
 
-/* ─── Audit Workpapers Index (Big Four Standard) ─── */
+/* ─── Audit Workpapers Index (ISA Standard) ─── */
 
 export const SEED_AUDIT_WORKPAPERS: AuditWorkpaper[] = [
   {
@@ -3307,7 +3307,7 @@ export const SEED_ACTIVITY_LOG: ActivityLog[] = [
     id: "log-4",
     userId: "user-sup-ikeja",
     action: "ASSIGN_LEAD",
-    details: "Assigned Mr. Adewale Ogunjobi to Ikeja LGA",
+    details: "Assigned Mr. Adewale Ogunjobi to Mushin LGA",
     timestamp: "2026-02-15T10:00:00Z",
     entityType: "lga",
     entityId: "lga-4",
@@ -3316,7 +3316,7 @@ export const SEED_ACTIVITY_LOG: ActivityLog[] = [
     id: "log-5",
     userId: "user-lead-1",
     action: "ACCEPT_ASSIGNMENT",
-    details: "Accepted assignment for Ikeja LGA audit",
+    details: "Accepted assignment for Mushin LGA audit",
     timestamp: "2026-02-15T14:30:00Z",
     entityType: "invitation",
     entityId: "inv-1",
@@ -3334,7 +3334,7 @@ export const SEED_ACTIVITY_LOG: ActivityLog[] = [
     id: "log-7",
     userId: "user-auditor-1",
     action: "ACCEPT_ASSIGNMENT",
-    details: "Accepted assignment for Ikeja LGA audit",
+    details: "Accepted assignment for Mushin LGA audit",
     timestamp: "2026-02-16T11:00:00Z",
     entityType: "invitation",
     entityId: "inv-2",
@@ -3354,55 +3354,25 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
   {
     id: "risk-1",
     auditId: "audit-1",
-    area: "Cash Handling & Treasury",
-    inherentRisk: "High",
-    controlRisk: "Medium",
-    detectionRisk: "Low",
-    overallRisk: "High",
-    mitigationPlan:
-      "Surprise cash counts, review treasury procedures, test segregation of duties",
+    area: "Expenditure & Payroll (Ghost Workers)",
+    inherentRisk: "Critical",
+    controlRisk: "High",
+    detectionRisk: "Medium",
+    overallRisk: "Critical",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-20T10:00:00Z",
   },
   {
     id: "risk-2",
-    auditId: "audit-2",
-    area: "Procurement & Contracts",
-    inherentRisk: "Critical",
-    controlRisk: "High",
-    detectionRisk: "Medium",
-    overallRisk: "Critical",
-    mitigationPlan:
-      "Review contract award procedures, check compliance with Public Procurement Law, trace payments to specific contracts",
-    status: "Open",
-    preparedBy: "user-lead-2",
-    createdAt: "2026-03-20T10:00:00Z",
-  },
-  {
-    id: "risk-3",
-    auditId: "audit-2",
-    area: "Revenue & Receipts",
+    auditId: "audit-1",
+    area: "Inter-Governmental Transfers (SUBEB)",
     inherentRisk: "High",
     controlRisk: "Medium",
-    detectionRisk: "Low",
-    overallRisk: "High",
-    mitigationPlan:
-      "Vouch revenue receipts to bank statements, test revenue collection systems, assess cash handling",
-    status: "Open",
-    preparedBy: "user-lead-2",
-    createdAt: "2026-03-20T11:00:00Z",
-  },
-  {
-    id: "risk-2",
-    auditId: "audit-1",
-    area: "Payroll & Personnel",
-    inherentRisk: "High",
-    controlRisk: "High",
     detectionRisk: "Medium",
-    overallRisk: "Critical",
-    mitigationPlan:
-      "Analytical review of payroll, ghost worker analysis, staff verification exercise",
+    overallRisk: "High",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-20T10:30:00Z",
@@ -3410,13 +3380,12 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
   {
     id: "risk-3",
     auditId: "audit-1",
-    area: "Procurement & Contracts",
-    inherentRisk: "High",
-    controlRisk: "Medium",
-    detectionRisk: "Low",
-    overallRisk: "High",
-    mitigationPlan:
-      "Review bid documents, verify due process certificates, test compliance with Public Procurement Act",
+    area: "Procurement & Capital Expenditure",
+    inherentRisk: "Critical",
+    controlRisk: "High",
+    detectionRisk: "Medium",
+    overallRisk: "Critical",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-20T11:00:00Z",
@@ -3424,30 +3393,67 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
   {
     id: "risk-4",
     auditId: "audit-1",
-    area: "Revenue Collection (IGR)",
-    inherentRisk: "Medium",
+    area: "Completeness of IGR",
+    inherentRisk: "High",
     controlRisk: "High",
     detectionRisk: "Medium",
     overallRisk: "High",
-    mitigationPlan:
-      "Verify IGR receipts, trace to bank statements, reconcile collection records",
-    status: "Mitigated",
+    mitigationPlan: "",
+    status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-20T11:30:00Z",
   },
   {
     id: "risk-5",
     auditId: "audit-1",
-    area: "Capital Projects & Assets",
-    inherentRisk: "Medium",
+    area: "Unretired Advances (Intangible Assets)",
+    inherentRisk: "High",
     controlRisk: "Medium",
     detectionRisk: "Low",
-    overallRisk: "Medium",
-    mitigationPlan:
-      "Physical verification of projects, review asset register, inspect project files",
-    status: "Open",
+    overallRisk: "High",
+    mitigationPlan: "",
+    status: "Mitigated",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-20T12:00:00Z",
+  },
+  {
+    id: "risk-6",
+    auditId: "audit-1",
+    area: "Budget Overruns & Unapproved Expenditure",
+    inherentRisk: "Medium",
+    controlRisk: "High",
+    detectionRisk: "Low",
+    overallRisk: "Medium",
+    mitigationPlan: "",
+    status: "Open",
+    preparedBy: "user-lead-1",
+    createdAt: "2026-02-20T12:30:00Z",
+  },
+  {
+    id: "risk-7",
+    auditId: "audit-2",
+    area: "Expenditure & Payroll (Ghost Workers)",
+    inherentRisk: "High",
+    controlRisk: "Low",
+    detectionRisk: "Medium",
+    overallRisk: "Medium",
+    mitigationPlan: "",
+    status: "Open",
+    preparedBy: "user-lead-2",
+    createdAt: "2026-03-20T10:00:00Z",
+  },
+  {
+    id: "risk-8",
+    auditId: "audit-2",
+    area: "Completeness of IGR",
+    inherentRisk: "Critical",
+    controlRisk: "High",
+    detectionRisk: "Medium",
+    overallRisk: "Critical",
+    mitigationPlan: "",
+    status: "Open",
+    preparedBy: "user-lead-2",
+    createdAt: "2026-03-20T11:00:00Z",
   },
   {
     id: "risk-new-1",
@@ -3457,8 +3463,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "Low",
     overallRisk: "Critical",
-    mitigationPlan:
-      "Enforce MFA on Revenue App, review access logs, restrict admin privileges",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-21T09:00:00Z",
@@ -3471,8 +3476,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "Medium",
     overallRisk: "High",
-    mitigationPlan:
-      "Physical audit of market stalls, cross-reference with allocation register, interview traders",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-21T10:15:00Z",
@@ -3485,8 +3489,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "Medium",
     overallRisk: "High",
-    mitigationPlan:
-      "Reconcile agent remittances with waste tonnage records, spot checks on dump sites",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-21T11:30:00Z",
@@ -3499,8 +3502,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "Medium",
     detectionRisk: "Low",
     overallRisk: "Medium",
-    mitigationPlan:
-      "Verify monthly remittance schedules to PFAs, check for penalty charges in accounts",
+    mitigationPlan: "",
     status: "Mitigated",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-21T13:45:00Z",
@@ -3513,8 +3515,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "Medium",
     detectionRisk: "High",
     overallRisk: "Medium",
-    mitigationPlan:
-      "Install fuel trackers, benchmark maintenance costs against market rates, review logbooks",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-1",
     createdAt: "2026-02-21T15:00:00Z",
@@ -3527,8 +3528,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "Medium",
     overallRisk: "Critical",
-    mitigationPlan:
-      "Full review of procurement files, contracts, and tender board minutes",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-4",
     createdAt: "2026-03-08T09:00:00Z",
@@ -3542,8 +3542,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "Medium",
     overallRisk: "Critical",
-    mitigationPlan:
-      "Review waste management contracts and verify service delivery against payments. Inspect dumpsites.",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-2",
     createdAt: "2026-03-05T10:00:00Z",
@@ -3556,8 +3555,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "Medium",
     detectionRisk: "High",
     overallRisk: "Critical",
-    mitigationPlan:
-      "Reconcile tourist site ticketing records with bank lodgements. Verify physical ticket stock.",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-3",
     createdAt: "2026-03-06T14:30:00Z",
@@ -3570,8 +3568,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "Low",
     overallRisk: "High",
-    mitigationPlan:
-      "Audit haulage and parking fees collection. Review engagement with third-party collectors.",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-2",
     createdAt: "2026-03-07T09:15:00Z",
@@ -3584,8 +3581,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "Medium",
     detectionRisk: "Medium",
     overallRisk: "Medium",
-    mitigationPlan:
-      "Sample check high-value properties for billing and payment accuracy. Review valuation database.",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-5",
     createdAt: "2026-03-12T11:00:00Z",
@@ -3598,8 +3594,7 @@ export const SEED_RISK_MATRICES: RiskMatrix[] = [
     controlRisk: "High",
     detectionRisk: "High",
     overallRisk: "Critical",
-    mitigationPlan:
-      "Census of market stalls vs revenue database. Surprise cash count at market offices.",
+    mitigationPlan: "",
     status: "Open",
     preparedBy: "user-lead-4",
     createdAt: "2026-03-15T13:45:00Z",
@@ -3610,12 +3605,12 @@ export const SEED_MATERIALITY: MaterialityThreshold[] = [
   {
     id: "mat-1",
     auditId: "audit-1",
-    overallMateriality: 15000000,
-    performanceMateriality: 11250000,
-    clearlyTrivialThreshold: 750000,
-    basis: "Total Expenditure",
+    overallMateriality: 37500000,
+    performanceMateriality: 26250000,
+    clearlyTrivialThreshold: 1312500,
+    basis: "Surplus / (Deficit)",
     basisAmount: 750000000,
-    percentage: 2,
+    percentage: 5,
     preparedBy: "user-lead-1",
     approvedBy: "user-sup-ikeja",
     createdAt: "2026-02-22T10:00:00Z",
@@ -3623,25 +3618,25 @@ export const SEED_MATERIALITY: MaterialityThreshold[] = [
   {
     id: "mat-2",
     auditId: "audit-2",
-    overallMateriality: 37500000,
-    performanceMateriality: 26250000,
-    clearlyTrivialThreshold: 1500000,
-    basis: "Total Revenue",
+    overallMateriality: 125000000,
+    performanceMateriality: 87500000,
+    clearlyTrivialThreshold: 4375000,
+    basis: "Surplus / (Deficit)",
     basisAmount: 2500000000,
-    percentage: 1.5,
+    percentage: 5,
     preparedBy: "user-lead-2",
     approvedBy: "user-sup-ikeja",
     createdAt: "2026-03-21T09:00:00Z",
   },
   {
-    id: "mat-2",
+    id: "mat-3",
     auditId: "audit-3",
-    overallMateriality: 8500000,
-    performanceMateriality: 6375000,
-    clearlyTrivialThreshold: 425000,
-    basis: "Total Expenditure",
+    overallMateriality: 21250000,
+    performanceMateriality: 14875000,
+    clearlyTrivialThreshold: 743750,
+    basis: "Surplus / (Deficit)",
     basisAmount: 425000000,
-    percentage: 2,
+    percentage: 5,
     preparedBy: "user-lead-4",
     createdAt: "2026-03-09T14:00:00Z",
   },
@@ -5438,7 +5433,7 @@ export const SEED_NOTIFICATIONS: Notification[] = [
     userId: "user-ag",
     title: "Document Approved",
     message:
-      "Financial Statements for Ikeja LGA have been approved by the Supervisor.",
+      "Financial Statements for Mushin LGA have been approved by the Supervisor.",
     type: "success",
     isRead: false,
     timestamp: "2026-03-10T09:00:00Z",
@@ -5476,7 +5471,7 @@ export const SEED_NOTIFICATIONS: Notification[] = [
     userId: "user-lead-1",
     title: "Audit Assigned",
     message:
-      "You have been assigned as Lead Auditor for Ikeja LGA Financial Audit.",
+      "You have been assigned as Lead Auditor for Mushin LGA Financial Audit.",
     type: "info",
     isRead: false,
     timestamp: "2026-02-15T10:00:00Z",

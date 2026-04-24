@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import type { AuditType, MandateStatus } from "../../types";
@@ -54,7 +54,16 @@ const MandatesPage: React.FC = () => {
   const zones = useAuditStore((s) => s.zones);
 
   const [view, setView] = useState<View>("list");
-  const [activeTab, setActiveTab] = useState<DetailTab>("overview");
+  const [searchParamsM, setSearchParamsM] = useSearchParams();
+  const activeTab = (searchParamsM.get("tab") as DetailTab) || "overview";
+  const setActiveTab = (tab: DetailTab) =>
+    setSearchParamsM(
+      (prev) => {
+        prev.set("tab", tab);
+        return prev;
+      },
+      { replace: true },
+    );
   const [selectedComplianceLgaId, setSelectedComplianceLgaId] = useState<
     string | null
   >(null);

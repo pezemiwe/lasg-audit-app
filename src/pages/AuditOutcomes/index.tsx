@@ -10,7 +10,8 @@
      7. Compile & Generate (PDF)
    ================================================================== */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   FileSpreadsheet,
   Calculator,
@@ -91,7 +92,19 @@ const AuditOutcomesPage: React.FC = () => {
   const [selectedOutcomeId, setSelectedOutcomeId] = useState<string>(
     store.auditOutcomes?.[0]?.id ?? "",
   );
-  const [activeTab, setActiveTab] = useState<TabKey>("trial-balance");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = (searchParams.get("tab") as TabKey) || "trial-balance";
+  const setActiveTab = useCallback(
+    (key: TabKey) =>
+      setSearchParams(
+        (prev) => {
+          prev.set("tab", key);
+          return prev;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
 
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 1180);
 
@@ -480,9 +493,12 @@ const ResponsibilityTab: React.FC<{
   const [body, setBody] = useState(sor?.responsibilityText || "");
 
   useEffect(() => {
-    setPreamble(sor?.preamble || "");
-    setBody(sor?.responsibilityText || "");
-  }, [sor?.id]);
+    const timer = setTimeout(() => {
+      setPreamble(sor?.preamble || "");
+      setBody(sor?.responsibilityText || "");
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [sor?.id, sor?.preamble, sor?.responsibilityText]);
 
   if (!sor) return <EmptyState title="Statement of Responsibility not found" />;
 
@@ -876,17 +892,20 @@ const PoliciesTab: React.FC<{ outcome: AuditOutcome; canEdit: boolean }> = ({
   );
 
   useEffect(() => {
-    setSections(
-      ap?.policies.map((p) => ({
-        id: p.id,
-        order: p.order,
-        header: p.title,
-        description: p.body,
-        bullets: p.bullets,
-        table: p.table,
-      })) || [],
-    );
-  }, [ap?.id]);
+    const timer = setTimeout(() => {
+      setSections(
+        ap?.policies.map((p) => ({
+          id: p.id,
+          order: p.order,
+          header: p.title,
+          description: p.body,
+          bullets: p.bullets,
+          table: p.table,
+        })) || [],
+      );
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [ap?.id, ap?.policies]);
 
   if (!ap) return <EmptyState title="Accounting Policies not found" />;
 
@@ -1012,7 +1031,10 @@ const FinancialStatementEditor: React.FC<{
   onSave: (fs: FinancialStatement) => void;
 }> = ({ fs, canEdit, onSave }) => {
   const [rows, setRows] = useState<FinancialStatementRow[]>(fs.rows);
-  useEffect(() => setRows(fs.rows), [fs.id]);
+  useEffect(() => {
+    const timer = setTimeout(() => setRows(fs.rows), 0);
+    return () => clearTimeout(timer);
+  }, [fs.id, fs.rows]);
 
   const handleCell = (
     id: string,

@@ -382,6 +382,8 @@ export interface AuditStore {
   getAuditSubstantiveTests: (auditId: string) => SubstantiveTest[];
   getAuditFraudFlags: (auditId: string) => FraudFlag[];
   addRiskMatrix: (rm: Omit<RiskMatrix, "id" | "createdAt">) => void;
+  updateRiskMatrix: (id: string, updates: Partial<RiskMatrix>) => void;
+  clearAllMitigations: (auditId: string) => void;
   addFraudFlag: (ff: Omit<FraudFlag, "id" | "raisedAt">) => void;
   resolveFraudFlag: (id: string, resolution: string) => void;
 
@@ -1814,6 +1816,22 @@ Lagos State
           createdAt: now(),
         };
         set((s) => ({ riskMatrices: [...s.riskMatrices, record] }));
+      },
+
+      updateRiskMatrix: (id, updates) => {
+        set((s) => ({
+          riskMatrices: s.riskMatrices.map((rm) =>
+            rm.id === id ? { ...rm, ...updates } : rm,
+          ),
+        }));
+      },
+
+      clearAllMitigations: (auditId) => {
+        set((s) => ({
+          riskMatrices: s.riskMatrices.map((rm) =>
+            rm.auditId === auditId ? { ...rm, mitigationPlan: "" } : rm,
+          ),
+        }));
       },
 
       addFraudFlag: (ff) => {
@@ -3351,7 +3369,7 @@ Lagos State
         })),
     }),
     {
-      name: "audit-storage-v9",
+      name: "audit-storage-v12",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

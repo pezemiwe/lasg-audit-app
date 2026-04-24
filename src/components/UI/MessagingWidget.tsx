@@ -119,7 +119,7 @@ const getContactsForUser = (currentUser: UserType | null) => {
       name: "HLG Adewunmi",
       role: "HEAD_OF_LOCAL_GOVERNMENT",
       online: false,
-      department: "Ikeja LGA Council",
+      department: "Mushin LGA Council",
     },
   ];
   if (currentUser.role === "STATE_AUDITOR_GENERAL")
@@ -159,7 +159,7 @@ const MessagingWidget: React.FC<MessagingWidgetProps> = ({
       senderId: "user-ag",
       receiverId: "user-lead-1",
       content:
-        "Please update the status on the Ikeja LGA audit engagement. We need the field reports by end of week.",
+        "Please update the status on the Mushin LGA audit engagement. We need the field reports by end of week.",
       timestamp: MOCK_MESSAGE_TIMESTAMP,
       isRead: true,
     },
