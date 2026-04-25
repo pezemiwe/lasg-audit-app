@@ -715,34 +715,37 @@ const fmt = (val: number) =>
 
 const fmtPct = (val: number) => (val > 0 ? "+" : "") + val.toFixed(1) + "%";
 
+const DocSelector: React.FC<{
+  selectedDoc: "" | "tb" | "fs";
+  setSelectedDoc: React.Dispatch<React.SetStateAction<"" | "tb" | "fs">>;
+}> = ({ selectedDoc, setSelectedDoc }) => (
+  <div style={{ position: "relative" }}>
+    <select
+      className={s.formInput}
+      style={{ minWidth: "280px", paddingRight: "2rem", fontSize: "0.85rem" }}
+      value={selectedDoc}
+      onChange={(e) => setSelectedDoc(e.target.value as "" | "tb" | "fs")}
+    >
+      <option value="">-- Select Base Document --</option>
+      <option value="fs">Financial Statements (Draft)</option>
+      <option value="tb">Trial Balance (Detailed Ledger)</option>
+    </select>
+    <ChevronDown
+      size={14}
+      style={{
+        position: "absolute",
+        right: "0.6rem",
+        top: "50%",
+        transform: "translateY(-50%)",
+        pointerEvents: "none",
+        color: "#94a3b8",
+      }}
+    />
+  </div>
+);
+
 export const MaterialityAssessment: React.FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<"" | "tb" | "fs">("");
-
-  const DocSelector = () => (
-    <div style={{ position: "relative" }}>
-      <select
-        className={s.formInput}
-        style={{ minWidth: "280px", paddingRight: "2rem", fontSize: "0.85rem" }}
-        value={selectedDoc}
-        onChange={(e) => setSelectedDoc(e.target.value as "" | "tb" | "fs")}
-      >
-        <option value="">-- Select Base Document --</option>
-        <option value="fs">Financial Statements (Draft)</option>
-        <option value="tb">Trial Balance (Detailed Ledger)</option>
-      </select>
-      <ChevronDown
-        size={14}
-        style={{
-          position: "absolute",
-          right: "0.6rem",
-          top: "50%",
-          transform: "translateY(-50%)",
-          pointerEvents: "none",
-          color: "#94a3b8",
-        }}
-      />
-    </div>
-  );
 
   if (!selectedDoc) {
     return (
@@ -786,7 +789,10 @@ export const MaterialityAssessment: React.FC = () => {
               </p>
             </div>
           </div>
-          <DocSelector />
+          <DocSelector
+            selectedDoc={selectedDoc}
+            setSelectedDoc={setSelectedDoc}
+          />
         </div>
         <div
           className={s.cardBody}
@@ -828,7 +834,7 @@ export const MaterialityAssessment: React.FC = () => {
             >
               Choose either the <strong>Financial Statements</strong> or{" "}
               <strong>Trial Balance</strong> above. The engine will extract
-              Profit Before Tax (PBT), apply Big Four standard materiality
+              Profit Before Tax (PBT), apply ISA 320 standard materiality
               thresholds, and display all items selected for substantive
               testing.
             </div>
@@ -842,8 +848,8 @@ export const MaterialityAssessment: React.FC = () => {
   const pbtRow = data.find((d) => d.type === "pbt");
   const PBT = pbtRow ? pbtRow.current : 0;
   const OVERALL_MAT = PBT * 0.05;
-  const PERF_MAT = OVERALL_MAT * 0.75;
-  const TRIVIAL_MAT = OVERALL_MAT * 0.05;
+  const PERF_MAT = OVERALL_MAT * 0.7;
+  const TRIVIAL_MAT = PERF_MAT * 0.05;
 
   const datasetWithVariance = data.map((d) => {
     const variance = d.current - d.prior;
@@ -899,7 +905,10 @@ export const MaterialityAssessment: React.FC = () => {
             </p>
           </div>
         </div>
-        <DocSelector />
+        <DocSelector
+          selectedDoc={selectedDoc}
+          setSelectedDoc={setSelectedDoc}
+        />
       </div>
 
       <div className={s.cardBody}>
@@ -929,9 +938,9 @@ export const MaterialityAssessment: React.FC = () => {
             }}
           >
             <strong>Methodology (ISA 320):</strong> Overall Materiality = 5% x
-            PBT. Performance Materiality = 75% of Overall. Trivial / De-minimis
-            = 5% of Overall. Items selected for substantive testing where (i)
-            analytical review variance &ge; 10%, (ii) balance exceeds
+            PBT. Performance Materiality = 70% of Overall. Trivial / De-minimis
+            = 5% of Performance. Items selected for substantive testing where
+            (i) analytical review variance &ge; 10%, (ii) balance exceeds
             Performance Materiality, or (iii) judgemental selection applies.
           </p>
         </div>
@@ -1037,7 +1046,7 @@ export const MaterialityAssessment: React.FC = () => {
                 marginBottom: "0.5rem",
               }}
             >
-              Performance Mat. (75%)
+              Performance Mat. (70%)
             </div>
             <div
               style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}

@@ -19,10 +19,7 @@
    ================================================================== */
 
 import * as XLSX from "xlsx";
-import type {
-  TrialBalance,
-  TrialBalanceLine,
-} from "../types/auditOutcomes";
+import type { TrialBalance, TrialBalanceLine } from "../types/auditOutcomes";
 
 const uid = () =>
   `tbl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -40,17 +37,13 @@ const toNumber = (v: unknown): number => {
   const raw = String(v).trim();
   if (!raw) return 0;
   const isNeg = /^\(.*\)$/.test(raw);
-  const cleaned = raw
-    .replace(/[()₦N$,\s]/g, "")
-    .replace(/[^0-9.\-]/g, "");
+  const cleaned = raw.replace(/[()₦N$,\s]/g, "").replace(/[^0-9.-]/g, "");
   const n = Number(cleaned);
   if (!Number.isFinite(n)) return 0;
   return isNeg ? -Math.abs(n) : n;
 };
 
-const classifyFromNcoa = (
-  code: string,
-): TrialBalanceLine["classification"] => {
+const classifyFromNcoa = (code: string): TrialBalanceLine["classification"] => {
   if (!code) return "Unclassified";
   const c = code.replace(/\D/g, "");
   if (!c) return "Unclassified";
@@ -64,9 +57,7 @@ const classifyFromNcoa = (
   return "Unclassified";
 };
 
-const classifyFromName = (
-  name: string,
-): TrialBalanceLine["classification"] => {
+const classifyFromName = (name: string): TrialBalanceLine["classification"] => {
   const n = name.toLowerCase();
   if (/revenue|income|receipt|allocation|vat|fee|fine|levy|earning/.test(n))
     return "Revenue";
@@ -151,8 +142,7 @@ export interface ParseResult {
 export async function parseTrialBalanceFile(
   file: File | ArrayBuffer,
 ): Promise<ParseResult> {
-  const buffer =
-    file instanceof ArrayBuffer ? file : await file.arrayBuffer();
+  const buffer = file instanceof ArrayBuffer ? file : await file.arrayBuffer();
   const wb = XLSX.read(buffer, { type: "array" });
   const sheetName = wb.SheetNames[0];
   if (!sheetName) throw new Error("Workbook contains no sheets");
@@ -223,7 +213,8 @@ export async function parseTrialBalanceFile(
       else if (raw.startsWith("ass")) classification = "Asset";
       else if (raw.startsWith("lia")) classification = "Liability";
       else if (raw.startsWith("equ")) classification = "Equity";
-      else classification = code ? classifyFromNcoa(code) : classifyFromName(name);
+      else
+        classification = code ? classifyFromNcoa(code) : classifyFromName(name);
     } else {
       classification = code ? classifyFromNcoa(code) : classifyFromName(name);
     }
@@ -240,9 +231,11 @@ export async function parseTrialBalanceFile(
     });
 
     if (classification === "Revenue") totalRevenue += Math.abs(current);
-    else if (classification === "Expense") totalExpenditure += Math.abs(current);
+    else if (classification === "Expense")
+      totalExpenditure += Math.abs(current);
     else if (classification === "Asset") totalAssets += Math.abs(current);
-    else if (classification === "Liability") totalLiabilities += Math.abs(current);
+    else if (classification === "Liability")
+      totalLiabilities += Math.abs(current);
   }
 
   const profitBeforeTax = totalRevenue - totalExpenditure;

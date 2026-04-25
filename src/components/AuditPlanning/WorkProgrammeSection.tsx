@@ -1,8 +1,13 @@
-﻿import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import StatusBadge from "../UI/StatusBadge";
-import type { ProgrammeProcedure } from "../../types";
+import type {
+  ProgrammeProcedure,
+  ExceptionSeverity,
+  ExceptionClassification,
+} from "../../types";
 import { getSuggestedProcedures } from "../../utils/auditLogic";
 import {
   BookOpen,
@@ -19,7 +24,6 @@ import {
   BarChart3,
   Calculator,
   ClipboardList,
-  FileCheck,
   MessageSquare,
   DollarSign,
   PenTool,
@@ -31,134 +35,29 @@ import {
   Pencil,
   Trash2,
   X,
+  ArrowRight,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
+import {
+  procStatusVariant,
+  fmtCurrency,
+  sevColor,
+  statusColor,
+  InlineBadge,
+  TABS,
+  type TabKey,
+} from "./workProgrammeHelpers";
 
-/* ─── Helpers ─── */
-const procStatusVariant = (status: string) => {
-  switch (status) {
-    case "Completed":
-      return "success" as const;
-    case "In Progress":
-      return "info" as const;
-    default:
-      return "default" as const;
-  }
-};
-
-const progStatusVariant = (status: string) => {
-  switch (status) {
-    case "Approved":
-      return "success" as const;
-    case "Submitted":
-    case "Under Review":
-      return "info" as const;
-    case "Revision Required":
-      return "error" as const;
-    default:
-      return "default" as const;
-  }
-};
-
-const fmtCurrency = (n: number) =>
-  "₦" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
-
-const sevColor: Record<string, { bg: string; color: string }> = {
-  Low: { bg: "#d1fae5", color: "#065f46" },
-  Medium: { bg: "#fef3c7", color: "#92400e" },
-  High: { bg: "#fee2e2", color: "#991b1b" },
-  Critical: { bg: "#fce7f3", color: "#9d174d" },
-};
-
-const statusColor: Record<string, { bg: string; color: string }> = {
-  Draft: { bg: "#f3f4f6", color: "#6b7280" },
-  Proposed: { bg: "#d1fae5", color: "#065f46" },
-  Agreed: { bg: "#d1fae5", color: "#065f46" },
-  Posted: { bg: "#d1fae5", color: "#065f46" },
-  Waived: { bg: "#f3f4f6", color: "#9ca3af" },
-  Discussed: { bg: "#fef3c7", color: "#92400e" },
-  Resolved: { bg: "#d1fae5", color: "#065f46" },
-  Reported: { bg: "#d1fae5", color: "#065f46" },
-  "Not Received": { bg: "#fee2e2", color: "#991b1b" },
-  Received: { bg: "#fef3c7", color: "#92400e" },
-  "Under Review": { bg: "#ecfdf5", color: "#059669" },
-  Adjusted: { bg: "#fce7f3", color: "#9d174d" },
-  Final: { bg: "#d1fae5", color: "#065f46" },
-  Prepared: { bg: "#ecfdf5", color: "#059669" },
-  Reviewed: { bg: "#fef3c7", color: "#92400e" },
-};
-
-const InlineBadge: React.FC<{
-  label: string;
-  bg: string;
-  color: string;
-}> = ({ label, bg, color }) => (
-  <span
-    style={{
-      fontSize: "0.7rem",
-      fontWeight: 700,
-      padding: "0.15rem 0.5rem",
-      borderRadius: "3px",
-      background: bg,
-      color,
-      textTransform: "uppercase",
-      letterSpacing: "0.04em",
-      whiteSpace: "nowrap",
-    }}
-  >
-    {label}
-  </span>
-);
-
-/* ─── Tab Definitions ─── */
-type TabKey =
-  | "overview"
-  | "materiality"
-  | "procedures"
-  | "workpapers"
-  | "journals"
-  | "comments"
-  | "statements"
-  | "report"
-  | "completion";
-
-const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: "overview", label: "Overview", icon: <BarChart3 size={14} /> },
-  { key: "materiality", label: "Materiality", icon: <Calculator size={14} /> },
-  {
-    key: "procedures",
-    label: "Procedures",
-    icon: <ClipboardList size={14} />,
-  },
-  { key: "workpapers", label: "Workpapers", icon: <FolderOpen size={14} /> },
-  { key: "journals", label: "Journals", icon: <PenTool size={14} /> },
-  {
-    key: "comments",
-    label: "Audit Comments",
-    icon: <MessageSquare size={14} />,
-  },
-  {
-    key: "statements",
-    label: "Financial Statements",
-    icon: <DollarSign size={14} />,
-  },
-  { key: "report", label: "Audit Report", icon: <FileText size={14} /> },
-  {
-    key: "completion",
-    label: "Completion",
-    icon: <FileCheck size={14} />,
-  },
-];
-
-/* ─── Component ─── */
 interface WorkProgrammeSectionProps {
   auditId?: string;
   embedded?: boolean;
+  onOpenProcedure?: (executionId: string) => void;
 }
 
 const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   auditId,
   embedded = false,
+  onOpenProcedure,
 }) => {
   const { user } = useAuth();
   const audits = useAuditStore((st) => st.audits);
@@ -175,9 +74,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const requestProgrammeRevision = useAuditStore(
     (st) => st.requestProgrammeRevision,
   );
-  const updateProgrammeProcedure = useAuditStore(
-    (st) => st.updateProgrammeProcedure,
-  );
   const updateAuditStatus = useAuditStore((st) => st.updateAuditStatus);
   const addToast = useAuditStore((st) => st.addToast);
 
@@ -190,7 +86,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const toggleCompletionItem = useAuditStore((st) => st.toggleCompletionItem);
   const reports = useAuditStore((st) => st.reports);
   /* interactive tab store hooks */
-  const materiality = useAuditStore((st) => st.materiality);
   const setAuditMateriality = useAuditStore((st) => st.setAuditMateriality);
   const addAuditJournal = useAuditStore((st) => st.addAuditJournal);
   const addAuditComment = useAuditStore((st) => st.addAuditComment);
@@ -198,12 +93,41 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     (st) => st.updateFinancialStatement,
   );
 
-  /* ─── ESLint-safe audit selection: derive from prop, local state as fallback ─── */
+  const allProcedureExecutions = useAuditStore((st) => st.procedureExecutions);
+  const allFieldworkExceptions = useAuditStore((st) => st.fieldworkExceptions);
+  const users = useAuditStore((st) => st.users);
+  const classifyException = useAuditStore((st) => st.classifyException);
+  const escalateExceptionToHlg = useAuditStore(
+    (st) => st.escalateExceptionToHlg,
+  );
+
   const [localAuditId, setLocalAuditId] = useState<string>(
     auditId || audits[0]?.id || "",
   );
   const selectedAuditId = auditId ?? localAuditId;
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [localTab, setLocalTab] = useState<TabKey>("overview");
+  const activeTab: TabKey = embedded
+    ? localTab
+    : (searchParams.get("tab") as TabKey) || "overview";
+  const setActiveTab = useCallback(
+    (key: TabKey) => {
+      if (embedded) {
+        setLocalTab(key);
+      } else {
+        setSearchParams(
+          (prev) => {
+            prev.set("tab", key);
+            return prev;
+          },
+          { replace: true },
+        );
+      }
+    },
+    [embedded, setSearchParams],
+  );
+
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAddProc, setShowAddProc] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -218,23 +142,17 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     assignedTo: "",
   });
 
-  /* ─── Materiality form state ─── */
-  const savedMateriality = useMemo(
-    () => materiality.find((m) => m.auditId === selectedAuditId),
-    [materiality, selectedAuditId],
-  );
   const [matForm, setMatForm] = useState({
     basisLabel: "Total Expenditure",
     basisAmount: "",
-    percentage: "2",
+    percentage: "5",
   });
   const matOverall =
     parseFloat(matForm.basisAmount.replace(/,/g, "")) *
       (parseFloat(matForm.percentage) / 100) || 0;
-  const matPerformance = matOverall * 0.75;
-  const matTrivial = matOverall * 0.05;
+  const matPerformance = matOverall * 0.7;
+  const matTrivial = matPerformance * 0.05;
 
-  /* ─── Journal form state ─── */
   const [showAddJournal, setShowAddJournal] = useState(false);
   const [journalForm, setJournalForm] = useState({
     type: "Adjusting" as "Adjusting" | "Reclassifying" | "Proposed" | "Passed",
@@ -247,7 +165,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     { account: "", debit: "", credit: "" },
   ]);
 
-  /* ─── Comment form state ─── */
   const [showAddComment, setShowAddComment] = useState(false);
   const [commentForm, setCommentForm] = useState({
     title: "",
@@ -261,7 +178,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     targetDate: "",
   });
 
-  /* ─── Statement inline-edit state ─── */
   const [editingStmtId, setEditingStmtId] = useState<string | null>(null);
   const [stmtEditForm, setStmtEditForm] = useState({
     status: "Not Received" as
@@ -274,8 +190,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     reviewedBy: "",
   });
 
-  /* ─── Modal visibility ─── */
   const [showMatModal, setShowMatModal] = useState(false);
+
+  const [excFilter, setExcFilter] = useState<"all" | ExceptionSeverity>("all");
+  const [classifyId, setClassifyId] = useState<string | null>(null);
 
   const currentProgramme = useMemo(
     () => programmes.find((p) => p.auditId === selectedAuditId),
@@ -341,7 +259,52 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     };
   }, [currentProgramme]);
 
-  /* ─── Handlers ─── */
+  const procedureExecutions = useMemo(
+    () => allProcedureExecutions.filter((e) => e.auditId === selectedAuditId),
+    [allProcedureExecutions, selectedAuditId],
+  );
+  const fieldworkExceptions = useMemo(
+    () => allFieldworkExceptions.filter((e) => e.auditId === selectedAuditId),
+    [allFieldworkExceptions, selectedAuditId],
+  );
+  const filteredExceptions = useMemo(
+    () =>
+      excFilter === "all"
+        ? fieldworkExceptions
+        : fieldworkExceptions.filter((e) => e.severity === excFilter),
+    [fieldworkExceptions, excFilter],
+  );
+  const excStats = useMemo(
+    () => ({
+      critical: fieldworkExceptions.filter((e) => e.severity === "Critical")
+        .length,
+      high: fieldworkExceptions.filter((e) => e.severity === "High").length,
+      medium: fieldworkExceptions.filter((e) => e.severity === "Medium").length,
+      low: fieldworkExceptions.filter((e) => e.severity === "Low").length,
+      total: fieldworkExceptions.length,
+      totalImpact: fieldworkExceptions.reduce(
+        (s, e) => s + e.financialImpact,
+        0,
+      ),
+    }),
+    [fieldworkExceptions],
+  );
+
+  const getUserName = (id: string) =>
+    users.find((u) => u.id === id)?.name || id;
+
+  const severityVariant = (sv: ExceptionSeverity) => {
+    switch (sv) {
+      case "Low":
+        return "success" as const;
+      case "Medium":
+        return "warning" as const;
+      case "High":
+      case "Critical":
+        return "error" as const;
+    }
+  };
+
   const handleCreate = () => {
     if (!selectedAuditId) {
       addToast({
@@ -421,15 +384,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Procedure Added" });
   };
 
-  const handleUpdateProcStatus = (
-    procId: string,
-    status: ProgrammeProcedure["status"],
-  ) => {
-    if (!currentProgramme) return;
-    updateProgrammeProcedure(currentProgramme.id, procId, { status });
-  };
-
-  /* ─── Materiality handler ─── */
   const handleSaveMateriality = () => {
     const amount = parseFloat(matForm.basisAmount.replace(/,/g, ""));
     if (!amount || amount <= 0) {
@@ -454,7 +408,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     setShowMatModal(false);
   };
 
-  /* ─── Journal handler ─── */
   const handleAddJournal = () => {
     const validEntries = journalEntries.filter(
       (e) => e.account && (parseFloat(e.debit) > 0 || parseFloat(e.credit) > 0),
@@ -513,7 +466,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Journal Entry Recorded" });
   };
 
-  /* ─── Audit comment handler ─── */
   const handleAddComment = () => {
     if (
       !commentForm.title ||
@@ -560,7 +512,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Audit Comment Recorded" });
   };
 
-  /* ─── Overview KPIs ─── */
   const overviewStats = useMemo(() => {
     const journalTotal = filteredJournals.reduce(
       (sum, j) => sum + j.netEffect,
@@ -600,7 +551,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     filteredWorkpapers,
   ]);
 
-  /* ─── RENDER ─── */
   return (
     <div>
       {/* Header */}
@@ -609,7 +559,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
           <div>
             <h1 className={s.pageTitle}>Audit Work Programme</h1>
             <p className={s.pageSubtitle}>
-              Comprehensive Big Four-standard engagement file ISA, ISSAI &amp;
+              Comprehensive ISA/ISSAI-standard engagement file ISA, ISSAI &amp;
               IPSAS aligned
             </p>
           </div>
@@ -698,11 +648,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
       {/* Tab Bar */}
       {currentProgramme && (
         <div
+          className={s.noScrollbar}
           style={{
             display: "flex",
             gap: "0.25rem",
             marginBottom: "1.5rem",
             overflowX: "auto",
+            overflowY: "hidden",
             borderBottom: "2px solid var(--border)",
             paddingBottom: "0",
           }}
@@ -918,104 +870,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
       {/* ─── TAB: OVERVIEW ─── */}
       {currentProgramme && activeTab === "overview" && (
         <>
-          {/* KPI Row */}
-          <div className={s.kpiRow}>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconBlue}>
-                <BookOpen size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Programme Status</div>
-                <div className={s.kpiValue} style={{ fontSize: "1rem" }}>
-                  <StatusBadge
-                    label={currentProgramme.status}
-                    variant={progStatusVariant(currentProgramme.status)}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconGreen}>
-                <CheckCircle2 size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Procedures</div>
-                <div className={s.kpiValue}>
-                  {procedureStats.completed}/{procedureStats.total}
-                </div>
-              </div>
-            </div>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconAmber}>
-                <PenTool size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Audit Journals</div>
-                <div className={s.kpiValue}>
-                  {overviewStats.journalAgreed}/{overviewStats.journalCount}
-                </div>
-              </div>
-            </div>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconPurple}>
-                <MessageSquare size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Comments (High/Critical)</div>
-                <div className={s.kpiValue}>
-                  {overviewStats.commentsHigh}/{overviewStats.commentsCount}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={s.kpiRow}>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconBlue}>
-                <DollarSign size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Statements Finalised</div>
-                <div className={s.kpiValue}>
-                  {overviewStats.stmtsFinal}/{overviewStats.stmtsTotal}
-                </div>
-              </div>
-            </div>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconGreen}>
-                <FolderOpen size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Workpapers Reviewed</div>
-                <div className={s.kpiValue}>
-                  {overviewStats.wpReviewed}/{overviewStats.wpTotal}
-                </div>
-              </div>
-            </div>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconAmber}>
-                <FileCheck size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Completion Checklist</div>
-                <div className={s.kpiValue}>
-                  {overviewStats.checkDone}/{overviewStats.checkTotal}
-                </div>
-              </div>
-            </div>
-            <div className={s.kpiCard}>
-              <div className={s.kpiIconPurple}>
-                <TrendingUp size={20} />
-              </div>
-              <div>
-                <div className={s.kpiLabel}>Net Adjustments</div>
-                <div className={s.kpiValue} style={{ fontSize: "0.95rem" }}>
-                  {fmtCurrency(overviewStats.journalTotal)}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* ─── Audit Lead Workflow Guide ─── */}
           {isLead && (
             <div
@@ -1077,14 +931,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 {[
                   {
                     step: "01",
-                    tab: "materiality",
-                    icon: "📊",
-                    title: "Set Materiality",
-                    desc: "Calculate ISA 320 thresholds before any fieldwork begins.",
-                    action: "Materiality tab",
-                  },
-                  {
-                    step: "02",
                     tab: "procedures",
                     icon: "📋",
                     title: "Review Procedures",
@@ -1092,7 +938,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     action: "Procedures tab",
                   },
                   {
-                    step: "03",
+                    step: "02",
                     tab: "journals",
                     icon: "📒",
                     title: "Record Journals",
@@ -1100,7 +946,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     action: "Journals tab",
                   },
                   {
-                    step: "04",
+                    step: "03",
                     tab: "comments",
                     icon: "💬",
                     title: "Record Findings",
@@ -1108,7 +954,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     action: "Comments tab",
                   },
                   {
-                    step: "05",
+                    step: "04",
                     tab: "statements",
                     icon: "📑",
                     title: "Update Statements",
@@ -1116,7 +962,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     action: "Statements tab",
                   },
                   {
-                    step: "06",
+                    step: "05",
                     tab: "completion",
                     icon: "✅",
                     title: "Sign Off",
@@ -1507,302 +1353,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               ))}
             </div>
           </div>
-        </>
-      )}
-
-      {/* ─── TAB: MATERIALITY ─── */}
-      {currentProgramme && activeTab === "materiality" && (
-        <>
-          {/* ISA 320 Context + action */}
-          <div
-            className={s.card}
-            style={{ marginBottom: "1rem", borderLeft: "4px solid #2563eb" }}
-          >
-            <div className={s.cardBody}>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1.25rem",
-                  alignItems: "flex-start",
-                }}
-              >
-                <div
-                  style={{
-                    paddingTop: "0.2rem",
-                    color: "#2563eb",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Calculator size={30} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      fontSize: "0.95rem",
-                      marginBottom: "0.35rem",
-                    }}
-                  >
-                    Step 1 of Audit Planning — Set Materiality Thresholds
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.82rem",
-                      color: "var(--text-2)",
-                      lineHeight: 1.65,
-                      marginBottom: "0.75rem",
-                    }}
-                  >
-                    Materiality determines{" "}
-                    <strong>
-                      what size of error or omission would influence the
-                      decisions of users
-                    </strong>{" "}
-                    of the financial statements. As Audit Lead you must set this
-                    before fieldwork begins — it guides which items require
-                    detailed testing and which can safely be ignored.
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "0.5rem",
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                    }}
-                  >
-                    {[
-                      {
-                        label: "Overall Materiality",
-                        hint: "Items above this threshold are material — must test",
-                      },
-                      {
-                        label: "Performance Materiality",
-                        hint: "75% of overall — tolerable misstatement limit",
-                      },
-                      {
-                        label: "Clearly Trivial",
-                        hint: "5% of overall — items below this can be ignored",
-                      },
-                    ].map((pill) => (
-                      <span
-                        key={pill.label}
-                        title={pill.hint}
-                        style={{
-                          cursor: "help",
-                          background: "#ecfdf5",
-                          border: "1px solid #a7f3d0",
-                          borderRadius: "4px",
-                          padding: "0.2rem 0.65rem",
-                          fontSize: "0.72rem",
-                          fontWeight: 600,
-                          color: "#065f46",
-                        }}
-                      >
-                        {pill.label}
-                      </span>
-                    ))}
-                    <span
-                      style={{ fontSize: "0.68rem", color: "var(--text-3)" }}
-                    >
-                      ref: ISA 320
-                    </span>
-                  </div>
-                </div>
-                {isLead && (
-                  <button
-                    className={s.btnPrimary}
-                    onClick={() => setShowMatModal(true)}
-                    style={{
-                      whiteSpace: "nowrap",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <Calculator size={14} />
-                    {savedMateriality ? "Edit Materiality" : "Set Materiality"}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {savedMateriality ? (
-            <div className={s.card}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>
-                  <CheckCircle2
-                    size={16}
-                    style={{ marginRight: "0.5rem", color: "#16a34a" }}
-                  />
-                  Materiality Thresholds — Active
-                </h3>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    alignItems: "center",
-                  }}
-                >
-                  <InlineBadge label="Saved" bg="#d1fae5" color="#065f46" />
-                  {isLead && (
-                    <button
-                      className={s.btnOutline}
-                      style={{
-                        fontSize: "0.75rem",
-                        padding: "0.3rem 0.85rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.35rem",
-                      }}
-                      onClick={() => setShowMatModal(true)}
-                    >
-                      <Pencil size={12} /> Edit
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className={s.cardBody}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: "1.25rem",
-                    marginBottom: "1.25rem",
-                  }}
-                >
-                  {[
-                    {
-                      label: "Overall Materiality",
-                      value: fmtCurrency(savedMateriality.overallMateriality),
-                      sub: `${savedMateriality.percentage}% of ${savedMateriality.basis}`,
-                      accent: "#064e3b",
-                      bg: "#ecfdf5",
-                      border: "#a7f3d0",
-                      desc: "Items above this threshold are material and must be investigated",
-                    },
-                    {
-                      label: "Performance Materiality",
-                      value: fmtCurrency(
-                        savedMateriality.performanceMateriality,
-                      ),
-                      sub: "75% of overall",
-                      accent: "#7c3aed",
-                      bg: "#f5f3ff",
-                      border: "#c4b5fd",
-                      desc: "Tolerable misstatement — testing aims to detect errors above this",
-                    },
-                    {
-                      label: "Clearly Trivial",
-                      value: fmtCurrency(
-                        savedMateriality.clearlyTrivialThreshold,
-                      ),
-                      sub: "5% of overall",
-                      accent: "#059669",
-                      bg: "#ecfdf5",
-                      border: "#a7f3d0",
-                      desc: "Items below this threshold can be passed without adjustment",
-                    },
-                  ].map((t) => (
-                    <div
-                      key={t.label}
-                      style={{
-                        padding: "1.25rem",
-                        background: t.bg,
-                        borderRadius: "10px",
-                        border: `1px solid ${t.border}`,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "0.68rem",
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.06em",
-                          color: t.accent,
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        {t.label}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "1.35rem",
-                          fontWeight: 800,
-                          fontFamily: "monospace",
-                          color: t.accent,
-                          marginBottom: "0.3rem",
-                        }}
-                      >
-                        {t.value}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.72rem",
-                          fontWeight: 600,
-                          color: t.accent,
-                          opacity: 0.8,
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        {t.sub}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "0.7rem",
-                          color: "var(--text-2)",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {t.desc}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  style={{
-                    padding: "0.85rem 1.1rem",
-                    background: "var(--surface-2)",
-                    borderRadius: "8px",
-                    display: "flex",
-                    gap: "2rem",
-                    flexWrap: "wrap",
-                    fontSize: "0.75rem",
-                    color: "var(--text-2)",
-                  }}
-                >
-                  <span>
-                    Basis: <strong>{savedMateriality.basis}</strong>
-                  </span>
-                  <span>
-                    Amount:{" "}
-                    <strong>{fmtCurrency(savedMateriality.basisAmount)}</strong>
-                  </span>
-                  <span>
-                    %: <strong>{savedMateriality.percentage}%</strong>
-                  </span>
-                  <span>
-                    Set by: <strong>{savedMateriality.preparedBy}</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={s.card}>
-              <div className={s.cardBody}>
-                <div className={s.emptyState}>
-                  <Calculator size={44} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>Materiality Not Yet Set</div>
-                  <div className={s.emptyDesc}>
-                    Materiality thresholds have not been calculated for this
-                    audit.
-                    {isLead && ' Click "Set Materiality" above to get started.'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
 
@@ -2278,9 +1828,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                     <thead>
                                       <tr>
                                         <th style={{ width: 36 }}>#</th>
-                                        <th>Procedure</th>
+                                        <th style={{ width: 120 }}>
+                                          Test Type
+                                        </th>
+                                        <th>Audit Procedure</th>
                                         <th>Assertion</th>
-                                        <th>Sample</th>
+                                        <th>Auditor Response & Conclusion</th>
                                         <th>Assigned</th>
                                         <th>Status</th>
                                         <th>W/P Ref</th>
@@ -2288,122 +1841,156 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {procs.map((proc, idx) => (
-                                        <tr key={proc.id}>
-                                          <td
-                                            style={{
-                                              fontWeight: 600,
-                                              color: "var(--text-3)",
-                                              fontSize: "0.78rem",
-                                            }}
-                                          >
-                                            {String(idx + 1).padStart(2, "0")}
-                                          </td>
-                                          <td
-                                            style={{
-                                              maxWidth: "320px",
-                                              lineHeight: 1.55,
-                                            }}
-                                          >
-                                            {proc.procedure}
-                                            {proc.expectedEvidence && (
-                                              <div
-                                                style={{
-                                                  fontSize: "0.7rem",
-                                                  color: "#64748b",
-                                                  marginTop: "0.2rem",
-                                                }}
-                                              >
-                                                <em>
-                                                  Evidence:{" "}
-                                                  {proc.expectedEvidence}
-                                                </em>
-                                              </div>
-                                            )}
-                                          </td>
-                                          <td>
-                                            {proc.assertion ? (
-                                              <span
-                                                style={{
-                                                  fontSize: "0.68rem",
-                                                  fontWeight: 600,
-                                                  padding: "0.1rem 0.35rem",
-                                                  borderRadius: "3px",
-                                                  background: "#f0fdf4",
-                                                  color: "#166534",
-                                                  border: "1px solid #bbf7d0",
-                                                  whiteSpace: "nowrap",
-                                                }}
-                                              >
-                                                {proc.assertion}
-                                              </span>
-                                            ) : (
-                                              "-"
-                                            )}
-                                          </td>
-                                          <td style={{ fontSize: "0.78rem" }}>
-                                            {proc.sampleSize || "-"}
-                                          </td>
-                                          <td style={{ fontSize: "0.78rem" }}>
-                                            {proc.assignedTo || "-"}
-                                          </td>
-                                          <td>
-                                            <StatusBadge
-                                              label={proc.status}
-                                              variant={procStatusVariant(
-                                                proc.status,
-                                              )}
-                                            />
-                                          </td>
-                                          <td
-                                            style={{
-                                              fontSize: "0.75rem",
-                                              fontFamily: "monospace",
-                                              color: proc.workpaperRef
-                                                ? "#5b21b6"
-                                                : "var(--text-3)",
-                                              fontWeight: proc.workpaperRef
-                                                ? 600
-                                                : 400,
-                                            }}
-                                          >
-                                            {proc.workpaperRef || "-"}
-                                          </td>
-                                          <td>
-                                            <div className={s.tableActions}>
-                                              {proc.status ===
-                                                "Not Started" && (
-                                                <button
-                                                  className={`${s.btnPrimary} ${s.btnSmall}`}
-                                                  onClick={() =>
-                                                    handleUpdateProcStatus(
-                                                      proc.id,
-                                                      "In Progress",
-                                                    )
-                                                  }
+                                      {procs.map((proc, idx) => {
+                                        const execRecord =
+                                          procedureExecutions.find(
+                                            (e) => e.procedureId === proc.id,
+                                          );
+                                        return (
+                                          <tr key={proc.id}>
+                                            <td
+                                              style={{
+                                                fontWeight: 600,
+                                                color: "var(--text-3)",
+                                                fontSize: "0.78rem",
+                                              }}
+                                            >
+                                              {String(idx + 1).padStart(2, "0")}
+                                            </td>
+                                            <td
+                                              style={{
+                                                maxWidth: "320px",
+                                                lineHeight: 1.55,
+                                              }}
+                                            >
+                                              {proc.procedure}
+                                              {proc.expectedEvidence && (
+                                                <div
+                                                  style={{
+                                                    fontSize: "0.7rem",
+                                                    color: "#64748b",
+                                                    marginTop: "0.2rem",
+                                                  }}
                                                 >
-                                                  <Play size={12} /> Start
-                                                </button>
+                                                  <em>
+                                                    Evidence:{" "}
+                                                    {proc.expectedEvidence}
+                                                  </em>
+                                                </div>
                                               )}
-                                              {proc.status ===
-                                                "In Progress" && (
-                                                <button
-                                                  className={`${s.btnPrimary} ${s.btnSmall}`}
-                                                  onClick={() =>
-                                                    handleUpdateProcStatus(
-                                                      proc.id,
-                                                      "Completed",
-                                                    )
-                                                  }
+                                            </td>
+                                            <td>
+                                              {proc.assertion ? (
+                                                <span
+                                                  style={{
+                                                    fontSize: "0.68rem",
+                                                    fontWeight: 600,
+                                                    padding: "0.1rem 0.35rem",
+                                                    borderRadius: "3px",
+                                                    background: "#f0fdf4",
+                                                    color: "#166534",
+                                                    border: "1px solid #bbf7d0",
+                                                    whiteSpace: "nowrap",
+                                                  }}
                                                 >
-                                                  <CheckCircle2 size={12} />{" "}
-                                                  Complete
-                                                </button>
+                                                  {proc.assertion}
+                                                </span>
+                                              ) : (
+                                                "-"
                                               )}
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      ))}
+                                            </td>
+                                            <td
+                                              style={{
+                                                fontSize: "0.78rem",
+                                                maxWidth: "250px",
+                                              }}
+                                            >
+                                              {execRecord?.workPerformed ? (
+                                                <div>
+                                                  <span
+                                                    style={{
+                                                      fontWeight: 600,
+                                                      color: "#475569",
+                                                    }}
+                                                  >
+                                                    Obs:
+                                                  </span>{" "}
+                                                  <span
+                                                    style={{ color: "#1e293b" }}
+                                                  >
+                                                    {execRecord.workPerformed}
+                                                  </span>
+                                                </div>
+                                              ) : (
+                                                "-"
+                                              )}
+                                              {execRecord?.conclusion && (
+                                                <div style={{ marginTop: 4 }}>
+                                                  <span
+                                                    style={{
+                                                      fontWeight: 600,
+                                                      color: "#475569",
+                                                    }}
+                                                  >
+                                                    Conclusion:
+                                                  </span>{" "}
+                                                  <span
+                                                    style={{ color: "#1e293b" }}
+                                                  >
+                                                    {execRecord.conclusion}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </td>
+                                            <td style={{ fontSize: "0.78rem" }}>
+                                              {proc.assignedTo || "-"}
+                                            </td>
+                                            <td>
+                                              <StatusBadge
+                                                label={proc.status}
+                                                variant={procStatusVariant(
+                                                  proc.status,
+                                                )}
+                                              />
+                                            </td>
+                                            <td
+                                              style={{
+                                                fontSize: "0.75rem",
+                                                fontFamily: "monospace",
+                                                color: proc.workpaperRef
+                                                  ? "#5b21b6"
+                                                  : "var(--text-3)",
+                                                fontWeight: proc.workpaperRef
+                                                  ? 600
+                                                  : 400,
+                                              }}
+                                            >
+                                              {proc.workpaperRef || "-"}
+                                            </td>
+                                            <td>
+                                              {(() => {
+                                                const exec =
+                                                  procedureExecutions.find(
+                                                    (e) =>
+                                                      e.procedureId === proc.id,
+                                                  );
+                                                if (!exec) return null;
+                                                return (
+                                                  <button
+                                                    className={s.btnIcon}
+                                                    onClick={() =>
+                                                      onOpenProcedure?.(exec.id)
+                                                    }
+                                                    title="Open Procedure Workspace"
+                                                  >
+                                                    <ArrowRight size={13} />
+                                                  </button>
+                                                );
+                                              })()}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
                                     </tbody>
                                   </table>
                                 </div>
@@ -2687,6 +2274,497 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             })()
           )}
         </>
+      )}
+
+      {/* ─── TAB: EVIDENCE LIBRARY ─── */}
+      {currentProgramme && activeTab === "evidence" && (
+        <div>
+          <div
+            className={s.card}
+            style={{ borderLeft: "4px solid #7c3aed", marginBottom: "0.75rem" }}
+          >
+            <div className={s.cardBody}>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "#64748b",
+                }}
+              >
+                Evidence Library
+              </div>
+              <div
+                style={{
+                  fontSize: "0.82rem",
+                  color: "#334155",
+                  marginTop: "0.15rem",
+                }}
+              >
+                <strong>
+                  {procedureExecutions.reduce(
+                    (s, e) => s + e.evidence.length,
+                    0,
+                  )}
+                </strong>{" "}
+                evidence files across{" "}
+                {
+                  new Set(
+                    procedureExecutions
+                      .filter((e) => e.evidence.length > 0)
+                      .map((e) => e.auditArea),
+                  ).size
+                }{" "}
+                audit areas
+              </div>
+            </div>
+          </div>
+
+          {procedureExecutions.filter((e) => e.evidence.length > 0).length ===
+            0 && (
+            <div className={s.card}>
+              <div className={s.cardBody}>
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "2rem 0",
+                    color: "#94a3b8",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  <FolderOpen
+                    size={32}
+                    style={{ margin: "0 auto 0.75rem", opacity: 0.5 }}
+                  />
+                  <div>
+                    No evidence files uploaded yet. Open a procedure to attach
+                    evidence.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(() => {
+            const evidenceByArea: Record<
+              string,
+              {
+                code: string;
+                fileName: string;
+                fileType: string;
+                fileSize: string;
+                uploadedAt: string;
+                uploadedBy: string;
+                procedureRef: string;
+              }[]
+            > = {};
+            procedureExecutions.forEach((ex) => {
+              ex.evidence.forEach((ev) => {
+                (evidenceByArea[ex.auditArea] ||= []).push({
+                  code: ev.code,
+                  fileName: ev.fileName,
+                  fileType: ev.fileType,
+                  fileSize: ev.fileSize,
+                  uploadedAt: ev.uploadedAt,
+                  uploadedBy: ev.uploadedBy,
+                  procedureRef: ex.procedureRef,
+                });
+              });
+            });
+            return Object.entries(evidenceByArea).map(([area, files]) => (
+              <div
+                key={area}
+                className={s.card}
+                style={{ marginBottom: "0.75rem" }}
+              >
+                <div className={s.cardHeader}>
+                  <h3 className={s.cardTitle}>
+                    EV-
+                    {area
+                      .replace(/[^A-Z]/gi, "")
+                      .slice(0, 4)
+                      .toUpperCase()}{" "}
+                    — {area}
+                  </h3>
+                </div>
+                <div className={s.cardBody}>
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th>Code</th>
+                          <th>File Name</th>
+                          <th>Type</th>
+                          <th>Procedure</th>
+                          <th>Uploaded</th>
+                          <th>By</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {files.map((f) => (
+                          <tr key={f.code}>
+                            <td
+                              style={{
+                                fontFamily: "monospace",
+                                fontSize: "0.78rem",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {f.code}
+                            </td>
+                            <td style={{ fontSize: "0.82rem" }}>
+                              {f.fileName}
+                            </td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              {f.fileType}
+                            </td>
+                            <td
+                              style={{
+                                fontFamily: "monospace",
+                                fontSize: "0.78rem",
+                              }}
+                            >
+                              {f.procedureRef}
+                            </td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              {new Date(f.uploadedAt).toLocaleDateString(
+                                "en-GB",
+                              )}
+                            </td>
+                            <td style={{ fontSize: "0.78rem" }}>
+                              {f.uploadedBy}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+      )}
+
+      {/* ─── TAB: EXCEPTIONS REGISTER ─── */}
+      {currentProgramme && activeTab === "exceptions" && (
+        <div>
+          <div
+            className={s.card}
+            style={{ borderLeft: "4px solid #dc2626", marginBottom: "0.75rem" }}
+          >
+            <div className={s.cardBody}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      color: "#64748b",
+                    }}
+                  >
+                    Open Exceptions Summary
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "#334155",
+                      marginTop: "0.15rem",
+                    }}
+                  >
+                    Critical:{" "}
+                    <strong style={{ color: "#dc2626" }}>
+                      {excStats.critical}
+                    </strong>{" "}
+                    · High:{" "}
+                    <strong style={{ color: "#ea580c" }}>
+                      {excStats.high}
+                    </strong>{" "}
+                    · Medium:{" "}
+                    <strong style={{ color: "#ca8a04" }}>
+                      {excStats.medium}
+                    </strong>{" "}
+                    · Low: <strong>{excStats.low}</strong>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      marginTop: "0.15rem",
+                    }}
+                  >
+                    Total Exposure:{" "}
+                    <strong>₦{(excStats.totalImpact / 1e6).toFixed(1)}M</strong>{" "}
+                    · Classified:{" "}
+                    <strong>
+                      {
+                        fieldworkExceptions.filter((e) => e.classification)
+                          .length
+                      }
+                      /{excStats.total}
+                    </strong>
+                  </div>
+                </div>
+                <div
+                  style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}
+                >
+                  {(["all", "Critical", "High", "Medium", "Low"] as const).map(
+                    (f) => (
+                      <button
+                        key={f}
+                        className={
+                          excFilter === f ? s.filterChipActive : s.filterChip
+                        }
+                        onClick={() => setExcFilter(f)}
+                      >
+                        {f === "all"
+                          ? `All (${excStats.total})`
+                          : `${f} (${excStats[f.toLowerCase() as keyof typeof excStats]})`}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {filteredExceptions.length === 0 && (
+            <div className={s.card}>
+              <div className={s.cardBody}>
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "2rem 0",
+                    color: "#94a3b8",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  No exceptions{" "}
+                  {excFilter !== "all"
+                    ? `with ${excFilter} severity`
+                    : "logged yet"}
+                  .
+                </div>
+              </div>
+            </div>
+          )}
+
+          {filteredExceptions.map((exc) => (
+            <div
+              key={exc.id}
+              className={s.card}
+              style={{
+                marginBottom: "0.75rem",
+                borderLeft: `4px solid ${
+                  exc.severity === "Critical"
+                    ? "#dc2626"
+                    : exc.severity === "High"
+                      ? "#ea580c"
+                      : exc.severity === "Medium"
+                        ? "#ca8a04"
+                        : "#22c55e"
+                }`,
+              }}
+            >
+              <div className={s.cardBody}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "1rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        marginBottom: "0.35rem",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          fontWeight: 700,
+                          fontSize: "0.82rem",
+                        }}
+                      >
+                        {exc.ref}
+                      </span>
+                      <StatusBadge
+                        label={exc.severity}
+                        variant={severityVariant(exc.severity)}
+                      />
+                      <StatusBadge
+                        label={exc.status}
+                        variant={
+                          exc.status === "Open"
+                            ? "warning"
+                            : exc.status === "Classified"
+                              ? "success"
+                              : exc.status === "Escalated"
+                                ? "error"
+                                : "info"
+                        }
+                      />
+                      {exc.potentialAuditQuery && (
+                        <StatusBadge label="Audit Query" variant="gold" />
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "#64748b",
+                        marginBottom: "0.35rem",
+                      }}
+                    >
+                      {exc.auditArea} · {exc.procedureRef} · Assertion:{" "}
+                      {exc.assertionAffected}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.82rem",
+                        color: "#334155",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {exc.finding}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "1.5rem",
+                        marginTop: "0.5rem",
+                        fontSize: "0.78rem",
+                        color: "#64748b",
+                      }}
+                    >
+                      <span>
+                        Financial Impact:{" "}
+                        <strong>₦{exc.financialImpact.toLocaleString()}</strong>
+                      </span>
+                      <span>Qualitative: {exc.qualitativeImpact}</span>
+                      <span>
+                        Raised:{" "}
+                        {new Date(exc.raisedAt).toLocaleDateString("en-GB")}
+                      </span>
+                      <span>By: {getUserName(exc.raisedBy)}</span>
+                    </div>
+                    {exc.classification && (
+                      <div
+                        style={{ fontSize: "0.78rem", marginTop: "0.35rem" }}
+                      >
+                        Classification:{" "}
+                        <StatusBadge
+                          label={exc.classification}
+                          variant={
+                            exc.classification === "Proceed to Audit Query"
+                              ? "error"
+                              : exc.classification === "Resolved — No Query"
+                                ? "success"
+                                : exc.classification === "Limitation"
+                                  ? "warning"
+                                  : "default"
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.35rem",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {isLead && exc.status === "Open" && (
+                      <button
+                        className={s.btnOutline}
+                        onClick={() =>
+                          setClassifyId(classifyId === exc.id ? null : exc.id)
+                        }
+                        style={{ fontSize: "0.72rem" }}
+                      >
+                        Classify
+                      </button>
+                    )}
+                    {(isLead || isSupervisor) &&
+                      exc.severity === "Critical" &&
+                      !exc.escalatedToHlg && (
+                        <button
+                          className={s.btnDanger}
+                          onClick={() => {
+                            escalateExceptionToHlg(exc.id);
+                            addToast({
+                              type: "error",
+                              title: "Escalated to HLG",
+                              message: `${exc.ref} escalated — Critical finding alert sent`,
+                            });
+                          }}
+                          style={{ fontSize: "0.72rem" }}
+                        >
+                          Escalate to HLG
+                        </button>
+                      )}
+                  </div>
+                </div>
+                {classifyId === exc.id && (
+                  <div
+                    style={{
+                      marginTop: "0.75rem",
+                      padding: "0.75rem",
+                      background: "#f8fafc",
+                      borderRadius: "0.5rem",
+                      display: "flex",
+                      gap: "0.35rem",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {(
+                      [
+                        "Proceed to Audit Query",
+                        "Resolved — No Query",
+                        "Limitation",
+                        "Below Materiality",
+                      ] as ExceptionClassification[]
+                    ).map((cl) => (
+                      <button
+                        key={cl}
+                        className={s.btnOutline}
+                        onClick={() => {
+                          classifyException(exc.id, cl);
+                          addToast({
+                            type: "success",
+                            title: "Exception Classified",
+                            message: `${exc.ref} → ${cl}`,
+                          });
+                          setClassifyId(null);
+                        }}
+                        style={{ fontSize: "0.72rem" }}
+                      >
+                        {cl}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* ─── TAB: WORKPAPERS (grouped by Risk Area) ─── */}
@@ -4335,7 +4413,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         bg: "#ecfdf5",
                       },
                       {
-                        label: "Performance Materiality (75%)",
+                        label: "Performance Materiality (70%)",
                         value: matPerformance,
                         color: "#7c3aed",
                         bg: "#f5f3ff",

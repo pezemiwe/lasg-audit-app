@@ -535,7 +535,6 @@ const SectionBuilder: React.FC<SectionBuilderProps> = ({
   );
 };
 
-/* ─── Shared inline styles ─── */
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "0.7rem",

@@ -38,7 +38,6 @@ import type {
 } from "../types/auditOutcomes";
 import type { LGA } from "../types";
 
-/* ─── Design tokens (Deloitte-restrained, not decorative) ─── */
 const COLOR = {
   ink: [20, 20, 20] as [number, number, number],
   muted: [90, 90, 90] as [number, number, number],
@@ -61,7 +60,6 @@ const FONT = {
   sans: "helvetica",
 };
 
-/* ─── Helpers ─── */
 
 const fmtN = (n: number | null | undefined): string => {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -272,7 +270,6 @@ const drawSignatureBlock = (
   return y + 10;
 };
 
-/* ─── Letterhead (used on section openers) ─── */
 
 const drawLetterhead = (ctx: PdfContext, opts: { lgaName?: string } = {}) => {
   const { doc } = ctx;
@@ -314,7 +311,6 @@ const drawLetterhead = (ctx: PdfContext, opts: { lgaName?: string } = {}) => {
   doc.line(PAGE.marginX, 103, PAGE.width - PAGE.marginX, 103);
 };
 
-/* ─── Section builders ─── */
 
 const buildCoverPage = (
   ctx: PdfContext,
@@ -543,7 +539,7 @@ const buildAuditCertificate = (
     y,
     "Audit Supervisor",
   );
-  y = drawSignatureBlock(ctx, report.auditLeadSignature, y, "Audit Lead");
+  drawSignatureBlock(ctx, report.auditLeadSignature, y, "Audit Lead");
 };
 
 const buildReport = (ctx: PdfContext, report: AuditReportDocument) => {
@@ -855,7 +851,6 @@ const buildFinancialStatement = (
   ctx.pageNumber = ctx.doc.getNumberOfPages();
 };
 
-/* ─── LGA section opener page ─── */
 const buildLgaSectionOpener = (
   ctx: PdfContext,
   lga: LGA,
@@ -916,7 +911,6 @@ const buildLgaSectionOpener = (
   );
 };
 
-/* ─── Public API ─── */
 
 export interface GeneratePdfArgs {
   outcome: AuditOutcome;
@@ -1094,7 +1088,6 @@ export async function generateAuditOutcomePdf(
   return blob;
 }
 
-/* ─── Utility to convert File/Image URL to data URL (for seal logo) ─── */
 export async function imageUrlToDataUrl(url: string): Promise<string> {
   const res = await fetch(url);
   const blob = await res.blob();

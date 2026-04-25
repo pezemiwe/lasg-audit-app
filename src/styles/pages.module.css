@@ -1210,3 +1210,21 @@
 .active {
   color: #059669;
 }
+
+/* Utility: hide scrollbar in all browsers while keeping scroll */
+.noScrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.noScrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Also patch the global tabsHeader (audit-detail style) to hide scrollbar */
+.tabsHeader {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tabsHeader::-webkit-scrollbar {
+  display: none;
+}

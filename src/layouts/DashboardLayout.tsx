@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import s from "../styles/dashboard.module.css";
 import MessagingWidget from "../components/UI/MessagingWidget";
+import GovernmentBanner from "../components/UI/GovernmentBanner";
+import ErrorBoundary from "../components/UI/ErrorBoundary";
 
 interface NavItem {
   to: string;
@@ -392,6 +394,7 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className={s.layout}>
+      <GovernmentBanner />
       {sidebarOpen && (
         <div
           className={s.overlay}
@@ -696,7 +699,9 @@ const DashboardLayout: React.FC = () => {
         </header>
 
         <main className={s.content}>
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
       <MessagingWidget

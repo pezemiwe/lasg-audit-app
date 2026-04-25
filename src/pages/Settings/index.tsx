@@ -39,15 +39,17 @@ const PlatformSettings: React.FC = () => {
       <div className={s.gridThreeCols}>
         {/* Sidebar Navigation */}
         <div className={s.sidebarNav}>
-          {[
-            { id: "general", icon: Globe, label: "General Settings" },
-            { id: "security", icon: Shield, label: "Security & Access" },
-            { id: "notifications", icon: Bell, label: "Notifications" },
-            { id: "backup", icon: HardDrive, label: "Backup & Recovery" },
-          ].map((tab) => (
+          {(
+            [
+              { id: "general", icon: Globe, label: "General Settings" },
+              { id: "security", icon: Shield, label: "Security & Access" },
+              { id: "notifications", icon: Bell, label: "Notifications" },
+              { id: "backup", icon: HardDrive, label: "Backup & Recovery" },
+            ] as const
+          ).map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={activeTab === tab.id ? s.navLinkActive : s.navLink}
               style={{ padding: "0.8rem 1rem", fontSize: "0.9rem" }}
             >

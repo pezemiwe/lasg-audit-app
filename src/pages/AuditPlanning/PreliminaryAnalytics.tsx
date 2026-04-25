@@ -1,7 +1,7 @@
 /**
  * EngagementExtended.tsx
  * Document Analytical Review + Materiality Assessment
- * Big Four-standard ISA 315 / ISA 320 compliant
+ * ISA 315 / ISA 320 compliant
  * Lagos State Audit Platform FY 2025 vs FY 2024
  */
 import React, { useState, useMemo } from "react";

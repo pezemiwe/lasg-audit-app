@@ -159,7 +159,7 @@ export interface RiskMatrix {
   detectionRisk: RiskLevel;
   overallRisk: RiskLevel;
   mitigationPlan: string;
-  status: "Open" | "Mitigated" | "Accepted";
+  status: "Open" | "Mitigated" | "Accepted" | "Pending Approval";
   preparedBy: string;
   createdAt: string;
 }
@@ -542,7 +542,6 @@ export interface AuditProgressWeights {
   postAudit: number;
 }
 
-/* ─── Post-Audit Types ─── */
 
 export type FollowUpStatus =
   | "Open"
@@ -619,7 +618,6 @@ export interface ExitConference {
   createdAt: string;
 }
 
-/* ─── Standardised Audit Work Programme Templates ─── */
 
 export interface ProgrammeTemplateSection {
   title: string;
@@ -641,7 +639,6 @@ export interface ProgrammeTemplate {
   sections: ProgrammeTemplateSection[];
 }
 
-/* ─── Audit Work Programme Deliverables (Big Four Standard) ─── */
 
 export type AuditJournalType =
   | "Adjusting"
@@ -945,6 +942,13 @@ export interface ProcedureExecution {
   procedureRef: string;
   procedureDescription: string;
   auditArea: string;
+  natureOfTest?:
+    | "Substantive"
+    | "Control"
+    | "Analytical"
+    | "Inquiry"
+    | "Observation"
+    | "Inspection";
   assertions: AuditAssertion[];
   riskRating: RiskLevel;
   assignedTo: string;
