@@ -596,60 +596,20 @@ export interface AuditStore {
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 const now = () => new Date().toISOString();
 
+import { createNotificationsActions } from "./slices/notificationsSlice";
+import { createUiActions } from "./slices/uiSlice";
+import { createAuditOutcomesActions } from "./slices/auditOutcomesSlice";
+import { createScopeActions } from "./slices/scopeSlice";
+import { createRiskActions } from "./slices/riskSlice";
+import { createFieldworkExceptionsActions } from "./slices/fieldworkExceptionsSlice";
+
 export const useAuditStore = create(
   persist<AuditStore>(
     (set, get) => ({
       notifications: [...SEED_NOTIFICATIONS],
-      addNotification: (data) =>
-        set((s) => ({
-          notifications: [
-            {
-              ...data,
-              id: `notif-${uid()}`,
-              isRead: false,
-              timestamp: now(),
-            },
-            ...s.notifications,
-          ],
-        })),
-      addNotifications: (notifs) =>
-        set((s) => ({
-          notifications: [
-            ...notifs.map((n, i) => ({
-              ...n,
-              id: `notif-${uid()}-${i}`,
-              isRead: false,
-              timestamp: now(),
-            })),
-            ...s.notifications,
-          ],
-        })),
-      markNotificationAsRead: (id) =>
-        set((s) => ({
-          notifications: s.notifications.map((n) =>
-            n.id === id ? { ...n, isRead: true } : n,
-          ),
-        })),
-      markAllNotificationsAsRead: (userId) =>
-        set((s) => ({
-          notifications: s.notifications.map((n) =>
-            n.userId === userId ? { ...n, isRead: true } : n,
-          ),
-        })),
-      clearNotifications: (userId) =>
-        set((s) => ({
-          notifications: s.notifications.filter((n) => n.userId !== userId),
-        })),
+      ...createNotificationsActions(set),
 
       users: [...MOCK_USERS],
-      addUser: (user: Omit<User, "id">) =>
-        set((s) => ({
-          users: [...s.users, { ...user, id: uid() } as User],
-        })),
-      updateUser: (id: string, updates: Partial<User>) =>
-        set((s) => ({
-          users: s.users.map((u) => (u.id === id ? { ...u, ...updates } : u)),
-        })),
       zones: ZONES,
       lgas: LGAS,
       mandates: [...SEED_MANDATES],
@@ -712,18 +672,7 @@ export const useAuditStore = create(
       toasts: [],
       modal: { isOpen: false, title: "", message: "" },
 
-      addToast: (toast) => {
-        const id = uid();
-        set((s) => ({ toasts: [...s.toasts, { ...toast, id }] }));
-        setTimeout(() => get().removeToast(id), 5000);
-      },
-
-      removeToast: (id) =>
-        set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
-
-      openModal: (modal) => set({ modal: { ...modal, isOpen: true } }),
-
-      closeModal: () => set((s) => ({ modal: { ...s.modal, isOpen: false } })),
+      ...createUiActions(set, get),
 
       createMandate: (data) => {
         const mandate: Mandate = {
@@ -1809,110 +1758,9 @@ Lagos State
       getAuditFraudFlags: (auditId) =>
         get().fraudFlags.filter((f) => f.auditId === auditId),
 
-      addRiskMatrix: (rm) => {
-        const record: RiskMatrix = {
-          ...rm,
-          id: `rm-${uid()}`,
-          createdAt: now(),
-        };
-        set((s) => ({ riskMatrices: [...s.riskMatrices, record] }));
-      },
+      ...createRiskActions(set),
 
-      updateRiskMatrix: (id, updates) => {
-        set((s) => ({
-          riskMatrices: s.riskMatrices.map((rm) =>
-            rm.id === id ? { ...rm, ...updates } : rm,
-          ),
-        }));
-      },
-
-      clearAllMitigations: (auditId) => {
-        set((s) => ({
-          riskMatrices: s.riskMatrices.map((rm) =>
-            rm.auditId === auditId ? { ...rm, mitigationPlan: "" } : rm,
-          ),
-        }));
-      },
-
-      addFraudFlag: (ff) => {
-        const record: FraudFlag = { ...ff, id: `ff-${uid()}`, raisedAt: now() };
-        set((s) => ({ fraudFlags: [...s.fraudFlags, record] }));
-      },
-
-      resolveFraudFlag: (id, resolution) => {
-        set((s) => ({
-          fraudFlags: s.fraudFlags.map((f) =>
-            f.id === id
-              ? {
-                  ...f,
-                  status: "Resolved" as const,
-                  resolution,
-                  resolvedAt: now(),
-                }
-              : f,
-          ),
-        }));
-      },
-
-      createScopeAgreement: (data) => {
-        const sa: ScopeAgreement = {
-          ...data,
-          id: `scope-${uid()}`,
-          createdAt: now(),
-        };
-        set((s) => ({ scopeAgreements: [...s.scopeAgreements, sa] }));
-        get().addToast({ type: "success", title: "Scope Agreement Created" });
-      },
-
-      updateScopeAgreement: (id, updates) =>
-        set((s) => ({
-          scopeAgreements: s.scopeAgreements.map((sa) =>
-            sa.id === id ? { ...sa, ...updates } : sa,
-          ),
-        })),
-
-      signOffScope: (id, party, name) => {
-        set((s) => ({
-          scopeAgreements: s.scopeAgreements.map((sa) => {
-            if (sa.id !== id) return sa;
-            const signOff = { name, timestamp: now() };
-            const updatedRows = sa.rows.map((r) =>
-              party === "auditor"
-                ? { ...r, auditorSignOff: signOff }
-                : { ...r, lgaSignOff: signOff },
-            );
-            const allSigned = updatedRows.every(
-              (r) => r.auditorSignOff && r.lgaSignOff,
-            );
-            return {
-              ...sa,
-              rows: updatedRows,
-              status: allSigned
-                ? ("Fully Approved" as const)
-                : ("Pending LGA" as const),
-            };
-          }),
-        }));
-        get().addToast({
-          type: "success",
-          title: `${party === "auditor" ? "Auditor" : "LGA"} Sign-Off Recorded`,
-        });
-      },
-
-      addScopeRow: (agreementId, row) => {
-        const newRow: ScopeAgreementRow = { ...row, id: `sr-${uid()}` };
-        set((s) => ({
-          scopeAgreements: s.scopeAgreements.map((sa) => {
-            if (sa.id !== agreementId) return sa;
-            const rows = [...sa.rows, newRow];
-            return {
-              ...sa,
-              rows,
-              totalWeeks: rows.reduce((sum, r) => sum + r.timelineWeeks, 0),
-            };
-          }),
-        }));
-      },
+      ...createScopeActions(set, get),
 
       saveQuestionnaireResponse: (data) => {
         const existing = get().questionnaireResponses.find(
@@ -2955,71 +2803,7 @@ Lagos State
           ),
         })),
 
-      addFieldworkException: (exc) => {
-        const s = get();
-        const count =
-          s.fieldworkExceptions.filter((e) => e.auditId === exc.auditId)
-            .length + 1;
-        const audit = s.audits.find((a) => a.id === exc.auditId);
-        const lgaName =
-          s.lgas
-            .find((l) => l.id === audit?.lgaId)
-            ?.name?.replace(/\s/g, "")
-            .slice(0, 4)
-            .toUpperCase() || "AUD";
-        const ref = `EXC-${lgaName}-${audit?.year || "2024"}-${String(count).padStart(3, "0")}`;
-        const newExc: FieldworkException = {
-          ...exc,
-          id: uid(),
-          ref,
-          raisedAt: now(),
-        };
-        set((st) => ({
-          fieldworkExceptions: [...st.fieldworkExceptions, newExc],
-          procedureExecutions: st.procedureExecutions.map((pe) =>
-            pe.id === exc.procedureId
-              ? {
-                  ...pe,
-                  exceptionIds: [...pe.exceptionIds, newExc.id],
-                  status: "Exception Raised" as const,
-                }
-              : pe,
-          ),
-        }));
-      },
-
-      updateFieldworkException: (id, updates) =>
-        set((s) => ({
-          fieldworkExceptions: s.fieldworkExceptions.map((e) =>
-            e.id === id ? { ...e, ...updates } : e,
-          ),
-        })),
-
-      classifyException: (id, classification) =>
-        set((s) => ({
-          fieldworkExceptions: s.fieldworkExceptions.map((e) =>
-            e.id === id
-              ? { ...e, classification, status: "Classified" as const }
-              : e,
-          ),
-        })),
-
-      escalateExceptionToHlg: (id) =>
-        set((s) => ({
-          fieldworkExceptions: s.fieldworkExceptions.map((e) =>
-            e.id === id
-              ? {
-                  ...e,
-                  escalatedToHlg: true,
-                  escalatedAt: now(),
-                  status: "Escalated" as const,
-                }
-              : e,
-          ),
-        })),
-
-      getAuditFieldworkExceptions: (auditId) =>
-        get().fieldworkExceptions.filter((e) => e.auditId === auditId),
+      ...createFieldworkExceptionsActions(set, get),
 
       addBankAccount: (account) =>
         set((s) => ({
@@ -3211,162 +2995,7 @@ Lagos State
       },
 
       // ─── Audit Outcomes actions ───────────────────────────
-      uploadTrialBalance: (tb) =>
-        set((s) => {
-          const existing = s.trialBalances.find((x) => x.id === tb.id);
-          const trialBalances = existing
-            ? s.trialBalances.map((x) => (x.id === tb.id ? tb : x))
-            : [...s.trialBalances, tb];
-          const auditOutcomes = s.auditOutcomes.map((o) =>
-            o.id === tb.auditOutcomeId
-              ? {
-                  ...o,
-                  trialBalanceIds: Array.from(
-                    new Set([...o.trialBalanceIds, tb.id]),
-                  ),
-                  updatedAt: now(),
-                }
-              : o,
-          );
-          return { trialBalances, auditOutcomes };
-        }),
-
-      removeTrialBalance: (id) =>
-        set((s) => ({
-          trialBalances: s.trialBalances.filter((t) => t.id !== id),
-          auditOutcomes: s.auditOutcomes.map((o) => ({
-            ...o,
-            trialBalanceIds: o.trialBalanceIds.filter((x) => x !== id),
-          })),
-        })),
-
-      setMaterialityCalc: (calc) =>
-        set((s) => {
-          const existing = s.materialityCalcs.find((x) => x.id === calc.id);
-          const materialityCalcs = existing
-            ? s.materialityCalcs.map((x) => (x.id === calc.id ? calc : x))
-            : [...s.materialityCalcs, calc];
-          const auditOutcomes = s.auditOutcomes.map((o) =>
-            o.id === calc.auditOutcomeId
-              ? { ...o, materialityCalcId: calc.id, updatedAt: now() }
-              : o,
-          );
-          return { materialityCalcs, auditOutcomes };
-        }),
-
-      approveMateriality: (id, userId) =>
-        set((s) => ({
-          materialityCalcs: s.materialityCalcs.map((m) =>
-            m.id === id
-              ? { ...m, approvedBy: userId, approvedAt: now(), locked: true }
-              : m,
-          ),
-        })),
-
-      saveStatementOfResponsibility: (sor) =>
-        set((s) => {
-          const existing = s.statementsOfResponsibility.find(
-            (x) => x.id === sor.id,
-          );
-          const statementsOfResponsibility = existing
-            ? s.statementsOfResponsibility.map((x) =>
-                x.id === sor.id ? sor : x,
-              )
-            : [...s.statementsOfResponsibility, sor];
-          const auditOutcomes = s.auditOutcomes.map((o) =>
-            o.id === sor.auditOutcomeId
-              ? {
-                  ...o,
-                  statementOfResponsibilityId: sor.id,
-                  updatedAt: now(),
-                }
-              : o,
-          );
-          return { statementsOfResponsibility, auditOutcomes };
-        }),
-
-      saveAuditReportDocument: (doc) =>
-        set((s) => {
-          const existing = s.auditReportDocuments.find((x) => x.id === doc.id);
-          const auditReportDocuments = existing
-            ? s.auditReportDocuments.map((x) => (x.id === doc.id ? doc : x))
-            : [...s.auditReportDocuments, doc];
-          const auditOutcomes = s.auditOutcomes.map((o) =>
-            o.id === doc.auditOutcomeId
-              ? {
-                  ...o,
-                  auditReportIds: Array.from(
-                    new Set([...o.auditReportIds, doc.id]),
-                  ),
-                  updatedAt: now(),
-                }
-              : o,
-          );
-          return { auditReportDocuments, auditOutcomes };
-        }),
-
-      saveAccountingPolicies: (ap) =>
-        set((s) => {
-          const existing = s.accountingPolicies.find((x) => x.id === ap.id);
-          const accountingPolicies = existing
-            ? s.accountingPolicies.map((x) => (x.id === ap.id ? ap : x))
-            : [...s.accountingPolicies, ap];
-          const auditOutcomes = s.auditOutcomes.map((o) =>
-            o.id === ap.auditOutcomeId
-              ? { ...o, accountingPoliciesId: ap.id, updatedAt: now() }
-              : o,
-          );
-          return { accountingPolicies, auditOutcomes };
-        }),
-
-      saveFinancialStatement: (fs) =>
-        set((s) => {
-          const existing = s.auditedFinancialStatements.find(
-            (x) => x.id === fs.id,
-          );
-          const auditedFinancialStatements = existing
-            ? s.auditedFinancialStatements.map((x) => (x.id === fs.id ? fs : x))
-            : [...s.auditedFinancialStatements, fs];
-          const auditOutcomes = s.auditOutcomes.map((o) => {
-            if (o.id !== fs.auditOutcomeId) return o;
-            const patch: Partial<AuditOutcome> = {};
-            if (fs.kind === "StatementOfFinancialPosition")
-              patch.consolidatedSofpId = fs.id;
-            else if (fs.kind === "StatementOfFinancialPerformance")
-              patch.consolidatedSofPerfId = fs.id;
-            else if (fs.kind === "CashFlowStatement")
-              patch.consolidatedCashFlowId = fs.id;
-            else if (fs.kind === "NotesToTheAccounts")
-              patch.consolidatedNotesId = fs.id;
-            return { ...o, ...patch, updatedAt: now() };
-          });
-          return { auditedFinancialStatements, auditOutcomes };
-        }),
-
-      upsertLgaAuditPackage: (pkg) =>
-        set((s) => {
-          const existing = s.lgaAuditPackages.find((x) => x.id === pkg.id);
-          return {
-            lgaAuditPackages: existing
-              ? s.lgaAuditPackages.map((x) => (x.id === pkg.id ? pkg : x))
-              : [...s.lgaAuditPackages, pkg],
-          };
-        }),
-
-      markCompilationComplete: (outcomeId, pageCount) =>
-        set((s) => ({
-          auditOutcomes: s.auditOutcomes.map((o) =>
-            o.id === outcomeId
-              ? {
-                  ...o,
-                  compiledPdfGeneratedAt: now(),
-                  compiledPageCount: pageCount,
-                  status: "Final",
-                  updatedAt: now(),
-                }
-              : o,
-          ),
-        })),
+      ...createAuditOutcomesActions(set),
     }),
     {
       name: "audit-storage-v12",

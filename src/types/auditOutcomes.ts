@@ -13,7 +13,6 @@ export type AuditOutcomeStatus =
 
 export type ReportType = "State Consolidated" | "Local Government";
 
-/* ─── Trial Balance (2-year comparison for materiality) ─── */
 
 export interface TrialBalanceLine {
   id: string;
@@ -53,7 +52,6 @@ export interface TrialBalance {
   totalLiabilities: number;
 }
 
-/* ─── Materiality (your exact formula) ─── */
 
 export interface MaterialityCalc {
   id: string;
@@ -78,7 +76,6 @@ export interface MaterialityCalc {
   locked: boolean;
 }
 
-/* ─── Signatures ─── */
 
 export interface SignatureBlock {
   role:
@@ -94,7 +91,6 @@ export interface SignatureBlock {
   signedById?: string; // user id if internal signer
 }
 
-/* ─── Statement of Financial Responsibility ─── */
 
 export interface StatementOfResponsibility {
   id: string;
@@ -107,7 +103,6 @@ export interface StatementOfResponsibility {
   updatedAt: string;
 }
 
-/* ─── Re-usable section (header + description + recommendation + table/bullets) ─── */
 
 export interface SectionTableCell {
   value: string;
@@ -128,7 +123,6 @@ export interface AuditReportSection {
   recommendation?: string;
 }
 
-/* ─── Audit Report (two types: State Consolidated vs LG) ─── */
 
 export interface AuditReportDocument {
   id: string;
@@ -148,7 +142,6 @@ export interface AuditReportDocument {
   updatedAt: string;
 }
 
-/* ─── Accounting Policies (IPSAS Accrual) ─── */
 
 export interface AccountingPolicyItem {
   id: string;
@@ -169,7 +162,6 @@ export interface AccountingPolicies {
   updatedAt: string;
 }
 
-/* ─── Audited Financial Statements ─── */
 
 export type FinancialStatementKind =
   | "StatementOfFinancialPosition"
@@ -213,7 +205,6 @@ export interface FinancialStatement {
   status: AuditOutcomeStatus;
 }
 
-/* ─── LGA-Specific Audit Package (repeats for every LGA/LCDA) ─── */
 
 export interface LgaAuditPackage {
   id: string;
@@ -229,7 +220,6 @@ export interface LgaAuditPackage {
   status: AuditOutcomeStatus;
 }
 
-/* ─── Top-level container ─── */
 
 export interface AuditOutcome {
   id: string;
@@ -260,7 +250,6 @@ export interface AuditOutcome {
   compiledPageCount?: number;
 }
 
-/* ─── PDF compilation options ─── */
 
 export interface CompilationOptions {
   auditOutcomeId: string;

@@ -3,16 +3,19 @@ import { AuthProvider } from "./context/AuthContext";
 import AppRoutes from "./routes";
 import ToastContainer from "./components/UI/ToastContainer";
 import ConfirmModal from "./components/UI/ConfirmModal";
+import ErrorBoundary from "./components/UI/ErrorBoundary";
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-        <ToastContainer />
-        <ConfirmModal />
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <AppRoutes />
+          <ToastContainer />
+          <ConfirmModal />
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

@@ -57,7 +57,6 @@ const STUB_SIG_PNG =
   "8EsS0V7oE2Q2ASYpJ/EaF6UGLCKJRkhJ/DwDXrxWaQJfMd4BKOBWWBdRU6kA" +
   "AAAASUVORK5CYII=";
 
-/* ─── Pre-filled signatures ─── */
 
 const SIG_TREASURER: SignatureBlock = {
   role: "TREASURER",
@@ -92,7 +91,6 @@ const SIG_AG_EMPTY: SignatureBlock = {
   title: "Auditor-General for Local Governments",
 };
 
-/* ─── TRIAL BALANCE ─── */
 
 export const SEED_TRIAL_BALANCE_V2: TrialBalance = {
   id: "tb-2025-consol",
@@ -232,7 +230,6 @@ export const SEED_TRIAL_BALANCE_V2: TrialBalance = {
   ],
 };
 
-/* ─── MATERIALITY — approved and locked ─── */
 
 const PBT = SEED_TRIAL_BALANCE_V2.profitBeforeTax; // 11.35bn
 
@@ -257,7 +254,6 @@ export const SEED_MATERIALITY_CALC_V2: MaterialityCalc = {
   locked: true,
 };
 
-/* ─── STATEMENT OF RESPONSIBILITY — signed ─── */
 
 export const SEED_STATEMENT_OF_RESPONSIBILITY_V2: StatementOfResponsibility = {
   id: "sor-2025-lasg",
@@ -272,7 +268,6 @@ export const SEED_STATEMENT_OF_RESPONSIBILITY_V2: StatementOfResponsibility = {
   updatedAt: NOW,
 };
 
-/* ─── AUDIT REPORT — Lead & Supervisor signed; AG awaiting ─── */
 
 const STATE_REPORT_SECTIONS: AuditReportSection[] = [
   {
@@ -351,7 +346,6 @@ export const SEED_AUDIT_REPORT_STATE_V2: AuditReportDocument = {
   updatedAt: NOW,
 };
 
-/* ─── ACCOUNTING POLICIES — supervisor-signed ─── */
 
 export const SEED_ACCOUNTING_POLICIES_V2: AccountingPolicies = {
   id: "ap-2025-lasg",
@@ -435,7 +429,6 @@ export const SEED_ACCOUNTING_POLICIES_V2: AccountingPolicies = {
   updatedAt: NOW,
 };
 
-/* ─── FINANCIAL STATEMENTS (consolidated) — same as v1 ─── */
 /* Re-export from the v1 file to avoid duplication */
 
 export {
@@ -445,7 +438,6 @@ export {
   SEED_CONSOL_NOTES as SEED_CONSOL_NOTES_V2,
 } from "./auditOutcomesData";
 
-/* ─── Per-LGA packages (10 representative councils) ─── */
 
 const REPRESENTATIVE_LGAS: Array<{ id: string; name: string; weight: number }> =
   [
@@ -943,7 +935,6 @@ export const SEED_LGA_PACKAGES_V2: LgaAuditPackage[] = REPRESENTATIVE_LGAS.map(
   }),
 );
 
-/* ─── Top-level outcome (V2) ─── */
 
 export const SEED_AUDIT_OUTCOMES_V2: AuditOutcome[] = [
   {

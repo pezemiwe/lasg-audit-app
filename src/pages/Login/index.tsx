@@ -15,10 +15,21 @@ const ROLE_LABELS: Record<Role, string> = {
   HEAD_OF_LOCAL_GOVERNMENT: "Head of Local Government",
 };
 
+// Display order — Auditor General appears first
+const ROLE_ORDER: Role[] = [
+  "STATE_AUDITOR_GENERAL",
+  "AUDITOR_GENERAL_FEDERATION",
+  "SYSTEM_ADMIN",
+  "AUDIT_SUPERVISOR",
+  "AUDIT_LEAD",
+  "TEAM_AUDITOR",
+  "HEAD_OF_LOCAL_GOVERNMENT",
+];
+
 const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedEmail, setSelectedEmail] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,13 +37,18 @@ const Login: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Get unique roles from MOCK_USERS
-  const availableRoles = Array.from(new Set(MOCK_USERS.map((u) => u.role)));
+  // Group users by role in the desired display order
+  const usersByRole = ROLE_ORDER.map((role) => ({
+    role,
+    users: MOCK_USERS.filter((u) => u.role === role).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ),
+  })).filter((g) => g.users.length > 0);
 
-  const handleRoleChange = (role: string) => {
-    setSelectedRole(role);
+  const handleUserChange = (userEmail: string) => {
+    setSelectedEmail(userEmail);
     setError("");
-    const user = MOCK_USERS.find((u) => u.role === role);
+    const user = MOCK_USERS.find((u) => u.email === userEmail);
     if (user) {
       setEmail(user.email);
       setPassword("password123");
@@ -150,20 +166,27 @@ const Login: React.FC = () => {
             <form onSubmit={handleLogin} className={s.form}>
               <div className={s.field}>
                 <label htmlFor="role" className={s.label}>
-                  Select Role
+                  Select User
                 </label>
                 <div className={s.selectWrap}>
                   <select
                     id="role"
-                    value={selectedRole}
-                    onChange={(e) => handleRoleChange(e.target.value)}
+                    value={selectedEmail}
+                    onChange={(e) => handleUserChange(e.target.value)}
                     className={s.selectEl}
                   >
-                    <option value="">— Choose your role —</option>
-                    {availableRoles.map((role) => (
-                      <option key={role} value={role}>
-                        {ROLE_LABELS[role]}
-                      </option>
+                    <option value="">— Choose a user —</option>
+                    {usersByRole.map((group) => (
+                      <optgroup
+                        key={group.role}
+                        label={ROLE_LABELS[group.role]}
+                      >
+                        {group.users.map((u) => (
+                          <option key={u.id} value={u.email}>
+                            {u.name}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                   <span className={s.selectChevron}>
@@ -192,7 +215,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className={s.input}
                   placeholder="user@lagosstate.gov.ng"
-                  readOnly={!!selectedRole}
+                  readOnly={!!selectedEmail}
                 />
               </div>
 
@@ -211,7 +234,7 @@ const Login: React.FC = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     className={s.input}
                     placeholder="••••••••"
-                    readOnly={!!selectedRole}
+                    readOnly={!!selectedEmail}
                     style={{ paddingRight: "40px" }}
                   />
                   <button

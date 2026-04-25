@@ -24,7 +24,6 @@ import {
   BarChart3,
   Calculator,
   ClipboardList,
-  FileCheck,
   MessageSquare,
   DollarSign,
   PenTool,
@@ -39,120 +38,16 @@ import {
   ArrowRight,
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
+import {
+  procStatusVariant,
+  fmtCurrency,
+  sevColor,
+  statusColor,
+  InlineBadge,
+  TABS,
+  type TabKey,
+} from "./workProgrammeHelpers";
 
-/* ─── Helpers ─── */
-const procStatusVariant = (status: string) => {
-  switch (status) {
-    case "Completed":
-      return "success" as const;
-    case "In Progress":
-      return "info" as const;
-    default:
-      return "default" as const;
-  }
-};
-
-const fmtCurrency = (n: number) =>
-  "₦" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
-
-const sevColor: Record<string, { bg: string; color: string }> = {
-  Low: { bg: "#d1fae5", color: "#065f46" },
-  Medium: { bg: "#fef3c7", color: "#92400e" },
-  High: { bg: "#fee2e2", color: "#991b1b" },
-  Critical: { bg: "#fce7f3", color: "#9d174d" },
-};
-
-const statusColor: Record<string, { bg: string; color: string }> = {
-  Draft: { bg: "#f3f4f6", color: "#6b7280" },
-  Proposed: { bg: "#d1fae5", color: "#065f46" },
-  Agreed: { bg: "#d1fae5", color: "#065f46" },
-  Posted: { bg: "#d1fae5", color: "#065f46" },
-  Waived: { bg: "#f3f4f6", color: "#9ca3af" },
-  Discussed: { bg: "#fef3c7", color: "#92400e" },
-  Resolved: { bg: "#d1fae5", color: "#065f46" },
-  Reported: { bg: "#d1fae5", color: "#065f46" },
-  "Not Received": { bg: "#fee2e2", color: "#991b1b" },
-  Received: { bg: "#fef3c7", color: "#92400e" },
-  "Under Review": { bg: "#ecfdf5", color: "#059669" },
-  Adjusted: { bg: "#fce7f3", color: "#9d174d" },
-  Final: { bg: "#d1fae5", color: "#065f46" },
-  Prepared: { bg: "#ecfdf5", color: "#059669" },
-  Reviewed: { bg: "#fef3c7", color: "#92400e" },
-};
-
-const InlineBadge: React.FC<{
-  label: string;
-  bg: string;
-  color: string;
-}> = ({ label, bg, color }) => (
-  <span
-    style={{
-      fontSize: "0.7rem",
-      fontWeight: 700,
-      padding: "0.15rem 0.5rem",
-      borderRadius: "3px",
-      background: bg,
-      color,
-      textTransform: "uppercase",
-      letterSpacing: "0.04em",
-      whiteSpace: "nowrap",
-    }}
-  >
-    {label}
-  </span>
-);
-
-/* ─── Tab Definitions ─── */
-type TabKey =
-  | "overview"
-  | "procedures"
-  | "evidence"
-  | "exceptions"
-  | "workpapers"
-  | "journals"
-  | "comments"
-  | "statements"
-  | "report"
-  | "completion";
-
-const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: "overview", label: "Overview", icon: <BarChart3 size={14} /> },
-  {
-    key: "procedures",
-    label: "Procedures",
-    icon: <ClipboardList size={14} />,
-  },
-  {
-    key: "evidence",
-    label: "Evidence Library",
-    icon: <FolderOpen size={14} />,
-  },
-  {
-    key: "exceptions",
-    label: "Exceptions Register",
-    icon: <AlertTriangle size={14} />,
-  },
-  { key: "workpapers", label: "Workpapers", icon: <FolderOpen size={14} /> },
-  { key: "journals", label: "Journals", icon: <PenTool size={14} /> },
-  {
-    key: "comments",
-    label: "Audit Comments",
-    icon: <MessageSquare size={14} />,
-  },
-  {
-    key: "statements",
-    label: "Financial Statements",
-    icon: <DollarSign size={14} />,
-  },
-  { key: "report", label: "Audit Report", icon: <FileText size={14} /> },
-  {
-    key: "completion",
-    label: "Completion",
-    icon: <FileCheck size={14} />,
-  },
-];
-
-/* ─── Component ─── */
 interface WorkProgrammeSectionProps {
   auditId?: string;
   embedded?: boolean;
@@ -198,7 +93,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     (st) => st.updateFinancialStatement,
   );
 
-  /* ─── Fieldwork execution data ─── */
   const allProcedureExecutions = useAuditStore((st) => st.procedureExecutions);
   const allFieldworkExceptions = useAuditStore((st) => st.fieldworkExceptions);
   const users = useAuditStore((st) => st.users);
@@ -207,13 +101,11 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     (st) => st.escalateExceptionToHlg,
   );
 
-  /* ─── ESLint-safe audit selection: derive from prop, local state as fallback ─── */
   const [localAuditId, setLocalAuditId] = useState<string>(
     auditId || audits[0]?.id || "",
   );
   const selectedAuditId = auditId ?? localAuditId;
 
-  /* ─── Tab persistence: use URL params when standalone, local state when embedded ─── */
   const [searchParams, setSearchParams] = useSearchParams();
   const [localTab, setLocalTab] = useState<TabKey>("overview");
   const activeTab: TabKey = embedded
@@ -250,7 +142,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     assignedTo: "",
   });
 
-  /* ─── Materiality form state ─── */
   const [matForm, setMatForm] = useState({
     basisLabel: "Total Expenditure",
     basisAmount: "",
@@ -262,7 +153,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const matPerformance = matOverall * 0.7;
   const matTrivial = matPerformance * 0.05;
 
-  /* ─── Journal form state ─── */
   const [showAddJournal, setShowAddJournal] = useState(false);
   const [journalForm, setJournalForm] = useState({
     type: "Adjusting" as "Adjusting" | "Reclassifying" | "Proposed" | "Passed",
@@ -275,7 +165,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     { account: "", debit: "", credit: "" },
   ]);
 
-  /* ─── Comment form state ─── */
   const [showAddComment, setShowAddComment] = useState(false);
   const [commentForm, setCommentForm] = useState({
     title: "",
@@ -289,7 +178,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     targetDate: "",
   });
 
-  /* ─── Statement inline-edit state ─── */
   const [editingStmtId, setEditingStmtId] = useState<string | null>(null);
   const [stmtEditForm, setStmtEditForm] = useState({
     status: "Not Received" as
@@ -302,10 +190,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     reviewedBy: "",
   });
 
-  /* ─── Modal visibility ─── */
   const [showMatModal, setShowMatModal] = useState(false);
 
-  /* ─── Exceptions filter state ─── */
   const [excFilter, setExcFilter] = useState<"all" | ExceptionSeverity>("all");
   const [classifyId, setClassifyId] = useState<string | null>(null);
 
@@ -373,7 +259,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     };
   }, [currentProgramme]);
 
-  /* ─── Fieldwork execution & exception derived data ─── */
   const procedureExecutions = useMemo(
     () => allProcedureExecutions.filter((e) => e.auditId === selectedAuditId),
     [allProcedureExecutions, selectedAuditId],
@@ -420,7 +305,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     }
   };
 
-  /* ─── Handlers ─── */
   const handleCreate = () => {
     if (!selectedAuditId) {
       addToast({
@@ -500,7 +384,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Procedure Added" });
   };
 
-  /* ─── Materiality handler ─── */
   const handleSaveMateriality = () => {
     const amount = parseFloat(matForm.basisAmount.replace(/,/g, ""));
     if (!amount || amount <= 0) {
@@ -525,7 +408,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     setShowMatModal(false);
   };
 
-  /* ─── Journal handler ─── */
   const handleAddJournal = () => {
     const validEntries = journalEntries.filter(
       (e) => e.account && (parseFloat(e.debit) > 0 || parseFloat(e.credit) > 0),
@@ -584,7 +466,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Journal Entry Recorded" });
   };
 
-  /* ─── Audit comment handler ─── */
   const handleAddComment = () => {
     if (
       !commentForm.title ||
@@ -631,7 +512,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Audit Comment Recorded" });
   };
 
-  /* ─── Overview KPIs ─── */
   const overviewStats = useMemo(() => {
     const journalTotal = filteredJournals.reduce(
       (sum, j) => sum + j.netEffect,
@@ -671,7 +551,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     filteredWorkpapers,
   ]);
 
-  /* ─── RENDER ─── */
   return (
     <div>
       {/* Header */}
@@ -1949,9 +1828,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                     <thead>
                                       <tr>
                                         <th style={{ width: 36 }}>#</th>
-                                        <th>Procedure</th>
+                                        <th style={{ width: 120 }}>
+                                          Test Type
+                                        </th>
+                                        <th>Audit Procedure</th>
                                         <th>Assertion</th>
-                                        <th>Sample</th>
+                                        <th>Auditor Response & Conclusion</th>
                                         <th>Assigned</th>
                                         <th>Status</th>
                                         <th>W/P Ref</th>
@@ -1959,110 +1841,156 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {procs.map((proc, idx) => (
-                                        <tr key={proc.id}>
-                                          <td
-                                            style={{
-                                              fontWeight: 600,
-                                              color: "var(--text-3)",
-                                              fontSize: "0.78rem",
-                                            }}
-                                          >
-                                            {String(idx + 1).padStart(2, "0")}
-                                          </td>
-                                          <td
-                                            style={{
-                                              maxWidth: "320px",
-                                              lineHeight: 1.55,
-                                            }}
-                                          >
-                                            {proc.procedure}
-                                            {proc.expectedEvidence && (
-                                              <div
-                                                style={{
-                                                  fontSize: "0.7rem",
-                                                  color: "#64748b",
-                                                  marginTop: "0.2rem",
-                                                }}
-                                              >
-                                                <em>
-                                                  Evidence:{" "}
-                                                  {proc.expectedEvidence}
-                                                </em>
-                                              </div>
-                                            )}
-                                          </td>
-                                          <td>
-                                            {proc.assertion ? (
-                                              <span
-                                                style={{
-                                                  fontSize: "0.68rem",
-                                                  fontWeight: 600,
-                                                  padding: "0.1rem 0.35rem",
-                                                  borderRadius: "3px",
-                                                  background: "#f0fdf4",
-                                                  color: "#166534",
-                                                  border: "1px solid #bbf7d0",
-                                                  whiteSpace: "nowrap",
-                                                }}
-                                              >
-                                                {proc.assertion}
-                                              </span>
-                                            ) : (
-                                              "-"
-                                            )}
-                                          </td>
-                                          <td style={{ fontSize: "0.78rem" }}>
-                                            {proc.sampleSize || "-"}
-                                          </td>
-                                          <td style={{ fontSize: "0.78rem" }}>
-                                            {proc.assignedTo || "-"}
-                                          </td>
-                                          <td>
-                                            <StatusBadge
-                                              label={proc.status}
-                                              variant={procStatusVariant(
-                                                proc.status,
-                                              )}
-                                            />
-                                          </td>
-                                          <td
-                                            style={{
-                                              fontSize: "0.75rem",
-                                              fontFamily: "monospace",
-                                              color: proc.workpaperRef
-                                                ? "#5b21b6"
-                                                : "var(--text-3)",
-                                              fontWeight: proc.workpaperRef
-                                                ? 600
-                                                : 400,
-                                            }}
-                                          >
-                                            {proc.workpaperRef || "-"}
-                                          </td>
-                                          <td>
-                                            {(() => {
-                                              const exec =
-                                                procedureExecutions.find(
-                                                  (e) =>
-                                                    e.procedureId === proc.id,
-                                                );
-                                              if (!exec) return null;
-                                              return (
-                                                <button
-                                                  className={s.btnIcon}
-                                                  onClick={() =>
-                                                    onOpenProcedure?.(exec.id)
-                                                  }
-                                                  title="Open Procedure Workspace"
+                                      {procs.map((proc, idx) => {
+                                        const execRecord =
+                                          procedureExecutions.find(
+                                            (e) => e.procedureId === proc.id,
+                                          );
+                                        return (
+                                          <tr key={proc.id}>
+                                            <td
+                                              style={{
+                                                fontWeight: 600,
+                                                color: "var(--text-3)",
+                                                fontSize: "0.78rem",
+                                              }}
+                                            >
+                                              {String(idx + 1).padStart(2, "0")}
+                                            </td>
+                                            <td
+                                              style={{
+                                                maxWidth: "320px",
+                                                lineHeight: 1.55,
+                                              }}
+                                            >
+                                              {proc.procedure}
+                                              {proc.expectedEvidence && (
+                                                <div
+                                                  style={{
+                                                    fontSize: "0.7rem",
+                                                    color: "#64748b",
+                                                    marginTop: "0.2rem",
+                                                  }}
                                                 >
-                                                  <ArrowRight size={13} />
-                                                </button>
-                                              );
-                                            })()}
-                                          </td>
-                                        </tr>
-                                      ))}
+                                                  <em>
+                                                    Evidence:{" "}
+                                                    {proc.expectedEvidence}
+                                                  </em>
+                                                </div>
+                                              )}
+                                            </td>
+                                            <td>
+                                              {proc.assertion ? (
+                                                <span
+                                                  style={{
+                                                    fontSize: "0.68rem",
+                                                    fontWeight: 600,
+                                                    padding: "0.1rem 0.35rem",
+                                                    borderRadius: "3px",
+                                                    background: "#f0fdf4",
+                                                    color: "#166534",
+                                                    border: "1px solid #bbf7d0",
+                                                    whiteSpace: "nowrap",
+                                                  }}
+                                                >
+                                                  {proc.assertion}
+                                                </span>
+                                              ) : (
+                                                "-"
+                                              )}
+                                            </td>
+                                            <td
+                                              style={{
+                                                fontSize: "0.78rem",
+                                                maxWidth: "250px",
+                                              }}
+                                            >
+                                              {execRecord?.workPerformed ? (
+                                                <div>
+                                                  <span
+                                                    style={{
+                                                      fontWeight: 600,
+                                                      color: "#475569",
+                                                    }}
+                                                  >
+                                                    Obs:
+                                                  </span>{" "}
+                                                  <span
+                                                    style={{ color: "#1e293b" }}
+                                                  >
+                                                    {execRecord.workPerformed}
+                                                  </span>
+                                                </div>
+                                              ) : (
+                                                "-"
+                                              )}
+                                              {execRecord?.conclusion && (
+                                                <div style={{ marginTop: 4 }}>
+                                                  <span
+                                                    style={{
+                                                      fontWeight: 600,
+                                                      color: "#475569",
+                                                    }}
+                                                  >
+                                                    Conclusion:
+                                                  </span>{" "}
+                                                  <span
+                                                    style={{ color: "#1e293b" }}
+                                                  >
+                                                    {execRecord.conclusion}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </td>
+                                            <td style={{ fontSize: "0.78rem" }}>
+                                              {proc.assignedTo || "-"}
+                                            </td>
+                                            <td>
+                                              <StatusBadge
+                                                label={proc.status}
+                                                variant={procStatusVariant(
+                                                  proc.status,
+                                                )}
+                                              />
+                                            </td>
+                                            <td
+                                              style={{
+                                                fontSize: "0.75rem",
+                                                fontFamily: "monospace",
+                                                color: proc.workpaperRef
+                                                  ? "#5b21b6"
+                                                  : "var(--text-3)",
+                                                fontWeight: proc.workpaperRef
+                                                  ? 600
+                                                  : 400,
+                                              }}
+                                            >
+                                              {proc.workpaperRef || "-"}
+                                            </td>
+                                            <td>
+                                              {(() => {
+                                                const exec =
+                                                  procedureExecutions.find(
+                                                    (e) =>
+                                                      e.procedureId === proc.id,
+                                                  );
+                                                if (!exec) return null;
+                                                return (
+                                                  <button
+                                                    className={s.btnIcon}
+                                                    onClick={() =>
+                                                      onOpenProcedure?.(exec.id)
+                                                    }
+                                                    title="Open Procedure Workspace"
+                                                  >
+                                                    <ArrowRight size={13} />
+                                                  </button>
+                                                );
+                                              })()}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
                                     </tbody>
                                   </table>
                                 </div>

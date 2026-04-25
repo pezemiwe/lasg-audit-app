@@ -87,11 +87,11 @@ const getContactsForUser = (currentUser: UserType | null) => {
       department: "Office of the Auditor General",
     },
     {
-      id: "user-sup-ikeja",
+      id: "user-sup-mushin",
       name: "Sup. Adebayo",
       role: "AUDIT_SUPERVISOR",
       online: true,
-      department: "Ikeja Zone",
+      department: "Mushin Zone",
     },
     {
       id: "user-sup-6",
@@ -105,17 +105,17 @@ const getContactsForUser = (currentUser: UserType | null) => {
       name: "Lead Johnson",
       role: "AUDIT_LEAD",
       online: true,
-      department: "Ikeja Audit Team",
+      department: "Mushin Audit Team",
     },
     {
       id: "user-auditor-1",
       name: "Auditor Tobi",
       role: "TEAM_AUDITOR",
       online: true,
-      department: "Ikeja Audit Team",
+      department: "Mushin Audit Team",
     },
     {
-      id: "user-hlg-ikeja",
+      id: "user-hlg-mushin",
       name: "HLG Adewunmi",
       role: "HEAD_OF_LOCAL_GOVERNMENT",
       online: false,
@@ -539,7 +539,6 @@ const MessagingWidget: React.FC<MessagingWidgetProps> = ({
 
         {/* ─── BODY ─── */}
         {activeChat ? (
-          /* ── Chat View ── */
           <div
             style={{
               flex: 1,
@@ -862,7 +861,6 @@ const MessagingWidget: React.FC<MessagingWidgetProps> = ({
             </div>
           </div>
         ) : (
-          /* ── Contacts View ── */
           <div
             style={{
               flex: 1,

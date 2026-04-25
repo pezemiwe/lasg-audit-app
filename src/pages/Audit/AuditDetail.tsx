@@ -17,13 +17,13 @@ import {
 import s from "../../styles/pages.module.css";
 
 // Import existing page components to embed
-import QuestionnairePage from "../Questionnaire";
 import AuditPlanningPage from "../AuditPlanning";
 import FieldworkPage from "../Fieldwork";
 import PostAuditPage from "../PostAudit";
 import DocumentPortalPage from "../DocumentPortal";
 import ReportsPage from "../Reports";
 import PreAuditPage from "../PreAudit";
+import QuestionnairePage from "../Questionnaire";
 
 const AuditDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -138,7 +138,6 @@ const AuditDetail: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      /* ─── Phase 1: Engagement Acceptance ─── */
       case "engagement":
         return (
           <div
@@ -446,7 +445,6 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
-      /* ─── Phase 2: Risk Assessment (Questionnaire + Scope) ─── */
       case "questionnaire":
         return (
           <div className={s.tabContent}>
@@ -456,7 +454,6 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
-      /* ─── Phase 2b: Planning (Audit Strategy) ─── */
       case "planning":
         return (
           <div className={s.tabContent}>
@@ -467,15 +464,12 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
-      /* ─── Phase 3: Fieldwork Execution ─── */
       case "fieldwork":
         return <FieldworkPage auditId={audit.id} embedded />;
 
-      /* ─── Phase 4: Reporting ─── */
       case "reporting":
         return <ReportsPage auditId={audit.id} embedded />;
 
-      /* ─── Phase 4b: Quality Review (EQCR) ─── */
       case "quality-review":
         return (
           <div className={s.card}>
@@ -561,11 +555,9 @@ const AuditDetail: React.FC = () => {
           </div>
         );
 
-      /* ─── Phase 5: Post-Audit & Follow-Up ─── */
       case "post-audit":
         return <PostAuditPage auditId={audit.id} embedded />;
 
-      /* ─── Audit File / Documents ─── */
       case "documents":
         return <DocumentPortalPage auditId={audit.id} embedded />;
 

@@ -19,7 +19,6 @@ import type {
 const NOW = new Date().toISOString();
 const OUTCOME_ID = "ao-2025-lasg";
 
-/* ─── Seed TRIAL BALANCE (consolidated) ─── */
 
 export const SEED_TRIAL_BALANCE: TrialBalance = {
   id: "tb-2025-consol",
@@ -159,7 +158,6 @@ export const SEED_TRIAL_BALANCE: TrialBalance = {
   ],
 };
 
-/* ─── MATERIALITY (user's formula: PBT×5%, ×70%, ×5%×70%) ─── */
 
 const PBT = SEED_TRIAL_BALANCE.profitBeforeTax; // 11.35bn
 
@@ -186,7 +184,6 @@ export const SEED_MATERIALITY_CALC: MaterialityCalc = {
   locked: false,
 };
 
-/* ─── STATEMENT OF RESPONSIBILITY ─── */
 
 export const SEED_STATEMENT_OF_RESPONSIBILITY: StatementOfResponsibility = {
   id: "sor-2025-lasg",
@@ -212,7 +209,6 @@ export const SEED_STATEMENT_OF_RESPONSIBILITY: StatementOfResponsibility = {
   updatedAt: NOW,
 };
 
-/* ─── AUDIT REPORT (State Consolidated) ─── */
 
 export const SEED_AUDIT_REPORT_STATE: AuditReportDocument = {
   id: "arpt-state-2025",
@@ -297,7 +293,6 @@ export const SEED_AUDIT_REPORT_STATE: AuditReportDocument = {
   updatedAt: NOW,
 };
 
-/* ─── ACCOUNTING POLICIES ─── */
 
 export const SEED_ACCOUNTING_POLICIES: AccountingPolicies = {
   id: "ap-2025-lasg",
@@ -385,7 +380,6 @@ export const SEED_ACCOUNTING_POLICIES: AccountingPolicies = {
   updatedAt: NOW,
 };
 
-/* ─── Helper: build a Financial Statement from TB totals ─── */
 
 export const SEED_CONSOL_SOFP: FinancialStatement = {
   id: "fs-sofp-2025",
@@ -1088,7 +1082,6 @@ export const SEED_CONSOL_NOTES: FinancialStatement = {
   ],
 };
 
-/* ─── LGA packages (minimal stub per LGA; fills via same template) ─── */
 
 export const seedLgaPackagesForLgaIds = (
   lgaIds: string[],
@@ -1103,7 +1096,6 @@ export const seedLgaPackagesForLgaIds = (
     // (we keep stubs out so we don't bloat localStorage)
   }));
 
-/* ─── Top-level outcome ─── */
 
 export const SEED_AUDIT_OUTCOMES: AuditOutcome[] = [
   {

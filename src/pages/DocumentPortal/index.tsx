@@ -2,39 +2,18 @@
 import React, { useState, useMemo } from "react";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
-import StatusBadge from "../../components/UI/StatusBadge";
-import { getSmartNotification } from "../../utils/auditLogic";
 import type { DocumentUploadStatus } from "../../types";
-import {
-  Upload,
-  Clock,
-  XCircle,
-  CheckCircle2,
-  Eye,
-  ChevronLeft,
-  Search,
-  FolderOpen,
-  AlertTriangle,
-  RotateCw,
-  Trash2,
-  ShieldCheck,
-} from "lucide-react";
-import DocumentPreviewModal from "../../components/UI/DocumentPreviewModal";
+import { FolderOpen } from "lucide-react";
 import s from "../../styles/pages.module.css";
-import { saveFile } from "../../utils/fileStorage";
-
-const docStatusVariant = (status: DocumentUploadStatus) => {
-  switch (status) {
-    case "Approved":
-      return "success" as const;
-    case "Uploaded":
-      return "info" as const;
-    case "Rejected":
-      return "error" as const;
-    default:
-      return "default" as const;
-  }
-};
+import DocumentDetailView from "../../features/document-portal/components/DocumentDetailView";
+import DocumentTable from "../../features/document-portal/components/DocumentTable";
+import PortalKpiRow from "../../features/document-portal/components/PortalKpiRow";
+import PortalFilters from "../../features/document-portal/components/PortalFilters";
+import {
+  PortalSignOffBar,
+  PortalActionRequiredBanner,
+} from "../../features/document-portal/components/PortalSignOff";
+import { useDocumentActions } from "../../features/document-portal/hooks/useDocumentActions";
 
 const DocumentPortalPage: React.FC<{
   auditId?: string;
@@ -45,12 +24,9 @@ const DocumentPortalPage: React.FC<{
   const lgas = useAuditStore((st) => st.lgas);
   const audits = useAuditStore((st) => st.audits);
   const documentUploads = useAuditStore((st) => st.documentUploads);
-  const reviewDocument = useAuditStore((st) => st.reviewDocument);
-  const addToast = useAuditStore((st) => st.addToast);
   const openModal = useAuditStore((st) => st.openModal);
   const ensureDocumentsExist = useAuditStore((st) => st.ensureDocumentsExist);
 
-  // If embedded, try to match the audit's mandate or LGA
   const parentAudit = auditId ? audits.find((a) => a.id === auditId) : null;
   const parentLgaId = parentAudit?.lgaId;
 
@@ -78,18 +54,15 @@ const DocumentPortalPage: React.FC<{
     user?.role === "AUDIT_LEAD" ||
     user?.role === "SYSTEM_ADMIN";
 
-  // Auditor General can only view, Audit Lead and Supervisor can approve
   const canApprove =
     user?.role === "AUDIT_LEAD" || user?.role === "AUDIT_SUPERVISOR";
 
   const isLGA = user?.role === "HEAD_OF_LOCAL_GOVERNMENT";
 
-  // Auto-generate documents if missing for current user context
   React.useEffect(() => {
     if (isLGA && user?.lgaId && selectedMandateId) {
       ensureDocumentsExist(selectedMandateId, user.lgaId);
     }
-    // Force re-check when entering document portal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMandateId, user?.lgaId]);
 
@@ -143,415 +116,57 @@ const DocumentPortalPage: React.FC<{
 
   const detailDoc = documentUploads.find((d) => d.id === detailDocId);
 
-  const handleFileChange = (
-    docId: string,
-    event: React.ChangeEvent<HTMLInputElement>,
-    docName: string,
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Immediately perform upload logic
-      performUpload(docId, docName, file);
-    }
-    // Clear input value to allow re-upload of same file if needed
-    event.target.value = "";
-  };
-
-  const performUpload = async (docId: string, docName: string, file: File) => {
-    await saveFile(docId, file);
-    const store = useAuditStore.getState();
-    store.reviewDocument(docId, "", false);
-    const doc = store.documentUploads.find((d) => d.id === docId);
-    if (doc) {
-      const idx = store.documentUploads.indexOf(doc);
-      const updated = [...store.documentUploads];
-
-      const finalFileName = file.name;
-      const finalFileSize = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
-
-      updated[idx] = {
-        ...doc,
-        status: "Uploaded",
-        fileName: finalFileName,
-        fileSize: finalFileSize,
-        uploadedBy: user?.id || "",
-        uploadedAt: new Date().toISOString(),
-        version: doc.version + 1,
-        reviewedBy: undefined,
-        reviewedAt: undefined,
-        rejectionReason: undefined,
-      };
-      useAuditStore.setState({ documentUploads: updated });
-    }
-
-    // Automation: Notify Audit Team
-    const notif = getSmartNotification("UPLOAD", docName);
-    addToast({
-      type: "success",
-      title: "Document Uploaded",
-      message: notif.message,
+  const { handleFileChange, triggerFileUpload, handleDelete, handleReview } =
+    useDocumentActions({
+      userId: user?.id || "",
+      rejectionReason,
+      setRejectionReason,
     });
-  };
-
-  const triggerFileUpload = (docId: string) => {
-    const input = document.getElementById(`file-input-${docId}`);
-    if (input) input.click();
-  };
-
-  const handleDelete = (docId: string) => {
-    const store = useAuditStore.getState();
-    const doc = store.documentUploads.find((d) => d.id === docId);
-
-    if (doc) {
-      openModal({
-        title: "Delete Document",
-        message:
-          "Are you sure you want to delete this file? The document status will revert to 'Not Uploaded'.",
-        confirmText: "Delete",
-        variant: "danger",
-        onConfirm: () => {
-          const idx = store.documentUploads.indexOf(doc);
-          const updated = [...store.documentUploads];
-          // Revert to initial state
-          updated[idx] = {
-            ...doc,
-            status: "Not Uploaded",
-            fileName: undefined,
-            fileSize: undefined,
-            uploadedBy: undefined,
-            uploadedAt: undefined,
-            reviewedBy: undefined,
-            reviewedAt: undefined,
-            rejectionReason: undefined,
-          };
-          useAuditStore.setState({ documentUploads: updated });
-          addToast({
-            type: "info",
-            title: "Document Deleted",
-            message: "File removed. You can upload a new version.",
-          });
-        },
-      });
-    }
-  };
-
-  const handleReview = (docId: string, approved: boolean) => {
-    if (!approved && !rejectionReason.trim()) {
-      addToast({
-        type: "error",
-        title: "Rejection Reason Required",
-        message: "Please provide a reason for rejection",
-      });
-      return;
-    }
-    reviewDocument(
-      docId,
-      user?.id || "",
-      approved,
-      approved ? undefined : rejectionReason,
-    );
-    setRejectionReason("");
-    if (approved) {
-      addToast({ type: "success", title: "Document Approved" });
-    } else {
-      addToast({
-        type: "warning",
-        title: "Document Rejected",
-        message: "LGA will be notified to re-upload",
-      });
-    }
-  };
 
   if (detailDoc) {
     const lga = lgas.find((l) => l.id === detailDoc.lgaId);
     return (
-      <div>
-        <button
-          className={s.btnOutline}
-          style={{ marginBottom: "1.5rem" }}
-          onClick={() => {
-            setDetailDocId(null);
-            setRejectionReason("");
-          }}
-        >
-          <ChevronLeft size={14} /> Back to Portal
-        </button>
-
-        <div className={s.pageHeader}>
-          <div>
-            <h1 className={s.pageTitle}>{detailDoc.documentName}</h1>
-            <p className={s.pageSubtitle}>
-              {lga?.name} | Due:{" "}
-              {new Date(detailDoc.dueDate).toLocaleDateString()}
-            </p>
-          </div>
-          <StatusBadge
-            label={detailDoc.status}
-            variant={docStatusVariant(detailDoc.status)}
-          />
-        </div>
-
-        <div className={s.gridTwoCols}>
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Document Details</h3>
-            </div>
-            <div className={s.cardBody}>
-              <div className={s.detailRow}>
-                <span className={s.detailLabel}>Description</span>
-                <span className={s.detailValue}>{detailDoc.description}</span>
-              </div>
-              <div className={s.detailRow}>
-                <span className={s.detailLabel}>Required Format</span>
-                <span className={s.detailValue}>
-                  {detailDoc.requiredFormat}
-                </span>
-              </div>
-              <div className={s.detailRow}>
-                <span className={s.detailLabel}>Version</span>
-                <span className={s.detailValue}>v{detailDoc.version}</span>
-              </div>
-              <div className={s.detailRow}>
-                <span className={s.detailLabel}>Due Date</span>
-                <span className={s.detailValue}>
-                  {new Date(detailDoc.dueDate).toLocaleDateString()}
-                </span>
-              </div>
-              {detailDoc.fileName && (
-                <>
-                  <div className={s.detailRow}>
-                    <span className={s.detailLabel}>File Name</span>
-                    <span className={s.detailValue}>
-                      <div className="flex items-center gap-2">
-                        {detailDoc.fileName}
-                        <button
-                          onClick={() =>
-                            setPreviewDoc({
-                              id: detailDoc.id,
-                              name: detailDoc.documentName,
-                              type: detailDoc.requiredFormat,
-                              uploadedBy: detailDoc.uploadedBy,
-                              uploadedAt:
-                                detailDoc.uploadedAt ||
-                                new Date().toISOString(),
-                              size: detailDoc.fileSize,
-                              fileName: detailDoc.fileName,
-                            })
-                          }
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 rounded-md border border-blue-200 shadow-sm transition-all"
-                          title="Preview Document"
-                        >
-                          <Eye size={14} /> Preview
-                        </button>
-                      </div>
-                    </span>
-                  </div>
-                  <div className={s.detailRow}>
-                    <span className={s.detailLabel}>File Size</span>
-                    <span className={s.detailValue}>{detailDoc.fileSize}</span>
-                  </div>
-                  <div className={s.detailRow}>
-                    <span className={s.detailLabel}>Uploaded At</span>
-                    <span className={s.detailValue}>
-                      {detailDoc.uploadedAt
-                        ? new Date(detailDoc.uploadedAt).toLocaleString()
-                        : "-"}
-                    </span>
-                  </div>
-                </>
-              )}
-              {detailDoc.rejectionReason && (
-                <div className={s.detailRow}>
-                  <span className={s.detailLabel}>Rejection Reason</span>
-                  <span className={s.detailValue} style={{ color: "#dc2626" }}>
-                    {detailDoc.rejectionReason}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={s.card}>
-            <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>Actions</h3>
-            </div>
-            <div
-              className={s.cardBody}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                flexGrow: 1,
-              }}
-            >
-              {isLGA &&
-                (detailDoc.status === "Not Uploaded" ||
-                  detailDoc.status === "Rejected") && (
-                  <div style={{ marginBottom: "1.5rem" }}>
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "var(--text-2)",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      Upload your document in {detailDoc.requiredFormat} format.
-                      {detailDoc.status === "Rejected" &&
-                        " Please address the rejection feedback before re-uploading."}
-                    </p>
-                    <button
-                      className={s.btnPrimary}
-                      onClick={() => triggerFileUpload(detailDoc.id)}
-                    >
-                      <Upload size={14} />{" "}
-                      {detailDoc.status === "Rejected"
-                        ? "Re-Upload Document"
-                        : "Upload Document"}
-                    </button>
-                  </div>
-                )}
-
-              {isLGA && detailDoc.status === "Uploaded" && (
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      color: "#0369a1",
-                      fontSize: "0.85rem",
-                      fontWeight: 600,
-                      marginBottom: "1rem",
-                    }}
-                  >
-                    <Clock size={16} /> Pending Review by Audit Team
-                  </div>
-                  <div style={{ display: "flex", gap: "1rem" }}>
-                    <button
-                      className={s.btnSecondary}
-                      onClick={() => triggerFileUpload(detailDoc.id)}
-                    >
-                      <RotateCw size={14} /> Re-Upload Document
-                    </button>
-                    <button
-                      className={s.btnDanger}
-                      onClick={() => handleDelete(detailDoc.id)}
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {isAdmin && canApprove && detailDoc.status === "Uploaded" && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    flexGrow: 1,
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "var(--text-2)",
-                      marginBottom: "1rem",
-                    }}
-                  >
-                    Review the uploaded document and approve or reject with
-                    feedback.
-                  </p>
-                  <div
-                    style={{
-                      marginBottom: "1rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      flexGrow: 1,
-                    }}
-                  >
-                    <label className={s.formLabel}>
-                      Rejection Reason (if rejecting)
-                    </label>
-                    <textarea
-                      className={s.formTextarea}
-                      style={{
-                        flexGrow: 1,
-                        minHeight: "150px",
-                        resize: "none",
-                      }}
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      placeholder="Provide specific feedback on what needs to be corrected"
-                    />
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "0.75rem",
-                      flexShrink: 0,
-                      marginTop: "auto",
-                    }}
-                  >
-                    <button
-                      className={s.btnPrimary}
-                      onClick={() => handleReview(detailDoc.id, true)}
-                    >
-                      <CheckCircle2 size={14} /> Approve
-                    </button>
-                    <button
-                      className={s.btnDanger}
-                      onClick={() => handleReview(detailDoc.id, false)}
-                    >
-                      <XCircle size={14} /> Reject
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {isAdmin && !canApprove && detailDoc.status === "Uploaded" && (
-                <div
-                  style={{
-                    padding: "1rem",
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "4px",
-                    color: "#64748b",
-                    fontSize: "0.85rem",
-                    fontStyle: "italic",
-                  }}
-                >
-                  You are in view-only mode. Only Audit Leads and Supervisors
-                  can approve documents.
-                </div>
-              )}
-
-              {detailDoc.status === "Approved" && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    color: "#16a34a",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  <CheckCircle2 size={16} /> Document Approved
-                  {detailDoc.reviewedAt &&
-                    ` on ${new Date(detailDoc.reviewedAt).toLocaleDateString()}`}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        {previewDoc && (
-          <DocumentPreviewModal
-            document={previewDoc}
-            onClose={() => setPreviewDoc(null)}
-          />
-        )}
-      </div>
+      <DocumentDetailView
+        detailDoc={detailDoc}
+        lga={lga}
+        isLGA={isLGA}
+        isAdmin={isAdmin}
+        canApprove={canApprove}
+        rejectionReason={rejectionReason}
+        setRejectionReason={setRejectionReason}
+        previewDoc={previewDoc}
+        setPreviewDoc={setPreviewDoc}
+        onBack={() => {
+          setDetailDocId(null);
+          setRejectionReason("");
+        }}
+        onTriggerUpload={triggerFileUpload}
+        onDelete={handleDelete}
+        onReview={handleReview}
+      />
     );
   }
+
+  const scopedAudit =
+    canApprove && selectedLgaId !== "all"
+      ? audits.find(
+          (a) => a.mandateId === selectedMandateId && a.lgaId === selectedLgaId,
+        )
+      : null;
+
+  const docsForLga = scopedAudit
+    ? allMandateDocs.filter((d) => d.lgaId === selectedLgaId)
+    : [];
+
+  const allUploadedOrApproved =
+    docsForLga.length > 0 &&
+    docsForLga.every((d) => d.status === "Approved" || d.status === "Uploaded");
+
+  const showActionBanner =
+    !!scopedAudit &&
+    docsForLga.length > 0 &&
+    allUploadedOrApproved &&
+    !scopedAudit.documentsSignedOff;
 
   return (
     <div>
@@ -571,352 +186,65 @@ const DocumentPortalPage: React.FC<{
         </div>
       )}
 
-      {/* Notifications Area */}
-      {(() => {
-        if (!canApprove || selectedLgaId === "all") return null;
-        const audit = audits.find(
-          (a) => a.mandateId === selectedMandateId && a.lgaId === selectedLgaId,
-        );
-        if (!audit) return null;
+      {showActionBanner && <PortalActionRequiredBanner />}
 
-        const docsForLga = allMandateDocs.filter(
-          (d) => d.lgaId === selectedLgaId,
-        );
-        if (docsForLga.length === 0) return null;
+      <PortalKpiRow {...kpis} />
 
-        const allUploadedOrApproved = docsForLga.every(
-          (d) => d.status === "Approved" || d.status === "Uploaded",
-        );
-
-        if (allUploadedOrApproved && !audit.documentsSignedOff) {
-          return (
-            <div
-              style={{
-                backgroundColor: "#fff3cd",
-                border: "1px solid #fde047",
-                color: "#991b1b",
-                padding: "1rem",
-                borderRadius: "8px",
-                marginBottom: "1.5rem",
-                display: "flex",
-                gap: "0.75rem",
-                alignItems: "center",
-              }}
-            >
-              <AlertTriangle size={20} />
-              <div>
-                <strong>Action Required:</strong> All documents have been
-                received. Please review the documents and initiate the sign-off
-                process below.
-              </div>
-            </div>
-          );
-        }
-        return null;
-      })()}
-
-      <div className={s.kpiRow}>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconBlue}>
-            <FolderOpen size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Total Documents</div>
-            <div className={s.kpiValue}>{kpis.total}</div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconGreen}>
-            <CheckCircle2 size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Approved</div>
-            <div className={s.kpiValue}>{kpis.approved}</div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconAmber}>
-            <Clock size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Pending Review</div>
-            <div className={s.kpiValue}>{kpis.uploaded}</div>
-          </div>
-        </div>
-        <div className={s.kpiCard}>
-          <div className={s.kpiIconPurple}>
-            <AlertTriangle size={20} />
-          </div>
-          <div>
-            <div className={s.kpiLabel}>Rejected / Not Uploaded</div>
-            <div className={s.kpiValue}>{kpis.rejected + kpis.notUploaded}</div>
-          </div>
-        </div>
-      </div>
-
-      {canApprove &&
-        selectedLgaId !== "all" &&
-        (() => {
-          const audit = audits.find(
-            (a) =>
-              a.mandateId === selectedMandateId && a.lgaId === selectedLgaId,
-          );
-          if (!audit) return null;
-
-          const docsForLga = allMandateDocs.filter(
-            (d) => d.lgaId === selectedLgaId,
-          );
-          const allUploadedOrApproved =
-            docsForLga.length > 0 &&
-            docsForLga.every(
-              (d) => d.status === "Approved" || d.status === "Uploaded",
-            );
-
-          return (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginBottom: "1rem",
-              }}
-            >
-              <button
-                className={`${s.btnPrimary} ${audit.documentsSignedOff ? s.btnSuccess : ""}`}
-                disabled={audit.documentsSignedOff || !allUploadedOrApproved}
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to sign-off and attest that all required documents have been received for this audit? This action cannot be undone.",
-                    )
-                  ) {
-                    useAuditStore
-                      .getState()
-                      .signOffDocuments(audit.id, user.id);
-                  }
-                }}
-                style={{
-                  opacity:
-                    audit.documentsSignedOff || !allUploadedOrApproved
-                      ? 0.6
-                      : 1,
-                }}
-              >
-                {audit.documentsSignedOff ? (
-                  <>
-                    <CheckCircle2 size={16} /> Signed-Off By Lead
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck size={16} /> Sign-Off & Attest Documents
-                  </>
-                )}
-              </button>
-            </div>
-          );
-        })()}
+      {scopedAudit && (
+        <PortalSignOffBar
+          signedOff={!!scopedAudit.documentsSignedOff}
+          canSignOff={allUploadedOrApproved}
+          onSignOff={() => {
+            if (
+              window.confirm(
+                "Are you sure you want to sign-off and attest that all required documents have been received for this audit? This action cannot be undone.",
+              )
+            ) {
+              useAuditStore
+                .getState()
+                .signOffDocuments(scopedAudit.id, user!.id);
+            }
+          }}
+        />
+      )}
 
       <div className={s.card}>
-        <div className={s.cardHeader}>
-          <div className={s.filterBar}>
-            <select
-              className={s.formSelect}
-              value={selectedMandateId}
-              onChange={(e) => setSelectedMandateId(e.target.value)}
-              style={{ width: 260 }}
-            >
-              {mandates.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.title} ({m.auditYear})
-                </option>
-              ))}
-            </select>
-            {!isLGA && (
-              <select
-                className={s.formSelect}
-                value={selectedLgaId}
-                onChange={(e) => setSelectedLgaId(e.target.value)}
-                style={{ width: 200 }}
-              >
-                <option value="all">All Councils</option>
-                {lgas.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <select
-              className={s.formSelect}
-              value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as DocumentUploadStatus | "All")
-              }
-              style={{ width: "160px" }}
-            >
-              {["All", "Not Uploaded", "Uploaded", "Approved", "Rejected"].map(
-                (f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ),
-              )}
-            </select>
-          </div>
-          <div className={s.searchContainer}>
-            <Search size={14} className={s.searchIcon} />
-            <input
-              className={s.searchInput}
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className={s.cardBody} style={{ padding: 0 }}>
-          {filteredDocs.length === 0 ? (
-            <div className={s.emptyState}>
-              <FolderOpen size={40} className={s.emptyIcon} />
-              <div className={s.emptyTitle}>No Documents Found</div>
-              <div className={s.emptyDesc}>
-                {searchQuery
-                  ? "Try adjusting your search or filters."
-                  : "No documents match the current filter criteria."}
-              </div>
-            </div>
-          ) : (
-            <div className={s.tableWrap}>
-              <table className={s.table}>
-                <thead>
-                  <tr>
-                    {!isLGA && !embedded && <th>Council</th>}
-                    <th>Document</th>
-                    <th>Format</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDocs.map((doc) => {
-                    const lga = lgas.find((l) => l.id === doc.lgaId);
-                    return (
-                      <tr key={doc.id}>
-                        {!isLGA && !embedded && (
-                          <td style={{ fontWeight: 600 }}>
-                            {lga?.name || doc.lgaId}
-                          </td>
-                        )}
-                        <td>
-                          <div style={{ fontWeight: 600 }}>
-                            {doc.documentName}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "var(--text-3)",
-                              marginTop: "0.15rem",
-                            }}
-                          >
-                            {doc.description.slice(0, 60)}
-                            {doc.description.length > 60 ? "..." : ""}
-                          </div>
-                        </td>
-                        <td>{doc.requiredFormat}</td>
-                        <td>
-                          <div className={s.tableActions}>
-                            {/* Hidden file input */}
-                            <input
-                              type="file"
-                              id={`file-input-${doc.id}`}
-                              style={{ display: "none" }}
-                              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
-                              onChange={(e) =>
-                                handleFileChange(doc.id, e, doc.documentName)
-                              }
-                            />
-
-                            <button
-                              className={s.btnIcon}
-                              title="View Details"
-                              onClick={() => setDetailDocId(doc.id)}
-                            >
-                              <Eye size={14} />
-                            </button>
-                            {isLGA &&
-                              (doc.status === "Not Uploaded" ||
-                                doc.status === "Rejected") && (
-                                <button
-                                  className={`${s.btnPrimary} ${s.btnSmall}`}
-                                  // Trigger the hidden file input
-                                  onClick={() => triggerFileUpload(doc.id)}
-                                >
-                                  <Upload size={12} /> Upload
-                                </button>
-                              )}
-                            {isLGA && doc.status === "Uploaded" && (
-                              <>
-                                <button
-                                  className={`${s.btnSecondary} ${s.btnSmall}`}
-                                  title="Replace File"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    triggerFileUpload(doc.id);
-                                  }}
-                                  style={{ marginRight: "0.5rem" }}
-                                >
-                                  <RotateCw size={12} />
-                                </button>
-                                <button
-                                  className={`${s.btnDanger} ${s.btnSmall}`}
-                                  title="Delete"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(doc.id);
-                                  }}
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </>
-                            )}
-                            {isAdmin &&
-                              canApprove &&
-                              doc.status === "Uploaded" && (
-                                <>
-                                  <button
-                                    className={`${s.btnPrimary} ${s.btnSmall}`}
-                                    onClick={() => {
-                                      openModal({
-                                        title: "Approve Document",
-                                        message: `Approve "${doc.documentName}" from ${lga?.name || doc.lgaId}?`,
-                                        confirmText: "Approve",
-                                        variant: "info",
-                                        onConfirm: () =>
-                                          handleReview(doc.id, true),
-                                      });
-                                    }}
-                                  >
-                                    <CheckCircle2 size={12} />
-                                  </button>
-                                  <button
-                                    className={`${s.btnDanger} ${s.btnSmall}`}
-                                    onClick={() => setDetailDocId(doc.id)}
-                                    title="Reject with feedback"
-                                  >
-                                    <XCircle size={12} />
-                                  </button>
-                                </>
-                              )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        <div className={s.cardFooter}>
-          Showing {filteredDocs.length} of {allMandateDocs.length} documents
-        </div>
+        <PortalFilters
+          mandates={mandates}
+          lgas={lgas}
+          isLGA={isLGA}
+          selectedMandateId={selectedMandateId}
+          selectedLgaId={selectedLgaId}
+          statusFilter={statusFilter}
+          searchQuery={searchQuery}
+          onMandateChange={setSelectedMandateId}
+          onLgaChange={setSelectedLgaId}
+          onStatusChange={setStatusFilter}
+          onSearchChange={setSearchQuery}
+        />
+        <DocumentTable
+          filteredDocs={filteredDocs}
+          allMandateDocsCount={allMandateDocs.length}
+          lgas={lgas}
+          isLGA={isLGA}
+          isAdmin={isAdmin}
+          canApprove={canApprove}
+          embedded={embedded}
+          searchQuery={searchQuery}
+          onOpenDetail={setDetailDocId}
+          onTriggerUpload={triggerFileUpload}
+          onDelete={handleDelete}
+          onFileChange={handleFileChange}
+          onApprove={(doc, lgaName) =>
+            openModal({
+              title: "Approve Document",
+              message: `Approve "${doc.documentName}" from ${lgaName}?`,
+              confirmText: "Approve",
+              variant: "info",
+              onConfirm: () => handleReview(doc.id, true),
+            })
+          }
+        />
       </div>
     </div>
   );
