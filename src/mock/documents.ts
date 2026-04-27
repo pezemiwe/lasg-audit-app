@@ -1,7 +1,4 @@
-import type {
-  DocumentUpload,
-  StageApproval,
-} from "../types";
+import type { DocumentUpload, StageApproval } from "../types";
 
 export const SEED_DOCUMENT_UPLOADS: DocumentUpload[] = [
   {
@@ -189,6 +186,43 @@ export const SEED_DOCUMENT_UPLOADS: DocumentUpload[] = [
   },
   {
     id: "doc-13",
+    lgaId: "lga-4",
+    mandateId: "mandate-1",
+    documentName: "Payment Vouchers",
+    description:
+      "Payment vouchers and supporting expenditure documentation for the audit period",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-02-28",
+  },
+  {
+    id: "doc-14",
+    lgaId: "lga-4",
+    mandateId: "mandate-1",
+    documentName: "Budget Implementation Report",
+    description:
+      "Quarterly and annual budget performance reports showing actual versus approved expenditure",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-02-28",
+  },
+  {
+    id: "doc-15",
+    lgaId: "lga-4",
+    mandateId: "mandate-1",
+    documentName: "Management Letter Responses",
+    description:
+      "LGA responses to previous audit management letters and outstanding audit queries",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-02-28",
+  },
+  // lga-1 (Agege) — full 15-document set
+  {
+    id: "lga1-doc-1",
     lgaId: "lga-1",
     mandateId: "mandate-1",
     documentName: "Annual Financial Statements",
@@ -200,7 +234,7 @@ export const SEED_DOCUMENT_UPLOADS: DocumentUpload[] = [
     dueDate: "2026-03-15",
   },
   {
-    id: "doc-14",
+    id: "lga1-doc-2",
     lgaId: "lga-1",
     mandateId: "mandate-1",
     documentName: "Approved Budget",
@@ -211,11 +245,152 @@ export const SEED_DOCUMENT_UPLOADS: DocumentUpload[] = [
     dueDate: "2026-03-15",
   },
   {
-    id: "doc-15",
+    id: "lga1-doc-3",
     lgaId: "lga-1",
     mandateId: "mandate-1",
     documentName: "Bank Statements",
     description: "Bank statements for all LGA accounts covering 12 months",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-4",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Staff Establishment and Payroll Records",
+    description:
+      "Complete staff list with grades, positions, and 12-month payroll records",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-5",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Revenue Collection Records",
+    description: "IGR collection records, receipts, and revenue schedules",
+    requiredFormat: "Excel/PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-6",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Capital Project Files",
+    description:
+      "Contract documents, project files, and completion certificates for all capital projects",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-7",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Procurement Records",
+    description:
+      "Procurement documentation, bid evaluations, due process certificates, and contract awards",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-8",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Fixed Asset Register",
+    description:
+      "Complete fixed asset register with acquisition details, locations, and current values",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-9",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Tenders Board Minutes",
+    description:
+      "Minutes of Tenders Board and Finance Committee meetings for the audit period",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-10",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Internal Audit Reports",
+    description:
+      "Internal audit reports and management responses for the audit period",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-11",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Cash Books and Ledgers",
+    description: "Complete cash books and general ledger for all LGA accounts",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-12",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Previous Audit Reports",
+    description: "Previous external audit reports and management responses",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-13",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Payment Vouchers",
+    description:
+      "Payment vouchers and supporting expenditure documentation for the audit period",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-14",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Budget Implementation Report",
+    description:
+      "Quarterly and annual budget performance reports showing actual versus approved expenditure",
+    requiredFormat: "PDF",
+    status: "Not Uploaded",
+    version: 0,
+    dueDate: "2026-03-15",
+  },
+  {
+    id: "lga1-doc-15",
+    lgaId: "lga-1",
+    mandateId: "mandate-1",
+    documentName: "Management Letter Responses",
+    description:
+      "LGA responses to previous audit management letters and outstanding audit queries",
     requiredFormat: "PDF",
     status: "Not Uploaded",
     version: 0,
@@ -311,4 +486,3 @@ export const SEED_STAGE_APPROVALS: StageApproval[] = [
       "Entry meeting notes are incomplete. Please document the agreed document submission timeline and add the LGA's feedback on scope areas.",
   },
 ];
-

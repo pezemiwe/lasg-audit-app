@@ -29,13 +29,9 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({
   );
 
   return (
-    <div className={s.modalOverlay} onClick={onClose}>
-      <div
-        className={s.modalContent}
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: "400px" }}
-      >
-        <div className={s.modalHeader}>
+    <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "2rem 1rem", overflowY: "auto" }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: "white", borderRadius: "8px", width: "100%", maxWidth: "500px", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" }}>
+        <div style={{ padding: "1.5rem", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h3>Assign Audit Lead to {lga.name}</h3>
           <button
             onClick={onClose}
@@ -50,7 +46,7 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({
         </div>
 
         <div style={{ padding: "1rem" }}>
-          <div className={s.searchBox}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem", border: "1px solid #e2e8f0", borderRadius: "6px", background: "#f8fafc", }}>
             <Search size={16} />
             <input
               type="text"

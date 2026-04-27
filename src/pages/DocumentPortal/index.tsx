@@ -60,11 +60,15 @@ const DocumentPortalPage: React.FC<{
   const isLGA = user?.role === "HEAD_OF_LOCAL_GOVERNMENT";
 
   React.useEffect(() => {
-    if (isLGA && user?.lgaId && selectedMandateId) {
+    if (!selectedMandateId) return;
+    if (isLGA && user?.lgaId) {
       ensureDocumentsExist(selectedMandateId, user.lgaId);
+    } else if (!isLGA && selectedLgaId !== "all") {
+      // Admin/lead users: ensure the selected LGA has the full document set
+      ensureDocumentsExist(selectedMandateId, selectedLgaId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMandateId, user?.lgaId]);
+  }, [selectedMandateId, user?.lgaId, selectedLgaId]);
 
   const filteredDocs = useMemo(() => {
     let docs = documentUploads.filter((d) => d.mandateId === selectedMandateId);
@@ -99,6 +103,19 @@ const DocumentPortalPage: React.FC<{
     () => documentUploads.filter((d) => d.mandateId === selectedMandateId),
     [documentUploads, selectedMandateId],
   );
+
+  // LGA-scoped count for the "Showing X of Y" footer — scoped to the selected LGA
+  // (or the logged-in LGA user's own LGA) rather than the cross-LGA mandate total.
+  const scopedDocsCount = useMemo(() => {
+    const lgaId =
+      isLGA && user?.lgaId
+        ? user.lgaId
+        : selectedLgaId !== "all"
+          ? selectedLgaId
+          : null;
+    if (lgaId) return allMandateDocs.filter((d) => d.lgaId === lgaId).length;
+    return allMandateDocs.length;
+  }, [allMandateDocs, isLGA, user, selectedLgaId]);
 
   const kpis = useMemo(() => {
     const target =
@@ -224,7 +241,7 @@ const DocumentPortalPage: React.FC<{
         />
         <DocumentTable
           filteredDocs={filteredDocs}
-          allMandateDocsCount={allMandateDocs.length}
+          allMandateDocsCount={scopedDocsCount}
           lgas={lgas}
           isLGA={isLGA}
           isAdmin={isAdmin}

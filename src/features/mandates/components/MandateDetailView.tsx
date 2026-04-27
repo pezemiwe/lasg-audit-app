@@ -22,7 +22,6 @@ const MandateDetailView: React.FC<{
   const navigate = useNavigate();
   const lgas = useAuditStore((st) => st.lgas);
   const publishMandate = useAuditStore((st) => st.publishMandate);
-  const updateMandateStatus = useAuditStore((st) => st.updateMandateStatus);
   const acceptMandate = useAuditStore((st) => st.acceptMandate);
   const openModal = useAuditStore((st) => st.openModal);
 
@@ -68,8 +67,6 @@ const MandateDetailView: React.FC<{
       onConfirm: () => {
         if (user?.lgaId) {
           acceptMandate(id, user.lgaId);
-        } else {
-          updateMandateStatus(id, "Active");
         }
       },
     });
@@ -130,8 +127,9 @@ const MandateDetailView: React.FC<{
               </div>
             )}
           {user?.role === "HEAD_OF_LOCAL_GOVERNMENT" &&
-            mandate.status === "Published" &&
-            (!user.lgaId || !mandate.acceptedByLgas?.includes(user.lgaId)) && (
+            user.lgaId &&
+            !mandate.acceptedByLgas?.includes(user.lgaId) &&
+            (mandate.status === "Published" || mandate.status === "Active") && (
               <button
                 className={s.btnPrimary}
                 onClick={() => handleAccept(mandate.id)}

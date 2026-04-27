@@ -3,6 +3,15 @@ import { ADDITIONAL_SUPERVISORS } from "./moreUsers";
 import { GENERATED_USERS } from "./generatedData";
 
 export const MOCK_USERS: User[] = [
+  {
+    id: "user-jide-johnson",
+    name: "Alh. Jide Johnson",
+    email: "jide.johnson@lasg.gov.ng",
+    role: "AUDIT_LEAD",
+    zoneId: "zone-2",
+    specialisations: ["Financial", "Compliance"],
+    phone: "+234 803 123 4567",
+  },
   ...ADDITIONAL_SUPERVISORS,
   {
     id: "user-sysadmin",

@@ -199,7 +199,6 @@ const DashboardLayout: React.FC = () => {
       items: [
         { to: "/mandates", icon: Shield, label: "Mandates" },
         { to: "/zones", icon: MapPin, label: "Zones" },
-        { to: "/team", icon: Users, label: "Team" },
         { to: "/audit-outcomes", icon: FileCheck, label: "Audit Outcomes" },
       ],
     });

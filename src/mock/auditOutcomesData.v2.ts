@@ -3,7 +3,7 @@
    ==================================================================
 
    KEY CHANGES vs v1:
-   - Outcome now belongs to mandate-4 FY2023 (Completed audits) — realistic demo stage
+   - Outcome now belongs to mandate-3 FY2023 (Completed audits) — realistic demo stage
    - All consolidated sub-documents arrive PRE-SIGNED by Lead + Supervisor
      (only the Auditor-General's final signature remains, for the demo moment)
    - Materiality is approved and locked
@@ -57,7 +57,6 @@ const STUB_SIG_PNG =
   "8EsS0V7oE2Q2ASYpJ/EaF6UGLCKJRkhJ/DwDXrxWaQJfMd4BKOBWWBdRU6kA" +
   "AAAASUVORK5CYII=";
 
-
 const SIG_TREASURER: SignatureBlock = {
   role: "TREASURER",
   name: "Mr. Bamidele Adekunle",
@@ -90,7 +89,6 @@ const SIG_AG_EMPTY: SignatureBlock = {
   name: "",
   title: "Auditor-General for Local Governments",
 };
-
 
 export const SEED_TRIAL_BALANCE_V2: TrialBalance = {
   id: "tb-2025-consol",
@@ -230,7 +228,6 @@ export const SEED_TRIAL_BALANCE_V2: TrialBalance = {
   ],
 };
 
-
 const PBT = SEED_TRIAL_BALANCE_V2.profitBeforeTax; // 11.35bn
 
 export const SEED_MATERIALITY_CALC_V2: MaterialityCalc = {
@@ -254,7 +251,6 @@ export const SEED_MATERIALITY_CALC_V2: MaterialityCalc = {
   locked: true,
 };
 
-
 export const SEED_STATEMENT_OF_RESPONSIBILITY_V2: StatementOfResponsibility = {
   id: "sor-2025-lasg",
   auditOutcomeId: OUTCOME_ID,
@@ -267,7 +263,6 @@ export const SEED_STATEMENT_OF_RESPONSIBILITY_V2: StatementOfResponsibility = {
   status: "Signed",
   updatedAt: NOW,
 };
-
 
 const STATE_REPORT_SECTIONS: AuditReportSection[] = [
   {
@@ -345,7 +340,6 @@ export const SEED_AUDIT_REPORT_STATE_V2: AuditReportDocument = {
   status: "Ready for Review",
   updatedAt: NOW,
 };
-
 
 export const SEED_ACCOUNTING_POLICIES_V2: AccountingPolicies = {
   id: "ap-2025-lasg",
@@ -437,7 +431,6 @@ export {
   SEED_CONSOL_CASHFLOW as SEED_CONSOL_CASHFLOW_V2,
   SEED_CONSOL_NOTES as SEED_CONSOL_NOTES_V2,
 } from "./auditOutcomesData";
-
 
 const REPRESENTATIVE_LGAS: Array<{ id: string; name: string; weight: number }> =
   [
@@ -935,11 +928,10 @@ export const SEED_LGA_PACKAGES_V2: LgaAuditPackage[] = REPRESENTATIVE_LGAS.map(
   }),
 );
 
-
 export const SEED_AUDIT_OUTCOMES_V2: AuditOutcome[] = [
   {
     id: OUTCOME_ID,
-    mandateId: "mandate-4", // FY2023 mandate — Completed cycle
+    mandateId: "mandate-3", // FY2023 — Annual Audit of Local Government Accounts
     auditId: "audit-9",
     auditYear: 2025,
     title: "Lagos State Local Governments — Audited Financial Statements 2025",

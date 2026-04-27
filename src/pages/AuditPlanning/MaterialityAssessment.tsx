@@ -940,7 +940,7 @@ export const MaterialityAssessment: React.FC = () => {
             <strong>Methodology (ISA 320):</strong> Overall Materiality = 5% x
             PBT. Performance Materiality = 70% of Overall. Trivial / De-minimis
             = 5% of Performance. Items selected for substantive testing where
-            (i) analytical review variance &ge; 10%, (ii) balance exceeds
+            (i) analytical review variance is 10% or more, (ii) balance exceeds
             Performance Materiality, or (iii) judgemental selection applies.
           </p>
         </div>
@@ -1259,18 +1259,18 @@ export const MaterialityAssessment: React.FC = () => {
                         const vs =
                           row.current >= OVERALL_MAT
                             ? {
-                                label: "> Overall",
+                                label: "Exceeds Overall",
                                 bg: "#fee2e2",
                                 text: "#b91c1c",
                               }
                             : row.current >= PERF_MAT
                               ? {
-                                  label: "> Perf.",
+                                  label: "Exceeds Perf.",
                                   bg: "#fef3c7",
                                   text: "#92400e",
                                 }
                               : {
-                                  label: "< Trivial",
+                                  label: "Below Trivial",
                                   bg: "#f0fdf4",
                                   text: "#166534",
                                 };
@@ -1518,7 +1518,7 @@ export const MaterialityAssessment: React.FC = () => {
                   const matRisk = row.current >= PERF_MAT;
                   const rationale =
                     varRisk && matRisk
-                      ? "Both analytical review threshold (>=10%) and Performance Materiality exceeded. Mandatory deep substantive testing required."
+                      ? "Both analytical review threshold (10% or more) and Performance Materiality exceeded. Mandatory deep substantive testing required."
                       : varRisk
                         ? `Significant year-on-year variance of ${fmtPct(row.pct)} triggers analytical review procedures.`
                         : matRisk
@@ -1563,7 +1563,7 @@ export const MaterialityAssessment: React.FC = () => {
                               fontWeight: 700,
                             }}
                           >
-                            &ge;10% Delta
+                            10% or more Delta
                           </span>
                         ) : (
                           <span

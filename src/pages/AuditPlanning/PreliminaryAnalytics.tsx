@@ -1183,7 +1183,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 marginTop: "0.2rem",
               }}
             >
-              Accounts with &ge;10% movement
+              Accounts with 10% or more movement
             </div>
           </div>
         </div>

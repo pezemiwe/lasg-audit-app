@@ -237,7 +237,7 @@ LGAS.forEach((council) => {
   if (council.auditLeadId) return;
   const targetLgaId = council.parentLgaId || council.id;
   const leadId = LEAD_BY_LGA_ID.get(targetLgaId);
-  if (leadId) council.auditLeadId = leadId;
+  if (leadId && council.zoneId !== "zone-4" && council.zoneId !== "zone-1") council.auditLeadId = leadId;
 });
 
 // -- Generated Audits — one per council under FY2025 mandate ---------------

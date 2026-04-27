@@ -6,7 +6,15 @@ import s from "../../../styles/pages.module.css";
 import PlanningCard from "./PlanningCard";
 import { type ArDocType } from "../constants";
 import { fmtCurrency } from "../utils/format";
-import { MOCK_FS, MOCK_TB, AR_FS_SECTIONS, AR_FS_LABELS, AR_TB_SECTIONS, AR_TB_LABELS, type ArRow } from "../arMockData";
+import {
+  MOCK_FS,
+  MOCK_TB,
+  AR_FS_SECTIONS,
+  AR_FS_LABELS,
+  AR_TB_SECTIONS,
+  AR_TB_LABELS,
+  type ArRow,
+} from "../arMockData";
 
 const arFmt = (n: number) =>
   n === 0
@@ -537,239 +545,6 @@ const AnalyticalReviewStep: React.FC<{
           </div>
 
           <div className={s.cardBody}>
-            <div
-              style={{
-                padding: "0.75rem 1rem",
-                borderRadius: "6px",
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                marginBottom: "1.5rem",
-                fontSize: "0.82rem",
-                color: "#1e40af",
-                lineHeight: 1.6,
-              }}
-            >
-              <strong>ISA 520 Methodology:</strong> Each line item is
-              automatically classified as <strong>Performance</strong> (CY value
-              &ge; Performance Materiality), <strong>Subjective</strong> (|Δ%|
-              &ge; your subjective threshold), or manually marked as{" "}
-              <strong>Special</strong> by the auditor.
-            </div>
-
-            {/* ── Selection Criteria Panel (table mode only) ── */}
-            {viewMode === "table" && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "0.75rem",
-                  marginBottom: "1.5rem",
-                }}
-              >
-                {/* Performance card */}
-                <div
-                  style={{
-                    padding: "0.875rem 1rem",
-                    borderRadius: "8px",
-                    background: "#eff6ff",
-                    border: "1px solid #bfdbfe",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                      marginBottom: "0.35rem",
-                    }}
-                  >
-                    <span
-                      style={{
-                        padding: "0.15rem 0.55rem",
-                        borderRadius: "10px",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        background: "#2563eb",
-                        color: "white",
-                      }}
-                    >
-                      Performance
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.68rem",
-                        fontWeight: 700,
-                        color: "#1e40af",
-                      }}
-                    >
-                      Auto
-                    </span>
-                  </div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "0.74rem",
-                      color: "#334155",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    CY value &ge; Performance Materiality (
-                    {fmtCurrency(performanceMateriality)}). Auto-assigned.
-                  </p>
-                </div>
-
-                {/* Subjective card */}
-                <div
-                  style={{
-                    padding: "0.875rem 1rem",
-                    borderRadius: "8px",
-                    background: "#fffbeb",
-                    border: "1px solid #fde68a",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                      marginBottom: "0.35rem",
-                    }}
-                  >
-                    <span
-                      style={{
-                        padding: "0.15rem 0.55rem",
-                        borderRadius: "10px",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        background: "#d97706",
-                        color: "white",
-                      }}
-                    >
-                      Subjective
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.68rem",
-                        fontWeight: 700,
-                        color: "#92400e",
-                      }}
-                    >
-                      Auto
-                    </span>
-                  </div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "0.74rem",
-                      color: "#334155",
-                      lineHeight: 1.5,
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    Any item where |Δ%| &ge; threshold below.
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                    }}
-                  >
-                    <label
-                      style={{
-                        fontSize: "0.72rem",
-                        fontWeight: 600,
-                        color: "#78350f",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Threshold:
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      step={1}
-                      value={subjectivePct}
-                      onChange={(e) => setSubjectivePct(Number(e.target.value))}
-                      style={{
-                        width: "52px",
-                        padding: "0.2rem 0.4rem",
-                        borderRadius: "5px",
-                        border: "1px solid #fcd34d",
-                        fontSize: "0.8rem",
-                        fontWeight: 700,
-                        textAlign: "center",
-                        background: "#fef9c3",
-                        color: "#78350f",
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: "0.72rem",
-                        fontWeight: 700,
-                        color: "#78350f",
-                      }}
-                    >
-                      %
-                    </span>
-                  </div>
-                </div>
-
-                {/* Special card */}
-                <div
-                  style={{
-                    padding: "0.875rem 1rem",
-                    borderRadius: "8px",
-                    background: "#faf5ff",
-                    border: "1px solid #e9d5ff",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                      marginBottom: "0.35rem",
-                    }}
-                  >
-                    <span
-                      style={{
-                        padding: "0.15rem 0.55rem",
-                        borderRadius: "10px",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        background: "#7c3aed",
-                        color: "white",
-                      }}
-                    >
-                      Special
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.68rem",
-                        fontWeight: 700,
-                        color: "#6d28d9",
-                      }}
-                    >
-                      Manual
-                    </span>
-                  </div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "0.74rem",
-                      color: "#334155",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Items not auto-classified. Click the "+ Special" button in
-                    any row to mark it for special attention.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* ── Table View ── */}
             {viewMode === "table" && (
               <div style={{ overflowX: "auto" }}>
@@ -861,19 +636,6 @@ const AnalyticalReviewStep: React.FC<{
                       >
                         Delta %
                       </th>
-                      <th
-                        style={{
-                          padding: "0.75rem 0.75rem",
-                          textAlign: "center",
-                          fontWeight: 700,
-                          fontSize: "0.7rem",
-                          textTransform: "uppercase",
-                          color: "#475569",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        Selection
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -883,7 +645,7 @@ const AnalyticalReviewStep: React.FC<{
                         <React.Fragment key={section}>
                           <tr>
                             <td
-                              colSpan={7}
+                              colSpan={6}
                               style={{
                                 padding: "0.6rem 1rem",
                                 background: "#f1f5f9",
@@ -907,32 +669,12 @@ const AnalyticalReviewStep: React.FC<{
                                   ? (variance / Math.abs(row.prior)) * 100
                                   : 0;
                               const flagged = !row.bold && Math.abs(pct) >= 10;
-                              const isPerfLabel =
-                                !row.bold &&
-                                Math.abs(row.current) >= performanceMateriality;
-                              const isSubjLabel =
-                                !row.bold &&
-                                !isPerfLabel &&
-                                Math.abs(pct) >= subjectivePct;
-                              const isSpecialLabel =
-                                !row.bold &&
-                                !isPerfLabel &&
-                                !isSubjLabel &&
-                                specialItems.has(row.id);
                               return (
                                 <tr
                                   key={row.id}
                                   style={{
                                     borderBottom: "1px solid #f1f5f9",
-                                    background: row.bold
-                                      ? "#fafbfe"
-                                      : isSpecialLabel
-                                        ? "#faf5ff"
-                                        : isPerfLabel
-                                          ? "#eff6ff"
-                                          : isSubjLabel
-                                            ? "#fffbeb"
-                                            : "white",
+                                    background: row.bold ? "#fafbfe" : "white",
                                   }}
                                 >
                                   <td
@@ -1031,98 +773,6 @@ const AnalyticalReviewStep: React.FC<{
                                       >
                                         {arFmtPct(pct)}
                                       </span>
-                                    )}
-                                  </td>
-                                  {/* Selection column */}
-                                  <td
-                                    style={{
-                                      padding: "0.4rem 0.75rem",
-                                      textAlign: "center",
-                                      verticalAlign: "middle",
-                                    }}
-                                  >
-                                    {row.bold ? (
-                                      <span
-                                        style={{
-                                          color: "#cbd5e1",
-                                          fontSize: "0.75rem",
-                                        }}
-                                      >
-                                        —
-                                      </span>
-                                    ) : isPerfLabel ? (
-                                      <span
-                                        style={{
-                                          display: "inline-block",
-                                          padding: "0.2rem 0.55rem",
-                                          borderRadius: "10px",
-                                          fontSize: "0.7rem",
-                                          fontWeight: 700,
-                                          background: "#2563eb",
-                                          color: "white",
-                                          whiteSpace: "nowrap",
-                                        }}
-                                      >
-                                        Performance
-                                      </span>
-                                    ) : isSubjLabel ? (
-                                      <span
-                                        style={{
-                                          display: "inline-block",
-                                          padding: "0.2rem 0.55rem",
-                                          borderRadius: "10px",
-                                          fontSize: "0.7rem",
-                                          fontWeight: 700,
-                                          background: "#d97706",
-                                          color: "white",
-                                          whiteSpace: "nowrap",
-                                        }}
-                                      >
-                                        Subjective
-                                      </span>
-                                    ) : isSpecialLabel ? (
-                                      <button
-                                        onClick={() => toggleSpecial(row.id)}
-                                        style={{
-                                          all: "unset",
-                                          cursor: "pointer",
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          gap: "0.25rem",
-                                          padding: "0.2rem 0.55rem",
-                                          borderRadius: "10px",
-                                          fontSize: "0.7rem",
-                                          fontWeight: 700,
-                                          background: "#7c3aed",
-                                          color: "white",
-                                          whiteSpace: "nowrap",
-                                        }}
-                                        title="Click to deselect"
-                                      >
-                                        Special ×
-                                      </button>
-                                    ) : (
-                                      <button
-                                        onClick={() => toggleSpecial(row.id)}
-                                        style={{
-                                          all: "unset",
-                                          cursor: "pointer",
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          gap: "0.2rem",
-                                          padding: "0.15rem 0.5rem",
-                                          borderRadius: "10px",
-                                          fontSize: "0.68rem",
-                                          fontWeight: 600,
-                                          background: "#f1f5f9",
-                                          color: "#64748b",
-                                          border: "1px dashed #cbd5e1",
-                                          whiteSpace: "nowrap",
-                                        }}
-                                        title="Mark as Special"
-                                      >
-                                        + Special
-                                      </button>
                                     )}
                                   </td>
                                 </tr>
@@ -1830,6 +1480,602 @@ const AnalyticalReviewStep: React.FC<{
             <button className={s.btnPrimary} onClick={handleSaveMat}>
               <Save size={14} /> Save Materiality
             </button>
+          </div>
+
+          {/* ── Selection Criteria & Substantive Testing Items ── */}
+          <div className={s.card}>
+            <div className={s.cardHeader}>
+              <div>
+                <h3 className={s.cardTitle} style={{ margin: 0 }}>
+                  Items Selected for Substantive Testing
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "0.78rem",
+                    color: "var(--text-3)",
+                    marginTop: "0.1rem",
+                  }}
+                >
+                  ISA 520 — Criteria-based selection from {docLabel}
+                </p>
+              </div>
+            </div>
+            <div className={s.cardBody}>
+              {/* Selection Criteria Cards */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: "0.75rem",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                {/* Performance card */}
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "8px",
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "0.15rem 0.55rem",
+                        borderRadius: "10px",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        background: "#2563eb",
+                        color: "white",
+                      }}
+                    >
+                      Performance
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color: "#1e40af",
+                      }}
+                    >
+                      Auto
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.74rem",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    CY value exceeds Performance Materiality (
+                    {fmtCurrency(performanceMateriality)}). Auto-assigned.
+                  </p>
+                </div>
+
+                {/* Subjective card */}
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "8px",
+                    background: "#fffbeb",
+                    border: "1px solid #fde68a",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "0.15rem 0.55rem",
+                        borderRadius: "10px",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        background: "#d97706",
+                        color: "white",
+                      }}
+                    >
+                      Subjective
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color: "#92400e",
+                      }}
+                    >
+                      Auto
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.74rem",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Any item where absolute % variance exceeds threshold below.
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <label
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 600,
+                        color: "#78350f",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Threshold:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      step={1}
+                      value={subjectivePct}
+                      onChange={(e) => setSubjectivePct(Number(e.target.value))}
+                      style={{
+                        width: "52px",
+                        padding: "0.2rem 0.4rem",
+                        borderRadius: "5px",
+                        border: "1px solid #fcd34d",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        textAlign: "center",
+                        background: "#fef9c3",
+                        color: "#78350f",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        color: "#78350f",
+                      }}
+                    >
+                      %
+                    </span>
+                  </div>
+                </div>
+
+                {/* Special card */}
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "8px",
+                    background: "#faf5ff",
+                    border: "1px solid #e9d5ff",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: "0.15rem 0.55rem",
+                        borderRadius: "10px",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        background: "#7c3aed",
+                        color: "white",
+                      }}
+                    >
+                      Special
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        fontWeight: 700,
+                        color: "#6d28d9",
+                      }}
+                    >
+                      Manual
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.74rem",
+                      color: "#334155",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Items not auto-classified. Click the "+ Special" button in
+                    any row to mark it for special attention.
+                  </p>
+                </div>
+              </div>
+
+              {/* Selection Table — all line items with Selection badges */}
+              <div style={{ overflowX: "auto" }}>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "0.82rem",
+                  }}
+                >
+                  <thead>
+                    <tr
+                      style={{
+                        background: "#f8fafc",
+                        borderBottom: "2px solid #e2e8f0",
+                      }}
+                    >
+                      <th
+                        style={{
+                          padding: "0.75rem 1rem",
+                          textAlign: "left",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Description
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.5rem",
+                          textAlign: "center",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Code
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 1rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        PY 2021 (₦)
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 1rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        CY 2022 (₦)
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Variance
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                        }}
+                      >
+                        Delta %
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.75rem 0.75rem",
+                          textAlign: "center",
+                          fontWeight: 700,
+                          fontSize: "0.7rem",
+                          textTransform: "uppercase",
+                          color: "#475569",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Selection
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sections
+                      .filter((sec) => grouped[sec])
+                      .map((section) => (
+                        <React.Fragment key={section}>
+                          <tr>
+                            <td
+                              colSpan={7}
+                              style={{
+                                padding: "0.6rem 1rem",
+                                background: "#f1f5f9",
+                                fontWeight: 700,
+                                fontSize: "0.72rem",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                color: "#334155",
+                                borderTop: "2px solid #e2e8f0",
+                              }}
+                            >
+                              {secLabels[section] ?? section}
+                            </td>
+                          </tr>
+                          {grouped[section]
+                            .filter((row) => row.type === "line")
+                            .map((row) => {
+                              const variance = row.current - row.prior;
+                              const pct =
+                                row.prior !== 0
+                                  ? (variance / Math.abs(row.prior)) * 100
+                                  : 0;
+                              const isPerfLabel =
+                                !row.bold &&
+                                Math.abs(row.current) >= performanceMateriality;
+                              const isSubjLabel =
+                                !row.bold &&
+                                !isPerfLabel &&
+                                Math.abs(pct) >= subjectivePct;
+                              const isSpecialLabel =
+                                !row.bold &&
+                                !isPerfLabel &&
+                                !isSubjLabel &&
+                                specialItems.has(row.id);
+                              return (
+                                <tr
+                                  key={row.id}
+                                  style={{
+                                    borderBottom: "1px solid #f1f5f9",
+                                    background: row.bold
+                                      ? "#fafbfe"
+                                      : isSpecialLabel
+                                        ? "#faf5ff"
+                                        : isPerfLabel
+                                          ? "#eff6ff"
+                                          : isSubjLabel
+                                            ? "#fffbeb"
+                                            : "white",
+                                  }}
+                                >
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      fontWeight: row.bold ? 700 : 500,
+                                      color: row.bold
+                                        ? "#0f172a"
+                                        : "var(--text)",
+                                      paddingLeft: row.bold
+                                        ? "1rem"
+                                        : "1.75rem",
+                                    }}
+                                  >
+                                    {row.account}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.5rem",
+                                      textAlign: "center",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.72rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    {row.code
+                                      ? `${lgaPrefix}-${row.code}`
+                                      : "—"}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      textAlign: "right",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.8rem",
+                                      color: "#475569",
+                                    }}
+                                  >
+                                    {arFmt(row.prior)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 1rem",
+                                      textAlign: "right",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.8rem",
+                                      fontWeight: row.bold ? 800 : 600,
+                                      color: "#0f172a",
+                                    }}
+                                  >
+                                    {arFmt(row.current)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 0.75rem",
+                                      textAlign: "right",
+                                      fontFamily: "monospace",
+                                      fontSize: "0.8rem",
+                                      fontWeight: 600,
+                                      color:
+                                        variance >= 0 ? "#059669" : "#dc2626",
+                                    }}
+                                  >
+                                    {row.current === 0 && row.prior === 0
+                                      ? "—"
+                                      : (variance >= 0 ? "+" : "") +
+                                        arFmt(variance)}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.75rem 0.75rem",
+                                      textAlign: "right",
+                                    }}
+                                  >
+                                    {row.current === 0 && row.prior === 0 ? (
+                                      <span
+                                        style={{
+                                          color: "#cbd5e1",
+                                          fontSize: "0.75rem",
+                                        }}
+                                      >
+                                        —
+                                      </span>
+                                    ) : (
+                                      <span
+                                        style={{
+                                          fontFamily: "monospace",
+                                          fontSize: "0.8rem",
+                                          fontWeight: 700,
+                                          color:
+                                            !row.bold && Math.abs(pct) >= 10
+                                              ? "#dc2626"
+                                              : row.bold
+                                                ? "#0f172a"
+                                                : "#475569",
+                                        }}
+                                      >
+                                        {arFmtPct(pct)}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td
+                                    style={{
+                                      padding: "0.4rem 0.75rem",
+                                      textAlign: "center",
+                                      verticalAlign: "middle",
+                                    }}
+                                  >
+                                    {row.bold ? (
+                                      <span
+                                        style={{
+                                          color: "#cbd5e1",
+                                          fontSize: "0.75rem",
+                                        }}
+                                      >
+                                        —
+                                      </span>
+                                    ) : isPerfLabel ? (
+                                      <span
+                                        style={{
+                                          display: "inline-block",
+                                          padding: "0.2rem 0.55rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          background: "#2563eb",
+                                          color: "white",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Performance
+                                      </span>
+                                    ) : isSubjLabel ? (
+                                      <span
+                                        style={{
+                                          display: "inline-block",
+                                          padding: "0.2rem 0.55rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          background: "#d97706",
+                                          color: "white",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        Subjective
+                                      </span>
+                                    ) : isSpecialLabel ? (
+                                      <button
+                                        onClick={() => toggleSpecial(row.id)}
+                                        style={{
+                                          all: "unset",
+                                          cursor: "pointer",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.25rem",
+                                          padding: "0.2rem 0.55rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          background: "#7c3aed",
+                                          color: "white",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                        title="Click to deselect"
+                                      >
+                                        Special ×
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => toggleSpecial(row.id)}
+                                        style={{
+                                          all: "unset",
+                                          cursor: "pointer",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.2rem",
+                                          padding: "0.15rem 0.5rem",
+                                          borderRadius: "10px",
+                                          fontSize: "0.68rem",
+                                          fontWeight: 600,
+                                          background: "#f1f5f9",
+                                          color: "#64748b",
+                                          border: "1px dashed #cbd5e1",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                        title="Mark as Special"
+                                      >
+                                        + Special
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </React.Fragment>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}

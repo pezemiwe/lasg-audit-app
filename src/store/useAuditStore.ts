@@ -603,6 +603,24 @@ import { createScopeActions } from "./slices/scopeSlice";
 import { createRiskActions } from "./slices/riskSlice";
 import { createFieldworkExceptionsActions } from "./slices/fieldworkExceptionsSlice";
 
+// --- Jide Johnson Patch ---
+const jide = MOCK_USERS.find(
+  (u) =>
+    u.role === "AUDIT_LEAD" &&
+    u.name &&
+    u.name.includes("Jide") &&
+    u.name.includes("Johnson"),
+);
+if (jide) {
+  SEED_AUDITS.forEach((a) => {
+    a.leadId = jide.id;
+  });
+  LGAS.forEach((l) => {
+    l.auditLeadId = jide.id;
+  });
+}
+// --------------------------
+
 export const useAuditStore = create(
   persist<AuditStore>(
     (set, get) => ({
@@ -704,7 +722,8 @@ export const useAuditStore = create(
               : m,
           ),
         }));
-        const mandate = get().mandates.find((m) => m.id === id);
+        const { mandates, users } = get();
+        const mandate = mandates.find((m) => m.id === id);
         get().logActivity({
           userId: mandate?.createdBy || "",
           action: "PUBLISH_MANDATE",
@@ -712,10 +731,27 @@ export const useAuditStore = create(
           entityType: "mandate",
           entityId: id,
         });
+        // Notify every user in the system about the published mandate
+        if (mandate) {
+          get().addNotifications(
+            users.map((u) => ({
+              id: `notif-pub-${id}-${u.id}`,
+              userId: u.id,
+              type: "info" as const,
+              title: "New Audit Mandate Published",
+              message: `${mandate.title} has been published and is now active.`,
+              isRead: false,
+              timestamp: now(),
+              relatedEntityId: id,
+              relatedEntityType: "mandate" as const,
+            })),
+          );
+        }
         get().addToast({
           type: "success",
           title: "Mandate Published",
-          message: "The audit mandate is now active",
+          message:
+            "The audit mandate is now active and all users have been notified",
         });
       },
 
@@ -742,11 +778,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-1`,
                 lgaId,
                 mandateId,
-                documentName:
-                  "Unaudited Financial Statements / Unaudited Trial Balance (Current Year)",
+                documentName: "Annual Financial Statements",
                 description:
-                  "Unaudited financial statements or unaudited trial balance for the year to be audited",
-                requiredFormat: "Excel/PDF",
+                  "Complete audited or unaudited financial statements for the preceding 3 fiscal years",
+                requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -755,11 +790,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-2`,
                 lgaId,
                 mandateId,
-                documentName:
-                  "Audited Financial Statements / Audited Trial Balance (Prior Year)",
+                documentName: "Approved Budget",
                 description:
-                  "Audited financial statements or audited trial balance of the prior year to the year being audited",
-                requiredFormat: "Excel/PDF",
+                  "Current and preceding year approved budget documents",
+                requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -768,10 +802,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-3`,
                 lgaId,
                 mandateId,
-                documentName: "Revenue Records",
+                documentName: "Bank Statements",
                 description:
-                  "Revenue schedules, receipts, and supporting documentation",
-                requiredFormat: "Excel/PDF",
+                  "Bank statements for all LGA accounts covering 12 months",
+                requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -780,10 +814,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-4`,
                 lgaId,
                 mandateId,
-                documentName: "Current Assets Schedule",
+                documentName: "Staff Establishment and Payroll Records",
                 description:
-                  "Schedule of current assets including cash, receivables, inventories, and prepayments",
-                requiredFormat: "Excel/PDF",
+                  "Complete staff list with grades, positions, and 12-month payroll records",
+                requiredFormat: "Excel",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -792,9 +826,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-5`,
                 lgaId,
                 mandateId,
-                documentName: "Appropriation Law / Approved Budget",
-                description: "Approved budget and appropriation bill",
-                requiredFormat: "PDF",
+                documentName: "Revenue Collection Records",
+                description:
+                  "IGR collection records, receipts, and revenue schedules",
+                requiredFormat: "Excel/PDF",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -803,9 +838,9 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-6`,
                 lgaId,
                 mandateId,
-                documentName: "Cash Books & Bank Reconciliation",
+                documentName: "Capital Project Files",
                 description:
-                  "All cash books and bank reconciliation statements",
+                  "Contract documents, project files, and completion certificates for all capital projects",
                 requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
@@ -815,8 +850,9 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-7`,
                 lgaId,
                 mandateId,
-                documentName: "Revenue Receipts & Payment Vouchers",
-                description: "Sample of revenue receipts and PVs",
+                documentName: "Procurement Records",
+                description:
+                  "Procurement documentation, bid evaluations, due process certificates, and contract awards",
                 requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
@@ -826,9 +862,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-8`,
                 lgaId,
                 mandateId,
-                documentName: "Payroll Records",
-                description: "Staff payroll records for the audit period",
-                requiredFormat: "Excel/PDF",
+                documentName: "Fixed Asset Register",
+                description:
+                  "Complete fixed asset register with acquisition details, locations, and current values",
+                requiredFormat: "Excel",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -837,9 +874,9 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-9`,
                 lgaId,
                 mandateId,
-                documentName: "Contract Awards & Procurement Files",
+                documentName: "Tenders Board Minutes",
                 description:
-                  "Details of contracts awarded and procurement processes",
+                  "Minutes of Tenders Board and Finance Committee meetings for the audit period",
                 requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
@@ -849,9 +886,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-10`,
                 lgaId,
                 mandateId,
-                documentName: "Fixed Asset Register",
-                description: "Current register of fixed assets",
-                requiredFormat: "Excel",
+                documentName: "Internal Audit Reports",
+                description:
+                  "Internal audit reports and management responses for the audit period",
+                requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -860,9 +898,10 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-11`,
                 lgaId,
                 mandateId,
-                documentName: "Internal Audit Reports",
-                description: "Reports from internal audit unit",
-                requiredFormat: "PDF",
+                documentName: "Cash Books and Ledgers",
+                description:
+                  "Complete cash books and general ledger for all LGA accounts",
+                requiredFormat: "Excel",
                 status: "Not Uploaded",
                 version: 1,
                 dueDate,
@@ -871,9 +910,45 @@ export const useAuditStore = create(
                 id: `doc-${mandateId}-${lgaId}-12`,
                 lgaId,
                 mandateId,
-                documentName: "Executive Committee Minutes",
+                documentName: "Previous Audit Reports",
                 description:
-                  "Minutes of meetings held by the Executive Committee",
+                  "Previous external audit reports and management responses",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-13`,
+                lgaId,
+                mandateId,
+                documentName: "Payment Vouchers",
+                description:
+                  "Payment vouchers and supporting expenditure documentation for the audit period",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-14`,
+                lgaId,
+                mandateId,
+                documentName: "Budget Implementation Report",
+                description:
+                  "Quarterly and annual budget performance reports showing actual versus approved expenditure",
+                requiredFormat: "PDF",
+                status: "Not Uploaded",
+                version: 1,
+                dueDate,
+              },
+              {
+                id: `doc-${mandateId}-${lgaId}-15`,
+                lgaId,
+                mandateId,
+                documentName: "Management Letter Responses",
+                description:
+                  "LGA responses to previous audit management letters and outstanding audit queries",
                 requiredFormat: "PDF",
                 status: "Not Uploaded",
                 version: 1,
@@ -954,9 +1029,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-1`,
               lgaId,
               mandateId,
-              documentName: "Unaudited Financial Statement for current year",
-              description: "Current year un-audited financial statement",
-              requiredFormat: "Excel",
+              documentName: "Annual Financial Statements",
+              description:
+                "Complete audited or unaudited financial statements for the preceding 3 fiscal years",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -965,9 +1041,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-2`,
               lgaId,
               mandateId,
-              documentName: "Audited Financial Statement for previous year",
-              description: "Previous year audited financial statement",
-              requiredFormat: "Excel",
+              documentName: "Approved Budget",
+              description:
+                "Current and preceding year approved budget documents",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -976,9 +1053,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-3`,
               lgaId,
               mandateId,
-              documentName: "Unaudited Trial Balance for current year",
-              description: "Current year unaudited trial balance",
-              requiredFormat: "Excel",
+              documentName: "Bank Statements",
+              description:
+                "Bank statements for all LGA accounts covering 12 months",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -987,8 +1065,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-4`,
               lgaId,
               mandateId,
-              documentName: "Audited trial balance for previous year",
-              description: "Previous year audited trial balance",
+              documentName: "Staff Establishment and Payroll Records",
+              description:
+                "Complete staff list with grades, positions, and 12-month payroll records",
               requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
@@ -998,9 +1077,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-5`,
               lgaId,
               mandateId,
-              documentName: "Contract Register",
-              description: "Register of all contracts awarded",
-              requiredFormat: "Excel",
+              documentName: "Revenue Collection Records",
+              description:
+                "IGR collection records, receipts, and revenue schedules",
+              requiredFormat: "Excel/PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1009,9 +1089,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-6`,
               lgaId,
               mandateId,
-              documentName: "Asset Register",
-              description: "Register of fixed assets",
-              requiredFormat: "Excel",
+              documentName: "Capital Project Files",
+              description:
+                "Contract documents, project files, and completion certificates for all capital projects",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1020,9 +1101,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-7`,
               lgaId,
               mandateId,
-              documentName: "Approved Budget",
-              description: "Approved budget document",
-              requiredFormat: "Excel",
+              documentName: "Procurement Records",
+              description:
+                "Procurement documentation, bid evaluations, due process certificates, and contract awards",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1031,9 +1113,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-8`,
               lgaId,
               mandateId,
-              documentName: "Bank Statements",
-              description: "LGA Bank Statements",
-              requiredFormat: "PDF",
+              documentName: "Fixed Asset Register",
+              description:
+                "Complete fixed asset register with acquisition details, locations, and current values",
+              requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1042,9 +1125,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-9`,
               lgaId,
               mandateId,
-              documentName: "Balance sheet",
-              description: "Balance sheet",
-              requiredFormat: "Excel",
+              documentName: "Tenders Board Minutes",
+              description:
+                "Minutes of Tenders Board and Finance Committee meetings for the audit period",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1053,9 +1137,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-10`,
               lgaId,
               mandateId,
-              documentName: "Payroll schedules",
-              description: "Payroll schedules",
-              requiredFormat: "Excel",
+              documentName: "Internal Audit Reports",
+              description:
+                "Internal audit reports and management responses for the audit period",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1064,8 +1149,9 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-11`,
               lgaId,
               mandateId,
-              documentName: "Payment vouchers",
-              description: "Payment vouchers",
+              documentName: "Cash Books and Ledgers",
+              description:
+                "Complete cash books and general ledger for all LGA accounts",
               requiredFormat: "Excel",
               status: "Not Uploaded",
               version: 1,
@@ -1075,9 +1161,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-12`,
               lgaId,
               mandateId,
-              documentName: "Schedule for Cash and Cash Equivalent",
-              description: "Schedule for Cash and Cash Equivalent",
-              requiredFormat: "Excel",
+              documentName: "Previous Audit Reports",
+              description:
+                "Previous external audit reports and management responses",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1086,9 +1173,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-13`,
               lgaId,
               mandateId,
-              documentName: "Schedule for Receivables",
-              description: "Schedule for Receivables",
-              requiredFormat: "Excel",
+              documentName: "Payment Vouchers",
+              description:
+                "Payment vouchers and supporting expenditure documentation for the audit period",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1097,9 +1185,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-14`,
               lgaId,
               mandateId,
-              documentName: "Schedule for Prepayments",
-              description: "Schedule for Prepayments",
-              requiredFormat: "Excel",
+              documentName: "Budget Implementation Report",
+              description:
+                "Quarterly and annual budget performance reports showing actual versus approved expenditure",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1108,130 +1197,10 @@ export const useAuditStore = create(
               id: `doc-${mandateId}-${lgaId}-15`,
               lgaId,
               mandateId,
-              documentName: "Schedule for Inventories",
-              description: "Schedule for Inventories",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-16`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Loan Granted (Local Govt. Loan Fund)",
-              description: "Schedule for Loan Granted (Local Govt. Loan Fund)",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-17`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Investments",
-              description: "Schedule for Investments",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-18`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Property, Plant and Equipment (PPE)",
-              description: "Schedule for Property, Plant and Equipment (PPE)",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-19`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Investment Properties",
-              description: "Schedule for Investment Properties",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-20`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Intangible Assets (Advances)",
-              description: "Schedule for Intangible Assets (Advances)",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-21`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Deposits",
-              description: "Schedule for Deposits",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-22`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Short Term Loans and Debts",
-              description: "Schedule for Short Term Loans and Debts",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-23`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Payables (Accrued Expenses)",
-              description: "Schedule for Payables (Accrued Expenses)",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-24`,
-              lgaId,
-              mandateId,
-              documentName: "Schdule for Long Term Borrowing",
-              description: "Schdule for Long Term Borrowing",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-25`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Reserves",
-              description: "Schedule for Reserves",
-              requiredFormat: "Excel",
-              status: "Not Uploaded",
-              version: 1,
-              dueDate,
-            },
-            {
-              id: `doc-${mandateId}-${lgaId}-26`,
-              lgaId,
-              mandateId,
-              documentName: "Schedule for Accumulated Surpluses/(Deficits)",
-              description: "Schedule for Accumulated Surpluses/(Deficits)",
-              requiredFormat: "Excel",
+              documentName: "Management Letter Responses",
+              description:
+                "LGA responses to previous audit management letters and outstanding audit queries",
+              requiredFormat: "PDF",
               status: "Not Uploaded",
               version: 1,
               dueDate,
@@ -1292,18 +1261,38 @@ export const useAuditStore = create(
           }),
         })),
 
-      // Update store logic to also update user record when lead is assigned
       assignLead: (lgaId, leadId, auditId, mandateId) => {
-        set((s) => ({
-          lgas: s.lgas.map((l) =>
-            l.id === lgaId ? { ...l, auditLeadId: leadId } : l,
-          ),
-          audits: s.audits.map((a) =>
-            a.id === auditId ? { ...a, leadId } : a,
-          ),
-          // Optionally update the user's lgaId
-          users: s.users.map((u) => (u.id === leadId ? { ...u, lgaId } : u)),
-        }));
+        set((s) => {
+          // Check if an audit exists for this lga/mandate combination
+          let updatedAudits = [...s.audits];
+          const auditExists = updatedAudits.some((a) => a.id === auditId);
+
+          if (auditExists) {
+            updatedAudits = updatedAudits.map((a) =>
+              a.id === auditId ? { ...a, leadId } : a,
+            );
+          } else {
+            // Create a new audit object for this assignment
+            updatedAudits.push({
+              id: auditId,
+              lgaId,
+              type: "Financial",
+              year: new Date().getFullYear(),
+              status: "Pending",
+              mandateId,
+              leadId,
+              progress: 0,
+            });
+          }
+
+          return {
+            lgas: s.lgas.map((l) =>
+              l.id === lgaId ? { ...l, auditLeadId: leadId } : l,
+            ),
+            audits: updatedAudits,
+            users: s.users.map((u) => (u.id === leadId ? { ...u, lgaId } : u)),
+          };
+        });
         get().sendInvitation({
           userId: leadId,
           role: "AUDIT_LEAD",
@@ -2998,7 +2987,7 @@ Lagos State
       ...createAuditOutcomesActions(set),
     }),
     {
-      name: "audit-storage-v12",
+      name: "audit-storage-v16",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

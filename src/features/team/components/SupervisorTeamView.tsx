@@ -4,14 +4,13 @@ import type { User, LGA, Zone, Mandate, Audit } from "../../../types";
 import StatusBadge from "../../../components/UI/StatusBadge";
 import {
   Users,
-  UserPlus,
   MapPin,
   CheckCircle,
   AlertCircle,
   Briefcase,
 } from "lucide-react";
 import s from "../../../styles/pages.module.css";
-import CreateLeadModal from "./CreateLeadModal";
+import AssignLeadModal from "../../../components/Modals/AssignLeadModal";
 
 type Props = {
   user: User;
@@ -32,20 +31,20 @@ const SupervisorTeamView: React.FC<Props> = ({
 }) => {
   const assignLead = useAuditStore((st) => st.assignLead);
   const openModal = useAuditStore((st) => st.openModal);
-  const addToast = useAuditStore((st) => st.addToast);
-  const addUser = useAuditStore((st) => st.addUser);
 
-  const [assigningLga, setAssigningLga] = useState<string | null>(null);
-  const [showCreateLead, setShowCreateLead] = useState(false);
-  const [newLead, setNewLead] = useState({ name: "", email: "", phone: "" });
+  const [modalLga, setModalLga] = useState<LGA | null>(null);
 
   const leads = useMemo(
     () => users.filter((u) => u.role === "AUDIT_LEAD"),
     [users],
   );
 
-  const myZone = zones.find((z) => z.supervisorIds?.includes(user.id));
-  const myLgas = lgas.filter((l) => myZone?.lgas.includes(l.id));
+  const myZone = zones.find(
+    (z) => z.id === user.zoneId || z.supervisorIds?.includes(user.id),
+  );
+  const myLgas = lgas.filter(
+    (l) => myZone?.lgas.includes(l.id) || l.zoneId === myZone?.id,
+  );
   const assignedLeadIds = new Set(
     myLgas.filter((l) => l.auditLeadId).map((l) => l.auditLeadId!),
   );
@@ -68,38 +67,8 @@ const SupervisorTeamView: React.FC<Props> = ({
           const tempAuditId = `audit-temp-${Date.now()}`;
           assignLead(lgaId, leadId, tempAuditId, activeMandate.id);
         }
-        setAssigningLga(null);
       },
     });
-  };
-
-  const handleCreateLead = () => {
-    if (!newLead.name || !newLead.email) {
-      addToast({
-        type: "warning",
-        title: "Missing fields",
-        message: "Name and Email are required.",
-      });
-      return;
-    }
-
-    addUser({
-      name: newLead.name,
-      email: newLead.email,
-      phone: newLead.phone,
-      role: "AUDIT_LEAD",
-      zoneId: user.zoneId,
-      specialisations: ["Financial"],
-      experience: [],
-    });
-
-    addToast({
-      type: "success",
-      title: "Lead Created",
-      message: `${newLead.name} added to the team.`,
-    });
-    setNewLead({ name: "", email: "", phone: "" });
-    setShowCreateLead(false);
   };
 
   return (
@@ -113,27 +82,11 @@ const SupervisorTeamView: React.FC<Props> = ({
           </p>
         </div>
         <div style={{ display: "flex", gap: "1rem" }}>
-          <button
-            className={s.btnPrimary}
-            onClick={() => setShowCreateLead(true)}
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-          >
-            <UserPlus size={16} /> Create New Lead
-          </button>
           <span className={s.pageBadge}>
             <Users size={12} /> Supervisor
           </span>
         </div>
       </div>
-
-      {showCreateLead && (
-        <CreateLeadModal
-          value={newLead}
-          onChange={setNewLead}
-          onClose={() => setShowCreateLead(false)}
-          onSubmit={handleCreateLead}
-        />
-      )}
 
       <div className={s.kpiRow}>
         <div className={s.kpiCard}>
@@ -198,7 +151,6 @@ const SupervisorTeamView: React.FC<Props> = ({
                 const lead = lga.auditLeadId
                   ? users.find((u) => u.id === lga.auditLeadId)
                   : null;
-                const isAssigning = assigningLga === lga.id;
 
                 return (
                   <React.Fragment key={lga.id}>
@@ -236,82 +188,25 @@ const SupervisorTeamView: React.FC<Props> = ({
                         />
                       </td>
                       <td>
-                        {lead ? (
-                          <StatusBadge label="Active" variant="success" />
-                        ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          {lead && (
+                            <StatusBadge label="Active" variant="success" />
+                          )}
                           <button
                             className={`${s.btnGold} ${s.btnSmall}`}
-                            onClick={() =>
-                              setAssigningLga(isAssigning ? null : lga.id)
-                            }
+                            onClick={() => setModalLga(lga)}
                           >
-                            Assign Lead
+                            {lead ? "Reassign" : "Assign Lead"}
                           </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
-                    {isAssigning && (
-                      <tr style={{ background: "#f8fafc" }}>
-                        <td colSpan={5} style={{ padding: "1rem" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "1rem",
-                            }}
-                          >
-                            <span
-                              style={{ fontSize: "0.875rem", fontWeight: 500 }}
-                            >
-                              Select Audit Lead:
-                            </span>
-                            <select
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  handleAssignLead(lga.id, e.target.value);
-                                }
-                              }}
-                              defaultValue=""
-                              style={{
-                                flex: 1,
-                                padding: "0.5rem",
-                                border: "1px solid var(--border)",
-                                borderRadius: "4px",
-                                background: "white",
-                              }}
-                            >
-                              <option value="" disabled>
-                                Choose a lead...
-                              </option>
-                              {leads.map((lead) => (
-                                <option
-                                  key={lead.id}
-                                  value={lead.id}
-                                  disabled={assignedLeadIds.has(lead.id)}
-                                >
-                                  {lead.name} ({lead.email}){" "}
-                                  {assignedLeadIds.has(lead.id)
-                                    ? "(Assigned)"
-                                    : ""}
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              style={{
-                                background: "transparent",
-                                border: "1px solid var(--border)",
-                                padding: "0.5rem 1rem",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                              }}
-                              onClick={() => setAssigningLga(null)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
                   </React.Fragment>
                 );
               })}
@@ -319,6 +214,16 @@ const SupervisorTeamView: React.FC<Props> = ({
           </table>
         </div>
       </div>
+      <AssignLeadModal
+        isOpen={!!modalLga}
+        onClose={() => setModalLga(null)}
+        lga={modalLga}
+        users={users}
+        onAssign={(lgaId, leadId) => {
+          handleAssignLead(lgaId, leadId);
+          setModalLga(null);
+        }}
+      />
     </div>
   );
 };
