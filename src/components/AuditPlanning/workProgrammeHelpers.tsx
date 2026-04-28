@@ -26,28 +26,28 @@ export const fmtCurrency = (n: number) =>
   "₦" + n.toLocaleString("en-NG", { minimumFractionDigits: 0 });
 
 export const sevColor: Record<string, { bg: string; color: string }> = {
-  Low: { bg: "#d1fae5", color: "#065f46" },
-  Medium: { bg: "#fef3c7", color: "#92400e" },
-  High: { bg: "#fee2e2", color: "#991b1b" },
+  Low: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  Medium: { bg: "var(--text)", color: "var(--text)" },
+  High: { bg: "var(--text)", color: "var(--text)" },
   Critical: { bg: "#fce7f3", color: "#9d174d" },
 };
 
 export const statusColor: Record<string, { bg: string; color: string }> = {
   Draft: { bg: "#f3f4f6", color: "#6b7280" },
-  Proposed: { bg: "#d1fae5", color: "#065f46" },
-  Agreed: { bg: "#d1fae5", color: "#065f46" },
-  Posted: { bg: "#d1fae5", color: "#065f46" },
+  Proposed: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  Agreed: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  Posted: { bg: "var(--bg-hover)", color: "var(--primary)" },
   Waived: { bg: "#f3f4f6", color: "#9ca3af" },
-  Discussed: { bg: "#fef3c7", color: "#92400e" },
-  Resolved: { bg: "#d1fae5", color: "#065f46" },
-  Reported: { bg: "#d1fae5", color: "#065f46" },
-  "Not Received": { bg: "#fee2e2", color: "#991b1b" },
-  Received: { bg: "#fef3c7", color: "#92400e" },
-  "Under Review": { bg: "#ecfdf5", color: "#059669" },
+  Discussed: { bg: "var(--text)", color: "var(--text)" },
+  Resolved: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  Reported: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  "Not Received": { bg: "var(--text)", color: "var(--text)" },
+  Received: { bg: "var(--text)", color: "var(--text)" },
+  "Under Review": { bg: "var(--bg-hover)", color: "var(--primary)" },
   Adjusted: { bg: "#fce7f3", color: "#9d174d" },
-  Final: { bg: "#d1fae5", color: "#065f46" },
-  Prepared: { bg: "#ecfdf5", color: "#059669" },
-  Reviewed: { bg: "#fef3c7", color: "#92400e" },
+  Final: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  Prepared: { bg: "var(--bg-hover)", color: "var(--primary)" },
+  Reviewed: { bg: "var(--text)", color: "var(--text)" },
 };
 
 export const InlineBadge: React.FC<{
@@ -86,7 +86,11 @@ export type TabKey =
 
 export const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "overview", label: "Overview", icon: <BarChart3 size={14} /> },
-  { key: "procedures", label: "Procedures", icon: <ClipboardList size={14} /> },
+  {
+    key: "procedures",
+    label: "Audit Procedure & Response",
+    icon: <ClipboardList size={14} />,
+  },
   {
     key: "evidence",
     label: "Evidence Library",
@@ -112,3 +116,4 @@ export const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "report", label: "Audit Report", icon: <FileText size={14} /> },
   { key: "completion", label: "Completion", icon: <FileCheck size={14} /> },
 ];
+

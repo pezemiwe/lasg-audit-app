@@ -132,7 +132,7 @@ const PreAudit: React.FC<{
   return (
     <div
       style={{
-        padding: embedded ? 0 : "2rem",
+        padding: embedded ? "1.5rem 2rem" : "2rem",
         maxWidth: embedded ? "100%" : "1200px",
         margin: "0 auto",
       }}

@@ -738,7 +738,7 @@ const DocSelector: React.FC<{
         top: "50%",
         transform: "translateY(-50%)",
         pointerEvents: "none",
-        color: "#94a3b8",
+        color: "var(--border)",
       }}
     />
   </div>
@@ -766,8 +766,8 @@ export const MaterialityAssessment: React.FC = () => {
             <div
               style={{
                 padding: "0.5rem",
-                background: "#eff6ff",
-                color: "#2563eb",
+                background: "var(--primary)",
+                color: "var(--primary)",
                 borderRadius: "8px",
               }}
             >
@@ -812,23 +812,23 @@ export const MaterialityAssessment: React.FC = () => {
                 width: "56px",
                 height: "56px",
                 borderRadius: "50%",
-                background: "#eff6ff",
+                background: "var(--primary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Layers size={28} style={{ color: "#3b82f6" }} />
+              <Layers size={28} style={{ color: "var(--primary)" }} />
             </div>
             <div
-              style={{ fontWeight: 700, fontSize: "1rem", color: "#0f172a" }}
+              style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-2)" }}
             >
               Select a Base Document to Compute Materiality
             </div>
             <div
               style={{
                 fontSize: "0.875rem",
-                color: "#64748b",
+                color: "var(--text-2)",
                 lineHeight: 1.6,
               }}
             >
@@ -880,8 +880,8 @@ export const MaterialityAssessment: React.FC = () => {
           <div
             style={{
               padding: "0.5rem",
-              background: "#eff6ff",
-              color: "#2563eb",
+              background: "var(--primary)",
+              color: "var(--primary)",
               borderRadius: "8px",
             }}
           >
@@ -915,8 +915,8 @@ export const MaterialityAssessment: React.FC = () => {
         {/* Methodology Banner */}
         <div
           style={{
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
+            background: "var(--primary)",
+            border: "1px solid var(--primary)",
             borderRadius: "8px",
             padding: "1rem 1.25rem",
             marginBottom: "2rem",
@@ -927,13 +927,13 @@ export const MaterialityAssessment: React.FC = () => {
         >
           <Info
             size={16}
-            style={{ color: "#2563eb", flexShrink: 0, marginTop: "0.1rem" }}
+            style={{ color: "var(--primary)", flexShrink: 0, marginTop: "0.1rem" }}
           />
           <p
             style={{
               margin: 0,
               fontSize: "0.85rem",
-              color: "#1e3a8a",
+              color: "var(--primary)",
               lineHeight: 1.6,
             }}
           >
@@ -957,8 +957,8 @@ export const MaterialityAssessment: React.FC = () => {
           <div
             style={{
               background: "white",
-              border: "2px solid #e2e8f0",
-              borderTop: "4px solid #f59e0b",
+              border: "2px solid var(--border)",
+              borderTop: "4px solid var(--text-3)",
               padding: "1.5rem",
               borderRadius: "12px",
             }}
@@ -969,21 +969,21 @@ export const MaterialityAssessment: React.FC = () => {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                color: "#92400e",
+                color: "var(--text-3)",
                 marginBottom: "0.5rem",
               }}
             >
               Base Figure (PBT)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}
+              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
             >
               {fmt(PBT)}
             </div>
             <div
               style={{
                 fontSize: "0.72rem",
-                color: "#64748b",
+                color: "var(--text-2)",
                 marginTop: "0.25rem",
               }}
             >
@@ -994,8 +994,8 @@ export const MaterialityAssessment: React.FC = () => {
           <div
             style={{
               background: "white",
-              border: "2px solid #e2e8f0",
-              borderTop: "4px solid #10b981",
+              border: "2px solid var(--border)",
+              borderTop: "4px solid var(--border)",
               padding: "1.5rem",
               borderRadius: "12px",
             }}
@@ -1006,21 +1006,21 @@ export const MaterialityAssessment: React.FC = () => {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                color: "#166534",
+                color: "var(--primary)",
                 marginBottom: "0.5rem",
               }}
             >
               Overall Materiality (5%)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}
+              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
             >
               {fmt(OVERALL_MAT)}
             </div>
             <div
               style={{
                 fontSize: "0.72rem",
-                color: "#64748b",
+                color: "var(--text-2)",
                 marginTop: "0.25rem",
               }}
             >
@@ -1030,8 +1030,8 @@ export const MaterialityAssessment: React.FC = () => {
           <div
             style={{
               background: "white",
-              border: "2px solid #e2e8f0",
-              borderTop: "4px solid #3b82f6",
+              border: "2px solid var(--border)",
+              borderTop: "4px solid var(--primary)",
               padding: "1.5rem",
               borderRadius: "12px",
             }}
@@ -1042,21 +1042,21 @@ export const MaterialityAssessment: React.FC = () => {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                color: "#1e40af",
+                color: "var(--primary)",
                 marginBottom: "0.5rem",
               }}
             >
               Performance Mat. (70%)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}
+              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
             >
               {fmt(PERF_MAT)}
             </div>
             <div
               style={{
                 fontSize: "0.72rem",
-                color: "#64748b",
+                color: "var(--text-2)",
                 marginTop: "0.25rem",
               }}
             >
@@ -1066,8 +1066,8 @@ export const MaterialityAssessment: React.FC = () => {
           <div
             style={{
               background: "white",
-              border: "2px solid #e2e8f0",
-              borderTop: "4px solid #94a3b8",
+              border: "2px solid var(--border)",
+              borderTop: "4px solid var(--border)",
               padding: "1.5rem",
               borderRadius: "12px",
             }}
@@ -1078,21 +1078,21 @@ export const MaterialityAssessment: React.FC = () => {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                color: "#475569",
+                color: "var(--text-2)",
                 marginBottom: "0.5rem",
               }}
             >
               Trivial / De-minimis (5%)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}
+              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
             >
               {fmt(TRIVIAL_MAT)}
             </div>
             <div
               style={{
                 fontSize: "0.72rem",
-                color: "#64748b",
+                color: "var(--text-2)",
                 marginTop: "0.25rem",
               }}
             >
@@ -1106,11 +1106,11 @@ export const MaterialityAssessment: React.FC = () => {
           style={{
             fontSize: "0.9rem",
             fontWeight: 700,
-            color: "#0f172a",
+            color: "var(--text-2)",
             marginBottom: "0.75rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            borderLeft: "3px solid #3b82f6",
+            borderLeft: "3px solid var(--primary)",
             paddingLeft: "0.75rem",
           }}
         >
@@ -1127,8 +1127,8 @@ export const MaterialityAssessment: React.FC = () => {
             <thead>
               <tr
                 style={{
-                  background: "#f8fafc",
-                  borderBottom: "2px solid #e2e8f0",
+                  background: "var(--border)",
+                  borderBottom: "2px solid var(--border)",
                 }}
               >
                 {selectedDoc === "tb" && (
@@ -1140,7 +1140,7 @@ export const MaterialityAssessment: React.FC = () => {
                       fontSize: "0.72rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
-                      color: "#475569",
+                      color: "var(--text-2)",
                     }}
                   >
                     Code
@@ -1154,7 +1154,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#475569",
+                    color: "var(--text-2)",
                   }}
                 >
                   Account
@@ -1167,7 +1167,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#475569",
+                    color: "var(--text-2)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -1181,7 +1181,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#475569",
+                    color: "var(--text-2)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -1195,7 +1195,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#475569",
+                    color: "var(--text-2)",
                   }}
                 >
                   Variance
@@ -1208,7 +1208,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#475569",
+                    color: "var(--text-2)",
                   }}
                 >
                   Delta %
@@ -1221,7 +1221,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#475569",
+                    color: "var(--text-2)",
                   }}
                 >
                   vs Mat.
@@ -1243,13 +1243,13 @@ export const MaterialityAssessment: React.FC = () => {
                           colSpan={selectedDoc === "tb" ? 7 : 6}
                           style={{
                             padding: "0.6rem 1rem",
-                            background: "#f1f5f9",
+                            background: "var(--border)",
                             fontWeight: 700,
                             fontSize: "0.72rem",
                             textTransform: "uppercase",
                             letterSpacing: "0.06em",
-                            color: "#334155",
-                            borderTop: "2px solid #e2e8f0",
+                            color: "var(--text-2)",
+                            borderTop: "2px solid var(--border)",
                           }}
                         >
                           {SECTION_LABELS[section] ?? section}
@@ -1260,25 +1260,25 @@ export const MaterialityAssessment: React.FC = () => {
                           row.current >= OVERALL_MAT
                             ? {
                                 label: "Exceeds Overall",
-                                bg: "#fee2e2",
-                                text: "#b91c1c",
+                                bg: "var(--text-3)",
+                                text: "var(--text-3)",
                               }
                             : row.current >= PERF_MAT
                               ? {
                                   label: "Exceeds Perf.",
-                                  bg: "#fef3c7",
-                                  text: "#92400e",
+                                  bg: "var(--text-3)",
+                                  text: "var(--text-3)",
                                 }
                               : {
                                   label: "Below Trivial",
-                                  bg: "#f0fdf4",
-                                  text: "#166534",
+                                  bg: "var(--bg-card)",
+                                  text: "var(--primary)",
                                 };
                         return (
                           <tr
                             key={row.id}
                             style={{
-                              borderBottom: "1px solid #f1f5f9",
+                              borderBottom: "1px solid var(--border)",
                               background: row.bold ? "#fafbfd" : "white",
                             }}
                           >
@@ -1288,7 +1288,7 @@ export const MaterialityAssessment: React.FC = () => {
                                   padding: "0.75rem 1rem",
                                   fontFamily: "monospace",
                                   fontSize: "0.75rem",
-                                  color: "#94a3b8",
+                                  color: "var(--border)",
                                 }}
                               >
                                 {row.code}
@@ -1298,7 +1298,7 @@ export const MaterialityAssessment: React.FC = () => {
                               style={{
                                 padding: "0.75rem 1rem",
                                 fontWeight: row.bold ? 700 : 500,
-                                color: row.bold ? "#0f172a" : "var(--text)",
+                                color: row.bold ? "var(--text-2)" : "var(--text)",
                                 paddingLeft: row.bold ? "1rem" : "1.75rem",
                               }}
                             >
@@ -1310,7 +1310,7 @@ export const MaterialityAssessment: React.FC = () => {
                                 textAlign: "right",
                                 fontFamily: "monospace",
                                 fontSize: "0.82rem",
-                                color: "#475569",
+                                color: "var(--text-2)",
                               }}
                             >
                               {fmt(row.prior)}
@@ -1322,7 +1322,7 @@ export const MaterialityAssessment: React.FC = () => {
                                 fontFamily: "monospace",
                                 fontSize: "0.82rem",
                                 fontWeight: row.bold ? 800 : 600,
-                                color: "#0f172a",
+                                color: "var(--text-2)",
                               }}
                             >
                               {fmt(row.current)}
@@ -1335,7 +1335,7 @@ export const MaterialityAssessment: React.FC = () => {
                                 fontSize: "0.82rem",
                                 fontWeight: 600,
                                 color:
-                                  row.variance >= 0 ? "#059669" : "#dc2626",
+                                  row.variance >= 0 ? "var(--primary)" : "var(--text-3)",
                               }}
                             >
                               {row.variance >= 0 ? "+" : ""}
@@ -1350,8 +1350,8 @@ export const MaterialityAssessment: React.FC = () => {
                                 fontWeight: 700,
                                 color:
                                   Math.abs(row.pct) >= 10
-                                    ? "#dc2626"
-                                    : "#475569",
+                                    ? "var(--text-3)"
+                                    : "var(--text-2)",
                               }}
                             >
                               {fmtPct(row.pct)}
@@ -1365,7 +1365,7 @@ export const MaterialityAssessment: React.FC = () => {
                               {row.bold ? (
                                 <span
                                   style={{
-                                    color: "#94a3b8",
+                                    color: "var(--border)",
                                     fontSize: "0.72rem",
                                   }}
                                 >
@@ -1403,11 +1403,11 @@ export const MaterialityAssessment: React.FC = () => {
           style={{
             fontSize: "0.9rem",
             fontWeight: 700,
-            color: "#0f172a",
+            color: "var(--text-2)",
             marginBottom: "0.75rem",
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            borderLeft: "3px solid #10b981",
+            borderLeft: "3px solid var(--border)",
             paddingLeft: "0.75rem",
           }}
         >
@@ -1424,8 +1424,8 @@ export const MaterialityAssessment: React.FC = () => {
             <thead>
               <tr
                 style={{
-                  background: "#f0fdf4",
-                  borderBottom: "2px solid #bbf7d0",
+                  background: "var(--bg-card)",
+                  borderBottom: "2px solid var(--border)",
                 }}
               >
                 <th
@@ -1436,7 +1436,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#166534",
+                    color: "var(--primary)",
                   }}
                 >
                   Account
@@ -1449,7 +1449,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#166534",
+                    color: "var(--primary)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -1463,7 +1463,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#166534",
+                    color: "var(--primary)",
                   }}
                 >
                   Analytical
@@ -1476,7 +1476,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#166534",
+                    color: "var(--primary)",
                   }}
                 >
                   Mat. Risk
@@ -1489,7 +1489,7 @@ export const MaterialityAssessment: React.FC = () => {
                     fontSize: "0.72rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "#166534",
+                    color: "var(--primary)",
                   }}
                 >
                   Selection Rationale
@@ -1504,7 +1504,7 @@ export const MaterialityAssessment: React.FC = () => {
                     style={{
                       padding: "2rem",
                       textAlign: "center",
-                      color: "#64748b",
+                      color: "var(--text-2)",
                       fontStyle: "italic",
                     }}
                   >
@@ -1527,13 +1527,13 @@ export const MaterialityAssessment: React.FC = () => {
                   return (
                     <tr
                       key={row.id}
-                      style={{ borderBottom: "1px solid #f1f5f9" }}
+                      style={{ borderBottom: "1px solid var(--border)" }}
                     >
                       <td
                         style={{
                           padding: "0.85rem 1rem",
                           fontWeight: 600,
-                          color: "#0f172a",
+                          color: "var(--text-2)",
                         }}
                       >
                         {row.account}
@@ -1544,7 +1544,7 @@ export const MaterialityAssessment: React.FC = () => {
                           textAlign: "right",
                           fontFamily: "monospace",
                           fontWeight: 700,
-                          color: "#0f172a",
+                          color: "var(--text-2)",
                         }}
                       >
                         {fmt(row.current)}
@@ -1555,8 +1555,8 @@ export const MaterialityAssessment: React.FC = () => {
                         {varRisk ? (
                           <span
                             style={{
-                              background: "#fee2e2",
-                              color: "#b91c1c",
+                              background: "var(--text-3)",
+                              color: "var(--text-3)",
                               padding: "0.2rem 0.55rem",
                               borderRadius: "12px",
                               fontSize: "0.7rem",
@@ -1568,8 +1568,8 @@ export const MaterialityAssessment: React.FC = () => {
                         ) : (
                           <span
                             style={{
-                              background: "#f1f5f9",
-                              color: "#64748b",
+                              background: "var(--border)",
+                              color: "var(--text-2)",
                               padding: "0.2rem 0.55rem",
                               borderRadius: "12px",
                               fontSize: "0.7rem",
@@ -1586,7 +1586,7 @@ export const MaterialityAssessment: React.FC = () => {
                           <span
                             style={{
                               background: "#e0e7ff",
-                              color: "#2563eb",
+                              color: "var(--primary)",
                               padding: "0.2rem 0.55rem",
                               borderRadius: "12px",
                               fontSize: "0.7rem",
@@ -1598,8 +1598,8 @@ export const MaterialityAssessment: React.FC = () => {
                         ) : (
                           <span
                             style={{
-                              background: "#f1f5f9",
-                              color: "#64748b",
+                              background: "var(--border)",
+                              color: "var(--text-2)",
                               padding: "0.2rem 0.55rem",
                               borderRadius: "12px",
                               fontSize: "0.7rem",
@@ -1613,14 +1613,14 @@ export const MaterialityAssessment: React.FC = () => {
                         style={{
                           padding: "0.85rem 1rem",
                           fontSize: "0.82rem",
-                          color: "#475569",
+                          color: "var(--text-2)",
                           lineHeight: 1.5,
                         }}
                       >
                         <CheckCircle2
                           size={12}
                           style={{
-                            color: "#059669",
+                            color: "var(--primary)",
                             marginRight: "0.35rem",
                             verticalAlign: "middle",
                           }}

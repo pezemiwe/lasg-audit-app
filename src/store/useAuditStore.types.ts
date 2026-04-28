@@ -412,6 +412,7 @@ export interface AuditStore {
     executionId: string,
     evidence: Omit<ProcedureEvidence, "id" | "code">,
   ) => void;
+  removeProcedureEvidence: (executionId: string, evidenceId: string) => void;
   addProcedureTimeEntry: (executionId: string, minutes: number) => void;
   submitProcedureForReview: (executionId: string) => void;
   reviewProcedure: (
@@ -429,6 +430,7 @@ export interface AuditStore {
     id: string,
     updates: Partial<FieldworkException>,
   ) => void;
+  removeFieldworkException: (id: string) => void;
   classifyException: (
     id: string,
     classification: ExceptionClassification,

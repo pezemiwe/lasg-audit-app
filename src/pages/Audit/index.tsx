@@ -19,7 +19,9 @@ const AuditPage: React.FC = () => {
   );
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<AuditStatus | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<
+    AuditStatus | "All" | "In Progress"
+  >("All");
   const [supervisorFilter, setSupervisorFilter] = useState<string>("All");
 
   const supervisors = useMemo(() => {
@@ -82,7 +84,11 @@ const AuditPage: React.FC = () => {
     return myAudits.filter((a) => {
       const title = getAuditTitle(a);
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = statusFilter === "All" || a.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "All" ||
+        (statusFilter === "In Progress"
+          ? a.status !== "Completed" && a.status !== "Pending"
+          : a.status === statusFilter);
 
       let matchesSupervisor = true;
       if (supervisorFilter !== "All" && lgas && zones) {
@@ -127,7 +133,17 @@ const AuditPage: React.FC = () => {
           >
             <div className={s.filterBar}>
               {(
-                ["All", "Planning", "Fieldwork", "Review", "Completed"] as const
+                [
+                  "All",
+                  "In Progress",
+                  "Pre-Audit",
+                  "Planning",
+                  "Fieldwork",
+                  "Review",
+                  "Reporting",
+                  "Post-Audit",
+                  "Completed",
+                ] as const
               ).map((st) => (
                 <button
                   key={st}

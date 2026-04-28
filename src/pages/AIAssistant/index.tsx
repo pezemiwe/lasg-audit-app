@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import Navbar from "../../components/Layout/Navbar";
 import s from "../../styles/ai-assistant.module.css";
@@ -7,13 +8,21 @@ import { AI_RESPONSES } from "../../features/ai-assistant/utils/aiResponses";
 import AuthHeader from "../../features/ai-assistant/components/AuthHeader";
 import ConversationSidebar from "../../features/ai-assistant/components/ConversationSidebar";
 import ChatHeader from "../../features/ai-assistant/components/ChatHeader";
-import WelcomeState from "../../features/ai-assistant/components/WelcomeState";
+import WelcomeState, {
+  type AIAssistantTopic,
+} from "../../features/ai-assistant/components/WelcomeState";
 import MessagesList from "../../features/ai-assistant/components/MessagesList";
 import ChatInput from "../../features/ai-assistant/components/ChatInput";
 import QuickLinksSidebar from "../../features/ai-assistant/components/QuickLinksSidebar";
 
 const AIAssistant: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const topic: AIAssistantTopic = location.pathname.includes(
+    "ai-audit-procedures",
+  )
+    ? "audit-procedures"
+    : "regulations";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -80,13 +89,15 @@ const AIAssistant: React.FC = () => {
         <ConversationSidebar onNewChat={resetChat} />
 
         <main className={s.chat_area}>
-          <ChatHeader />
+          <ChatHeader topic={topic} />
           <MessagesList
             messages={messages}
             isTyping={isTyping}
             scrollAreaRef={scrollAreaRef}
             messagesEndRef={messagesEndRef}
-            onEmpty={<WelcomeState onExampleClick={handleExampleClick} />}
+            onEmpty={
+              <WelcomeState onExampleClick={handleExampleClick} topic={topic} />
+            }
           />
           <ChatInput
             input={input}
@@ -96,7 +107,7 @@ const AIAssistant: React.FC = () => {
           />
         </main>
 
-        <QuickLinksSidebar setInput={setInput} />
+        <QuickLinksSidebar setInput={setInput} topic={topic} />
       </div>
     </div>
   );

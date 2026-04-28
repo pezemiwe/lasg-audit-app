@@ -3,12 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
 import StatusBadge from "../UI/StatusBadge";
-import type {
-  ProgrammeProcedure,
-  ExceptionSeverity,
-  ExceptionClassification,
-} from "../../types";
-import { getSuggestedProcedures } from "../../utils/auditLogic";
+import DocumentPreviewModal from "../UI/DocumentPreviewModal";
+import type { ExceptionSeverity, ExceptionClassification } from "../../types";
 import {
   BookOpen,
   Plus,
@@ -17,13 +13,11 @@ import {
   Play,
   Send,
   Shield,
-  Sparkles,
   FileText,
   Layers,
   AlertTriangle,
   BarChart3,
   Calculator,
-  ClipboardList,
   MessageSquare,
   DollarSign,
   PenTool,
@@ -39,7 +33,6 @@ import {
 } from "lucide-react";
 import s from "../../styles/pages.module.css";
 import {
-  procStatusVariant,
   fmtCurrency,
   sevColor,
   statusColor,
@@ -47,6 +40,14 @@ import {
   TABS,
   type TabKey,
 } from "./workProgrammeHelpers";
+import {
+  PROCEDURE_CATEGORY_META,
+  CATEGORY_ORDER,
+  categoryFromNcoa,
+  categoryFromAccountName,
+  matchProceduresForLineItem,
+} from "../../features/auditProcedures/data/lineItemCategorizer";
+import type { ProcedureCategory } from "../../features/auditProcedures/data/auditProcedures";
 
 interface WorkProgrammeSectionProps {
   auditId?: string;
@@ -62,7 +63,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const { user } = useAuth();
   const audits = useAuditStore((st) => st.audits);
   const lgas = useAuditStore((st) => st.lgas);
-  const riskMatrices = useAuditStore((st) => st.riskMatrices);
   const programmes = useAuditStore((st) => st.programmes);
   const programmeTemplates = useAuditStore((st) => st.programmeTemplates);
   const createProgramme = useAuditStore((st) => st.createProgramme);
@@ -96,6 +96,17 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const allProcedureExecutions = useAuditStore((st) => st.procedureExecutions);
   const allFieldworkExceptions = useAuditStore((st) => st.fieldworkExceptions);
   const users = useAuditStore((st) => st.users);
+  /* TB / FS data sourced from audit-outcomes for procedure mapping */
+  const trialBalances = useAuditStore((st) => st.trialBalances);
+  const auditedFinancialStatements = useAuditStore(
+    (st) => st.auditedFinancialStatements,
+  );
+  const removeProcedureEvidence = useAuditStore(
+    (st) => st.removeProcedureEvidence,
+  );
+  const removeFieldworkException = useAuditStore(
+    (st) => st.removeFieldworkException,
+  );
   const classifyException = useAuditStore((st) => st.classifyException);
   const escalateExceptionToHlg = useAuditStore(
     (st) => st.escalateExceptionToHlg,
@@ -129,19 +140,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   );
 
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showAddProc, setShowAddProc] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [createForm, setCreateForm] = useState({
     objectives: "",
     scope: "",
     riskAreas: "",
   });
-  const [newProc, setNewProc] = useState({
-    area: "",
-    procedure: "",
-    assignedTo: "",
-  });
-
   const [matForm, setMatForm] = useState({
     basisLabel: "Total Expenditure",
     basisAmount: "",
@@ -195,6 +199,29 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const [excFilter, setExcFilter] = useState<"all" | ExceptionSeverity>("all");
   const [classifyId, setClassifyId] = useState<string | null>(null);
 
+  /* Procedures tab — source document for line-item driven view */
+  const [procSource, setProcSource] = useState<"tb" | "fs">("tb");
+  const [expandedLineItem, setExpandedLineItem] = useState<string | null>(null);
+
+  /* Evidence Library — view / delete */
+  const [previewEvidence, setPreviewEvidence] = useState<{
+    name: string;
+    type: string;
+    uploadedBy: string;
+    uploadedAt: string;
+    size?: string;
+    url?: string;
+  } | null>(null);
+  const [confirmDeleteEvidence, setConfirmDeleteEvidence] = useState<{
+    executionId: string;
+    evidenceId: string;
+    fileName: string;
+  } | null>(null);
+  const [confirmDeleteException, setConfirmDeleteException] = useState<{
+    id: string;
+    ref: string;
+  } | null>(null);
+
   const currentProgramme = useMemo(
     () => programmes.find((p) => p.auditId === selectedAuditId),
     [programmes, selectedAuditId],
@@ -205,16 +232,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     ? lgas.find((l) => l.id === selectedAudit.lgaId)?.name ||
       selectedAudit.lgaId
     : "";
-
-  const highRisks = useMemo(
-    () =>
-      riskMatrices.filter(
-        (r) =>
-          r.auditId === selectedAuditId &&
-          (r.overallRisk === "High" || r.overallRisk === "Critical"),
-      ),
-    [riskMatrices, selectedAuditId],
-  );
 
   const isSupervisor =
     user?.role === "AUDIT_SUPERVISOR" || user?.role === "STATE_AUDITOR_GENERAL";
@@ -245,6 +262,89 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     () => reports.filter((r) => r.auditId === selectedAuditId),
     [reports, selectedAuditId],
   );
+
+  /* Trial-Balance line items for the current audit (selected in planning).
+     Falls back to the most recently uploaded TB if none is tagged to this
+     audit, since the seed/consolidated TB covers all audits. */
+  const auditTrialBalance = useMemo(() => {
+    if (!trialBalances || trialBalances.length === 0) return undefined;
+    return (
+      trialBalances.find((tb) => tb.auditId === selectedAuditId) ||
+      trialBalances[trialBalances.length - 1]
+    );
+  }, [trialBalances, selectedAuditId]);
+
+  /* Audited Financial Statements rows (Statement of Financial Position +
+     Statement of Financial Performance) — used as the alternate procedure
+     source. */
+  const auditFsRows = useMemo(() => {
+    if (!auditedFinancialStatements) return [];
+    const stmts = auditedFinancialStatements.filter(
+      (fs) =>
+        (fs.kind === "StatementOfFinancialPosition" ||
+          fs.kind === "StatementOfFinancialPerformance") &&
+        !!fs.rows,
+    );
+    return stmts.flatMap((fs) =>
+      (fs.rows || [])
+        .filter((r) => !r.isHeader && !r.isSubtotal && r.ncoaCode)
+        .map((r) => ({
+          id: `${fs.id}-${r.id}`,
+          ncoaCode: r.ncoaCode,
+          accountName: r.description,
+          currentYear: r.currentYear ?? 0,
+          priorYear: r.priorYear ?? 0,
+          source: fs.kind,
+        })),
+    );
+  }, [auditedFinancialStatements]);
+
+  /* Build category → line items for the chosen source */
+  const categorisedLineItems = useMemo(() => {
+    type Item = {
+      id: string;
+      ncoaCode?: string;
+      accountName: string;
+      currentYear: number;
+      priorYear: number;
+      classification?: string;
+    };
+    const buckets = new Map<ProcedureCategory, Item[]>();
+    CATEGORY_ORDER.forEach((c) => buckets.set(c, []));
+
+    if (procSource === "tb") {
+      const lines = auditTrialBalance?.lines ?? [];
+      lines.forEach((l) => {
+        const cat =
+          categoryFromNcoa(l.ncoaCode) ||
+          categoryFromAccountName(l.accountName);
+        if (!cat) return;
+        buckets.get(cat)!.push({
+          id: l.id,
+          ncoaCode: l.ncoaCode,
+          accountName: l.accountName,
+          currentYear: l.currentYear,
+          priorYear: l.priorYear,
+          classification: l.classification,
+        });
+      });
+    } else {
+      auditFsRows.forEach((r) => {
+        const cat =
+          categoryFromNcoa(r.ncoaCode) ||
+          categoryFromAccountName(r.accountName);
+        if (!cat) return;
+        buckets.get(cat)!.push({
+          id: r.id,
+          ncoaCode: r.ncoaCode,
+          accountName: r.accountName,
+          currentYear: r.currentYear,
+          priorYear: r.priorYear,
+        });
+      });
+    }
+    return buckets;
+  }, [procSource, auditTrialBalance, auditFsRows]);
 
   const procedureStats = useMemo(() => {
     if (!currentProgramme) {
@@ -350,38 +450,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     setCreateForm({ objectives: "", scope: "", riskAreas: "" });
     setSelectedTemplateId("");
     setShowCreateForm(false);
-  };
-
-  const handleAddProcedure = () => {
-    if (!currentProgramme || !newProc.area || !newProc.procedure) {
-      addToast({
-        type: "error",
-        title: "Validation Error",
-        message: "Area and procedure are required",
-      });
-      return;
-    }
-
-    const proc: ProgrammeProcedure = {
-      id: `proc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      area: newProc.area,
-      procedure: newProc.procedure,
-      assignedTo: newProc.assignedTo || undefined,
-      status: "Not Started",
-      evidenceUploaded: false,
-    };
-
-    const store = useAuditStore.getState();
-    const updated = store.programmes.map((p) =>
-      p.id === currentProgramme.id
-        ? { ...p, procedures: [...p.procedures, proc] }
-        : p,
-    );
-
-    useAuditStore.setState({ programmes: updated });
-    setNewProc({ area: "", procedure: "", assignedTo: "" });
-    setShowAddProc(false);
-    addToast({ type: "success", title: "Procedure Added" });
   };
 
   const handleSaveMateriality = () => {
@@ -670,13 +738,14 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 padding: "0.65rem 1rem",
                 fontSize: "0.78rem",
                 fontWeight: activeTab === tab.key ? 700 : 500,
-                color: activeTab === tab.key ? "#064e3b" : "var(--text-3)",
+                color:
+                  activeTab === tab.key ? "var(--primary)" : "var(--text-3)",
                 background:
                   activeTab === tab.key ? "rgba(6,78,59,0.06)" : "transparent",
                 border: "none",
                 borderBottom:
                   activeTab === tab.key
-                    ? "2px solid #064e3b"
+                    ? "2px solid var(--primary)"
                     : "2px solid transparent",
                 cursor: "pointer",
                 whiteSpace: "nowrap",
@@ -703,8 +772,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               style={{
                 marginBottom: "1.5rem",
                 padding: "1rem",
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
               }}
             >
@@ -714,7 +783,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   alignItems: "center",
                   gap: "0.5rem",
                   marginBottom: "0.75rem",
-                  color: "#065f46",
+                  color: "var(--primary)",
                   fontSize: "0.75rem",
                   fontWeight: 700,
                   textTransform: "uppercase",
@@ -757,13 +826,18 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       style={{
                         marginTop: "0.75rem",
                         fontSize: "0.82rem",
-                        color: "#334155",
+                        color: "var(--text-2)",
                       }}
                     >
                       <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
                         {tpl.name}
                       </div>
-                      <div style={{ color: "#64748b", marginBottom: "0.5rem" }}>
+                      <div
+                        style={{
+                          color: "var(--text-2)",
+                          marginBottom: "0.5rem",
+                        }}
+                      >
                         {tpl.description}
                       </div>
                       <div
@@ -781,9 +855,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                               fontWeight: 600,
                               padding: "0.15rem 0.5rem",
                               borderRadius: "3px",
-                              background: "#d1fae5",
-                              color: "#065f46",
-                              border: "1px solid #a7f3d0",
+                              background: "var(--bg-card)",
+                              color: "var(--primary)",
+                              border: "1px solid var(--border)",
                             }}
                           >
                             {sec.title} ({sec.procedures.length})
@@ -794,7 +868,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         style={{
                           marginTop: "0.5rem",
                           fontSize: "0.72rem",
-                          color: "#64748b",
+                          color: "var(--text-2)",
                         }}
                       >
                         <strong>Methodology:</strong> {tpl.methodology}
@@ -874,7 +948,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
           {isLead && (
             <div
               style={{
-                background: "linear-gradient(135deg, #052e16 0%, #064e3b 100%)",
+                background: "linear-gradient(135deg, #0d2b1e 0%, #064e3b 100%)",
+                border: "none",
                 borderRadius: "14px",
                 padding: "1.5rem 1.75rem",
                 marginBottom: "1rem",
@@ -890,13 +965,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               >
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.15)",
+                    background: "rgba(255,255,255,0.1)",
                     borderRadius: "8px",
                     padding: "0.4rem",
                     display: "flex",
                   }}
                 >
-                  <Shield size={18} style={{ color: "#93c5fd" }} />
+                  <Shield size={18} style={{ color: "#fff" }} />
                 </div>
                 <div>
                   <h3
@@ -912,7 +987,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <p
                     style={{
                       margin: 0,
-                      color: "rgba(255,255,255,0.6)",
+                      color: "rgba(255,255,255,0.65)",
                       fontSize: "0.7rem",
                     }}
                   >
@@ -984,7 +1059,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.background =
-                        "rgba(255,255,255,0.14)")
+                        "rgba(255,255,255,0.13)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background =
@@ -1014,7 +1089,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                             style={{
                               fontSize: "0.58rem",
                               fontWeight: 800,
-                              color: "#93c5fd",
+                              color: "#4ade80",
                               fontFamily: "monospace",
                               letterSpacing: "0.05em",
                             }}
@@ -1035,7 +1110,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         <div
                           style={{
                             fontSize: "0.7rem",
-                            color: "rgba(255,255,255,0.6)",
+                            color: "rgba(255,255,255,0.8)",
                             lineHeight: 1.4,
                           }}
                         >
@@ -1045,7 +1120,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           style={{
                             marginTop: "0.4rem",
                             fontSize: "0.68rem",
-                            color: "#93c5fd",
+                            color: "#4ade80",
                             fontWeight: 600,
                           }}
                         >
@@ -1152,9 +1227,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           fontWeight: 600,
                           padding: "0.15rem 0.5rem",
                           borderRadius: "3px",
-                          background: "#fef3c7",
-                          color: "#92400e",
-                          border: "1px solid #fde68a",
+                          background: "var(--text-3)",
+                          color: "var(--text-3)",
+                          border: "1px solid var(--text-3)",
                         }}
                       >
                         {area}
@@ -1303,8 +1378,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       width: 32,
                       height: 32,
                       borderRadius: "50%",
-                      background: step.done ? "#064e3b" : "var(--border)",
-                      color: step.done ? "#fff" : "var(--text-3)",
+                      background: step.done
+                        ? "var(--primary)"
+                        : "var(--border)",
+                      color: step.done ? "var(--bg-card)" : "var(--text-3)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1338,7 +1415,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           key={i}
                           style={{
                             fontSize: "0.72rem",
-                            color: "#64748b",
+                            color: "var(--text-2)",
                             display: "flex",
                             alignItems: "center",
                             gap: "0.25rem",
@@ -1405,877 +1482,728 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             </div>
           </div>
 
-          {/* Add Procedure button */}
-          {(isLead || isSupervisor) &&
-            (currentProgramme.status === "Draft" ||
-              currentProgramme.status === "Revision Required") && (
-              <div
-                style={{
-                  marginBottom: "1rem",
-                  display: "flex",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <button
-                  className={s.btnOutline}
-                  onClick={() => setShowAddProc(true)}
-                >
-                  <Plus size={14} /> Add Procedure
-                </button>
-              </div>
-            )}
+          {/* ─── NEW: Reference procedures driven by TB / FS line items ─── */}
+          {(() => {
+            const buckets = categorisedLineItems;
+            const totalItems = Array.from(buckets.values()).reduce(
+              (sum, arr) => sum + arr.length,
+              0,
+            );
+            const sourceEmpty =
+              procSource === "tb"
+                ? !auditTrialBalance ||
+                  (auditTrialBalance.lines?.length ?? 0) === 0
+                : auditFsRows.length === 0;
 
-          {/* Add Procedure form */}
-          {showAddProc && (
-            <div className={s.card} style={{ marginBottom: "1rem" }}>
-              <div className={s.cardHeader}>
-                <h3 className={s.cardTitle}>Add Audit Procedure</h3>
-              </div>
-              <div
-                style={{
-                  padding: "1.25rem 1.5rem",
-                  background: "#f8fafc",
-                }}
-              >
-                {highRisks.length > 0 && (
-                  <div
-                    style={{
-                      marginBottom: "1.25rem",
-                      padding: "1rem",
-                      background: "#f0fdf4",
-                      border: "1px dashed #16a34a",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        marginBottom: "0.75rem",
-                        color: "#15803d",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      <Sparkles size={14} />
-                      AI Suggested Procedures (from Risk Matrix)
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {highRisks.slice(0, 5).map((risk) => (
-                        <button
-                          key={risk.id}
-                          onClick={() => {
-                            const [sug] = getSuggestedProcedures(risk.area);
-                            setNewProc({
-                              area: risk.area,
-                              procedure: sug,
-                              assignedTo: "",
-                            });
-                          }}
-                          title={`Click to add procedure for: ${risk.area}`}
-                          style={{
-                            background: "white",
-                            border: "1px solid #bbf7d0",
-                            padding: "0.35rem 0.75rem",
-                            borderRadius: "100px",
-                            fontSize: "0.75rem",
-                            color: "#166534",
-                            cursor: "pointer",
-                            transition: "all 0.2s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.35rem",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#dcfce7")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "white")
-                          }
-                        >
-                          <Plus size={10} />
-                          {risk.area} ({risk.overallRisk})
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className={s.formGrid}>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Risk Area</label>
-                    <input
-                      className={s.formInput}
-                      value={newProc.area}
-                      onChange={(e) =>
-                        setNewProc({ ...newProc, area: e.target.value })
-                      }
-                      placeholder="e.g. Revenue"
-                    />
-                  </div>
-                  <div className={s.formGroup}>
-                    <label className={s.formLabel}>Assigned To</label>
-                    <input
-                      className={s.formInput}
-                      value={newProc.assignedTo}
-                      onChange={(e) =>
-                        setNewProc({ ...newProc, assignedTo: e.target.value })
-                      }
-                      placeholder="Auditor name"
-                    />
-                  </div>
-                  <div className={s.formGroupFull}>
-                    <label className={s.formLabel}>Procedure</label>
-                    <textarea
-                      className={s.formTextarea}
-                      value={newProc.procedure}
-                      onChange={(e) =>
-                        setNewProc({ ...newProc, procedure: e.target.value })
-                      }
-                      placeholder="Describe the audit procedure"
-                    />
-                  </div>
-                </div>
-                <div className={s.formActions}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => setShowAddProc(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button className={s.btnPrimary} onClick={handleAddProcedure}>
-                    Add Procedure
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentProgramme.procedures.length === 0 ? (
-            <div className={s.card}>
-              <div className={s.cardBody}>
-                <div className={s.emptyState}>
-                  <BookOpen size={40} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>No Procedures Defined</div>
-                  <div className={s.emptyDesc}>
-                    Add audit procedures to build the work programme.
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            (() => {
-              /* Group procedures by risk area (section) */
-              const areas = Array.from(
-                new Set(currentProgramme.procedures.map((p) => p.area)),
-              );
-              const sectionMap = new Map(
-                (currentProgramme.sections ?? []).map((sec) => [
-                  sec.title,
-                  sec,
-                ]),
-              );
-              /* Sort by section sortOrder if available */
-              areas.sort((a, b) => {
-                const sa = sectionMap.get(a)?.sortOrder ?? 99;
-                const sb = sectionMap.get(b)?.sortOrder ?? 99;
-                return sa - sb;
-              });
-
-              return (
+            return (
+              <div className={s.card} style={{ marginBottom: "1.25rem" }}>
                 <div
+                  className={s.cardHeader}
                   style={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: "1.25rem",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "0.75rem",
                   }}
                 >
-                  {areas.map((area, areaIdx) => {
-                    const section = sectionMap.get(area);
-                    const areaProcs = currentProgramme.procedures.filter(
-                      (p) => p.area === area,
-                    );
-                    const areaCompleted = areaProcs.filter(
-                      (p) => p.status === "Completed",
-                    ).length;
-                    const areaWPs = areaProcs
-                      .filter((p) => p.workpaperRef)
-                      .map((p) => p.workpaperRef!);
-                    const riskLevelColor = section
-                      ? (sevColor[section.riskLevel] ?? {
-                          bg: "#f3f4f6",
-                          color: "#6b7280",
-                        })
-                      : { bg: "#f3f4f6", color: "#6b7280" };
-
-                    /* Sub-group by Nature of Test */
-                    const natureGroups: Record<string, typeof areaProcs> = {};
-                    areaProcs.forEach((p) => {
-                      const key = p.natureOfTest || "Other";
-                      if (!natureGroups[key]) natureGroups[key] = [];
-                      natureGroups[key].push(p);
-                    });
-                    const NATURE_ORDER = [
-                      "Control",
-                      "Analytical",
-                      "Substantive",
-                      "Inquiry",
-                      "Observation",
-                      "Inspection",
-                      "Other",
-                    ];
-                    const sortedNatures = Object.keys(natureGroups).sort(
-                      (a, b) =>
-                        NATURE_ORDER.indexOf(a) - NATURE_ORDER.indexOf(b),
-                    );
-
-                    return (
-                      <div
-                        key={area}
-                        className={s.card}
-                        style={{
-                          borderLeft: `4px solid ${riskLevelColor.color}`,
-                        }}
-                      >
-                        {/* Section Header */}
-                        <div
-                          className={s.cardHeader}
-                          style={{
-                            flexDirection: "column",
-                            alignItems: "stretch",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              flexWrap: "wrap",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <h3
-                              className={s.cardTitle}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.5rem",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: "50%",
-                                  background: riskLevelColor.bg,
-                                  color: riskLevelColor.color,
-                                  fontSize: "0.75rem",
-                                  fontWeight: 800,
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {areaIdx + 1}
-                              </span>
-                              Audit Programme: {area}
-                            </h3>
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "0.5rem",
-                                alignItems: "center",
-                              }}
-                            >
-                              {section && (
-                                <InlineBadge
-                                  label={`${section.riskLevel} RISK`}
-                                  bg={riskLevelColor.bg}
-                                  color={riskLevelColor.color}
-                                />
-                              )}
-                              <InlineBadge
-                                label={`${areaCompleted}/${areaProcs.length} Done`}
-                                bg={
-                                  areaCompleted === areaProcs.length
-                                    ? "#d1fae5"
-                                    : "#fef3c7"
-                                }
-                                color={
-                                  areaCompleted === areaProcs.length
-                                    ? "#065f46"
-                                    : "#92400e"
-                                }
-                              />
-                              <InlineBadge
-                                label={`${areaWPs.length} W/P`}
-                                bg="#ede9fe"
-                                color="#5b21b6"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className={s.cardBody}>
-                          {/* ── Audit Objectives ── */}
-                          {section && section.auditObjectives.length > 0 && (
-                            <div
-                              style={{
-                                marginBottom: "1.25rem",
-                                padding: "1rem",
-                                background: "#f0f9ff",
-                                border: "1px solid #bae6fd",
-                                borderRadius: "8px",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.4rem",
-                                  marginBottom: "0.5rem",
-                                  fontSize: "0.72rem",
-                                  fontWeight: 700,
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.06em",
-                                  color: "#0369a1",
-                                }}
-                              >
-                                <Eye size={13} /> Audit Objectives
-                              </div>
-                              <ul
-                                style={{
-                                  margin: 0,
-                                  paddingLeft: "1.25rem",
-                                  fontSize: "0.82rem",
-                                  color: "#334155",
-                                  lineHeight: 1.7,
-                                }}
-                              >
-                                {section.auditObjectives.map((obj, i) => (
-                                  <li key={i}>{obj}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* ── Procedures grouped by Nature of Test ── */}
-                          <div
-                            style={{
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.06em",
-                              color: "var(--text-3)",
-                              marginBottom: "0.75rem",
-                            }}
-                          >
-                            <ClipboardList
-                              size={13}
-                              style={{
-                                marginRight: "0.3rem",
-                                verticalAlign: "middle",
-                              }}
-                            />
-                            Audit Procedures
-                          </div>
-
-                          {sortedNatures.map((nature) => {
-                            const procs = natureGroups[nature];
-                            const natureLabel =
-                              nature === "Control"
-                                ? "Understanding & Assessing Controls"
-                                : nature === "Analytical"
-                                  ? "Analytical Procedures"
-                                  : nature === "Substantive"
-                                    ? "Substantive Procedures"
-                                    : nature === "Inquiry"
-                                      ? "Inquiry Procedures"
-                                      : nature === "Observation"
-                                        ? "Observation & Physical Inspection"
-                                        : nature === "Inspection"
-                                          ? "Inspection & Disclosure"
-                                          : "Other Procedures";
-                            return (
-                              <div
-                                key={nature}
-                                style={{ marginBottom: "1rem" }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "0.78rem",
-                                    fontWeight: 700,
-                                    color: "#334155",
-                                    marginBottom: "0.5rem",
-                                    borderBottom: "1px solid var(--border)",
-                                    paddingBottom: "0.35rem",
-                                  }}
-                                >
-                                  {natureLabel}
-                                </div>
-                                <div className={s.tableWrap}>
-                                  <table className={s.table}>
-                                    <thead>
-                                      <tr>
-                                        <th style={{ width: 36 }}>#</th>
-                                        <th style={{ width: 120 }}>
-                                          Test Type
-                                        </th>
-                                        <th>Audit Procedure</th>
-                                        <th>Assertion</th>
-                                        <th>Auditor Response & Conclusion</th>
-                                        <th>Assigned</th>
-                                        <th>Status</th>
-                                        <th>W/P Ref</th>
-                                        <th>Actions</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {procs.map((proc, idx) => {
-                                        const execRecord =
-                                          procedureExecutions.find(
-                                            (e) => e.procedureId === proc.id,
-                                          );
-                                        return (
-                                          <tr key={proc.id}>
-                                            <td
-                                              style={{
-                                                fontWeight: 600,
-                                                color: "var(--text-3)",
-                                                fontSize: "0.78rem",
-                                              }}
-                                            >
-                                              {String(idx + 1).padStart(2, "0")}
-                                            </td>
-                                            <td
-                                              style={{
-                                                maxWidth: "320px",
-                                                lineHeight: 1.55,
-                                              }}
-                                            >
-                                              {proc.procedure}
-                                              {proc.expectedEvidence && (
-                                                <div
-                                                  style={{
-                                                    fontSize: "0.7rem",
-                                                    color: "#64748b",
-                                                    marginTop: "0.2rem",
-                                                  }}
-                                                >
-                                                  <em>
-                                                    Evidence:{" "}
-                                                    {proc.expectedEvidence}
-                                                  </em>
-                                                </div>
-                                              )}
-                                            </td>
-                                            <td>
-                                              {proc.assertion ? (
-                                                <span
-                                                  style={{
-                                                    fontSize: "0.68rem",
-                                                    fontWeight: 600,
-                                                    padding: "0.1rem 0.35rem",
-                                                    borderRadius: "3px",
-                                                    background: "#f0fdf4",
-                                                    color: "#166534",
-                                                    border: "1px solid #bbf7d0",
-                                                    whiteSpace: "nowrap",
-                                                  }}
-                                                >
-                                                  {proc.assertion}
-                                                </span>
-                                              ) : (
-                                                "-"
-                                              )}
-                                            </td>
-                                            <td
-                                              style={{
-                                                fontSize: "0.78rem",
-                                                maxWidth: "250px",
-                                              }}
-                                            >
-                                              {execRecord?.workPerformed ? (
-                                                <div>
-                                                  <span
-                                                    style={{
-                                                      fontWeight: 600,
-                                                      color: "#475569",
-                                                    }}
-                                                  >
-                                                    Obs:
-                                                  </span>{" "}
-                                                  <span
-                                                    style={{ color: "#1e293b" }}
-                                                  >
-                                                    {execRecord.workPerformed}
-                                                  </span>
-                                                </div>
-                                              ) : (
-                                                "-"
-                                              )}
-                                              {execRecord?.conclusion && (
-                                                <div style={{ marginTop: 4 }}>
-                                                  <span
-                                                    style={{
-                                                      fontWeight: 600,
-                                                      color: "#475569",
-                                                    }}
-                                                  >
-                                                    Conclusion:
-                                                  </span>{" "}
-                                                  <span
-                                                    style={{ color: "#1e293b" }}
-                                                  >
-                                                    {execRecord.conclusion}
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </td>
-                                            <td style={{ fontSize: "0.78rem" }}>
-                                              {proc.assignedTo || "-"}
-                                            </td>
-                                            <td>
-                                              <StatusBadge
-                                                label={proc.status}
-                                                variant={procStatusVariant(
-                                                  proc.status,
-                                                )}
-                                              />
-                                            </td>
-                                            <td
-                                              style={{
-                                                fontSize: "0.75rem",
-                                                fontFamily: "monospace",
-                                                color: proc.workpaperRef
-                                                  ? "#5b21b6"
-                                                  : "var(--text-3)",
-                                                fontWeight: proc.workpaperRef
-                                                  ? 600
-                                                  : 400,
-                                              }}
-                                            >
-                                              {proc.workpaperRef || "-"}
-                                            </td>
-                                            <td>
-                                              {(() => {
-                                                const exec =
-                                                  procedureExecutions.find(
-                                                    (e) =>
-                                                      e.procedureId === proc.id,
-                                                  );
-                                                if (!exec) return null;
-                                                return (
-                                                  <button
-                                                    className={s.btnIcon}
-                                                    onClick={() =>
-                                                      onOpenProcedure?.(exec.id)
-                                                    }
-                                                    title="Open Procedure Workspace"
-                                                  >
-                                                    <ArrowRight size={13} />
-                                                  </button>
-                                                );
-                                              })()}
-                                            </td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                          {/* ── Key Risks to Consider ── */}
-                          {section && section.keyRisks.length > 0 && (
-                            <div
-                              style={{
-                                marginTop: "0.75rem",
-                                padding: "1rem",
-                                background: "#fef2f2",
-                                border: "1px solid #fecaca",
-                                borderRadius: "8px",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.4rem",
-                                  marginBottom: "0.5rem",
-                                  fontSize: "0.72rem",
-                                  fontWeight: 700,
-                                  textTransform: "uppercase",
-                                  letterSpacing: "0.06em",
-                                  color: "#991b1b",
-                                }}
-                              >
-                                <AlertTriangle size={13} /> Key Risks to
-                                Consider
-                              </div>
-                              <ul
-                                style={{
-                                  margin: 0,
-                                  paddingLeft: "1.25rem",
-                                  fontSize: "0.82rem",
-                                  color: "#7f1d1d",
-                                  lineHeight: 1.7,
-                                }}
-                              >
-                                {section.keyRisks.map((risk, i) => (
-                                  <li key={i}>{risk}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* ── Documentation & Workpapers ── */}
-                          <div
-                            style={{
-                              marginTop: "0.75rem",
-                              padding: "1rem",
-                              background: "#faf5ff",
-                              border: "1px solid #e9d5ff",
-                              borderRadius: "8px",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.4rem",
-                                marginBottom: "0.5rem",
-                                fontSize: "0.72rem",
-                                fontWeight: 700,
-                                textTransform: "uppercase",
-                                letterSpacing: "0.06em",
-                                color: "#6b21a8",
-                              }}
-                            >
-                              <FolderOpen size={13} /> Documentation &
-                              Workpapers
-                            </div>
-                            {section && (
-                              <p
-                                style={{
-                                  fontSize: "0.82rem",
-                                  color: "#581c87",
-                                  lineHeight: 1.6,
-                                  margin: "0 0 0.75rem",
-                                }}
-                              >
-                                {section.documentationNotes}
-                              </p>
-                            )}
-                            {areaWPs.length > 0 ? (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "0.4rem",
-                                  flexWrap: "wrap",
-                                }}
-                              >
-                                {areaWPs.map((ref) => {
-                                  const wp = filteredWorkpapers.find(
-                                    (w) => w.reference === ref,
-                                  );
-                                  return (
-                                    <span
-                                      key={ref}
-                                      style={{
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        gap: "0.3rem",
-                                        padding: "0.25rem 0.6rem",
-                                        borderRadius: "4px",
-                                        background: "#ede9fe",
-                                        color: "#5b21b6",
-                                        fontSize: "0.72rem",
-                                        fontWeight: 600,
-                                        fontFamily: "monospace",
-                                        border: "1px solid #ddd6fe",
-                                      }}
-                                    >
-                                      <FileText size={11} />
-                                      {ref}
-                                      {wp && (
-                                        <span
-                                          style={{
-                                            fontSize: "0.62rem",
-                                            fontWeight: 400,
-                                            color: "#7c3aed",
-                                            fontFamily: "inherit",
-                                          }}
-                                        >
-                                          ({wp.status})
-                                        </span>
-                                      )}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div
-                                style={{
-                                  fontSize: "0.78rem",
-                                  color: "#9333ea",
-                                  fontStyle: "italic",
-                                }}
-                              >
-                                No workpapers linked yet — assign W/P references
-                                to procedures above.
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Section progress footer */}
-                        <div className={s.cardFooter}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "1rem",
-                              width: "100%",
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontSize: "0.78rem",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {area}: {areaCompleted}/{areaProcs.length}{" "}
-                              completed
-                            </span>
-                            <div
-                              style={{
-                                flex: 1,
-                                height: "6px",
-                                background: "var(--border)",
-                                borderRadius: "3px",
-                                overflow: "hidden",
-                                maxWidth: "200px",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  height: "100%",
-                                  width: `${areaProcs.length > 0 ? (areaCompleted / areaProcs.length) * 100 : 0}%`,
-                                  background: riskLevelColor.color,
-                                  borderRadius: "3px",
-                                  transition: "width 0.3s",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Overall progress */}
+                  <div>
+                    <h3 className={s.cardTitle}>
+                      Audit Procedures by Line Item
+                    </h3>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--text-3)",
+                        marginTop: "0.25rem",
+                      }}
+                    >
+                      Procedures matched from the reference library against the
+                      selected source document.
+                    </div>
+                  </div>
                   <div
-                    className={s.card}
                     style={{
-                      background:
-                        "linear-gradient(135deg, #052e16 0%, #064e3b 100%)",
-                      color: "#fff",
+                      display: "flex",
+                      gap: "0.5rem",
+                      alignItems: "center",
                     }}
                   >
-                    <div className={s.cardBody}>
-                      <div
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        color: "var(--text-3)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Source
+                    </span>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        background: "var(--border)",
+                        borderRadius: "8px",
+                        padding: "3px",
+                      }}
+                    >
+                      <button
+                        onClick={() => setProcSource("tb")}
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                          gap: "1rem",
+                          padding: "0.4rem 0.85rem",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontSize: "0.78rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background:
+                            procSource === "tb"
+                              ? "var(--bg-card)"
+                              : "transparent",
+                          color:
+                            procSource === "tb"
+                              ? "var(--primary)"
+                              : "var(--text-2)",
+                          boxShadow:
+                            procSource === "tb"
+                              ? "0 1px 2px rgba(0,0,0,0.08)"
+                              : "none",
                         }}
                       >
-                        <div>
-                          <div
-                            style={{
-                              fontSize: "0.72rem",
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.06em",
-                              color: "rgba(255,255,255,0.6)",
-                              marginBottom: "0.25rem",
-                            }}
-                          >
-                            Overall Programme Progress
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "1.1rem",
-                              fontWeight: 700,
-                            }}
-                          >
-                            {procedureStats.completed}/{procedureStats.total}{" "}
-                            procedures completed across {areas.length} risk
-                            areas
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.75rem",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 120,
-                              height: "8px",
-                              background: "rgba(255,255,255,0.2)",
-                              borderRadius: "4px",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <div
-                              style={{
-                                height: "100%",
-                                width: `${procedureStats.total > 0 ? (procedureStats.completed / procedureStats.total) * 100 : 0}%`,
-                                background: "#34d399",
-                                borderRadius: "4px",
-                                transition: "width 0.3s",
-                              }}
-                            />
-                          </div>
-                          <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>
-                            {procedureStats.total > 0
-                              ? Math.round(
-                                  (procedureStats.completed /
-                                    procedureStats.total) *
-                                    100,
-                                )
-                              : 0}
-                            %
-                          </span>
-                        </div>
-                      </div>
+                        Trial Balance
+                      </button>
+                      <button
+                        onClick={() => setProcSource("fs")}
+                        style={{
+                          padding: "0.4rem 0.85rem",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontSize: "0.78rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background:
+                            procSource === "fs"
+                              ? "var(--bg-card)"
+                              : "transparent",
+                          color:
+                            procSource === "fs"
+                              ? "var(--primary)"
+                              : "var(--text-2)",
+                          boxShadow:
+                            procSource === "fs"
+                              ? "0 1px 2px rgba(0,0,0,0.08)"
+                              : "none",
+                        }}
+                      >
+                        Financial Statements
+                      </button>
                     </div>
                   </div>
                 </div>
-              );
-            })()
-          )}
+
+                <div
+                  style={{
+                    padding: "1.25rem 1.5rem",
+                    background: "var(--bg-card)",
+                  }}
+                >
+                  {sourceEmpty ? (
+                    <div className={s.emptyState}>
+                      <BookOpen size={36} className={s.emptyIcon} />
+                      <div className={s.emptyTitle}>
+                        No{" "}
+                        {procSource === "tb"
+                          ? "Trial Balance"
+                          : "Financial Statements"}{" "}
+                        loaded
+                      </div>
+                      <div className={s.emptyDesc}>
+                        Upload a Trial Balance or generate Audited Financial
+                        Statements in Audit Outcomes to drive procedure mapping.
+                      </div>
+                    </div>
+                  ) : totalItems === 0 ? (
+                    <div className={s.emptyState}>
+                      <BookOpen size={36} className={s.emptyIcon} />
+                      <div className={s.emptyTitle}>
+                        No categorised line items
+                      </div>
+                      <div className={s.emptyDesc}>
+                        The selected source has no line items matching the
+                        standard audit categories.
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                      }}
+                    >
+                      {CATEGORY_ORDER.map((cat) => {
+                        const items = buckets.get(cat) || [];
+                        if (items.length === 0) return null;
+                        const meta = PROCEDURE_CATEGORY_META[cat];
+                        return (
+                          <div
+                            key={cat}
+                            style={{
+                              border: "1px solid var(--border)",
+                              borderRadius: "10px",
+                              overflow: "hidden",
+                              background: "var(--bg-card)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                padding: "0.85rem 1rem",
+                                background: meta.bg,
+                                borderBottom: "1px solid var(--border)",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.75rem",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    background: meta.color,
+                                    color: "#fff",
+                                    fontSize: "0.65rem",
+                                    fontWeight: 700,
+                                    padding: "0.25rem 0.55rem",
+                                    borderRadius: "4px",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  {meta.short}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: "0.95rem",
+                                    fontWeight: 700,
+                                    color: meta.color,
+                                  }}
+                                >
+                                  {meta.label}
+                                </span>
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "var(--text-2)",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {items.length} line item
+                                {items.length !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                              }}
+                            >
+                              {items.map((li) => {
+                                const matched = matchProceduresForLineItem(
+                                  li.ncoaCode,
+                                  li.accountName,
+                                  cat,
+                                );
+                                const variance = li.currentYear - li.priorYear;
+                                const variancePct =
+                                  li.priorYear !== 0
+                                    ? (variance / li.priorYear) * 100
+                                    : 0;
+                                const expanded = expandedLineItem === li.id;
+                                const programmeMatches =
+                                  currentProgramme.procedures.filter(
+                                    (p) =>
+                                      p.area
+                                        .toLowerCase()
+                                        .includes(
+                                          li.accountName.toLowerCase(),
+                                        ) ||
+                                      li.accountName
+                                        .toLowerCase()
+                                        .includes(p.area.toLowerCase()),
+                                  );
+                                return (
+                                  <div
+                                    key={li.id}
+                                    style={{
+                                      borderTop: "1px solid var(--border)",
+                                    }}
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedLineItem(
+                                          expanded ? null : li.id,
+                                        )
+                                      }
+                                      style={{
+                                        width: "100%",
+                                        background: "transparent",
+                                        border: "none",
+                                        padding: "0.85rem 1rem",
+                                        display: "grid",
+                                        gridTemplateColumns:
+                                          "minmax(0,1fr) auto auto auto auto",
+                                        gap: "0.75rem",
+                                        alignItems: "center",
+                                        cursor: "pointer",
+                                        textAlign: "left",
+                                      }}
+                                    >
+                                      <div style={{ minWidth: 0 }}>
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            fontSize: "0.85rem",
+                                            fontWeight: 600,
+                                            color: "var(--text)",
+                                          }}
+                                        >
+                                          <ChevronRight
+                                            size={14}
+                                            style={{
+                                              transform: expanded
+                                                ? "rotate(90deg)"
+                                                : "none",
+                                              transition: "transform 0.2s",
+                                              color: "var(--text-3)",
+                                              flexShrink: 0,
+                                            }}
+                                          />
+                                          <span
+                                            style={{
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              whiteSpace: "nowrap",
+                                            }}
+                                          >
+                                            {li.accountName}
+                                          </span>
+                                          {li.ncoaCode && (
+                                            <span
+                                              style={{
+                                                fontFamily: "monospace",
+                                                fontSize: "0.7rem",
+                                                background: "var(--border)",
+                                                color: "var(--text-2)",
+                                                padding: "0.15rem 0.4rem",
+                                                borderRadius: "3px",
+                                                flexShrink: 0,
+                                              }}
+                                            >
+                                              {li.ncoaCode}
+                                            </span>
+                                          )}
+                                          {programmeMatches.length > 0 && (
+                                            <span
+                                              title={`${programmeMatches.length} procedure(s) saved to programme`}
+                                              style={{
+                                                background: "#dcfce7",
+                                                color: "#15803d",
+                                                fontSize: "0.65rem",
+                                                fontWeight: 700,
+                                                padding: "0.15rem 0.5rem",
+                                                borderRadius: "100px",
+                                                flexShrink: 0,
+                                              }}
+                                            >
+                                              {programmeMatches.length} in
+                                              programme
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div
+                                        style={{
+                                          fontSize: "0.78rem",
+                                          color: "var(--text-2)",
+                                          textAlign: "right",
+                                          minWidth: "100px",
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            fontSize: "0.65rem",
+                                            color: "var(--text-3)",
+                                          }}
+                                        >
+                                          Current
+                                        </div>
+                                        <div style={{ fontWeight: 600 }}>
+                                          {fmtCurrency(li.currentYear)}
+                                        </div>
+                                      </div>
+                                      <div
+                                        style={{
+                                          fontSize: "0.78rem",
+                                          color: "var(--text-2)",
+                                          textAlign: "right",
+                                          minWidth: "100px",
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            fontSize: "0.65rem",
+                                            color: "var(--text-3)",
+                                          }}
+                                        >
+                                          Prior
+                                        </div>
+                                        <div>{fmtCurrency(li.priorYear)}</div>
+                                      </div>
+                                      <div
+                                        style={{
+                                          fontSize: "0.78rem",
+                                          textAlign: "right",
+                                          minWidth: "100px",
+                                          color:
+                                            Math.abs(variancePct) > 25
+                                              ? "#b91c1c"
+                                              : "var(--text-2)",
+                                          fontWeight:
+                                            Math.abs(variancePct) > 25
+                                              ? 700
+                                              : 500,
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            fontSize: "0.65rem",
+                                            color: "var(--text-3)",
+                                            fontWeight: 400,
+                                          }}
+                                        >
+                                          Var %
+                                        </div>
+                                        <div>
+                                          {variancePct >= 0 ? "+" : ""}
+                                          {variancePct.toFixed(1)}%
+                                        </div>
+                                      </div>
+                                    </button>
+
+                                    {expanded && (
+                                      <div
+                                        style={{
+                                          padding: "0.75rem 1rem 1rem",
+                                          background: "var(--bg-card)",
+                                          borderTop: "1px solid var(--border)",
+                                        }}
+                                      >
+                                        {matched.length === 0 ? (
+                                          <div
+                                            style={{
+                                              padding: "0.75rem",
+                                              fontSize: "0.8rem",
+                                              color: "var(--text-3)",
+                                              fontStyle: "italic",
+                                            }}
+                                          >
+                                            No reference procedures matched this
+                                            account.
+                                          </div>
+                                        ) : (
+                                          <div className={s.tableWrap}>
+                                            <table className={s.table}>
+                                              <thead>
+                                                <tr>
+                                                  <th style={{ width: 36 }}>
+                                                    #
+                                                  </th>
+                                                  <th style={{ maxWidth: 260 }}>
+                                                    Audit Procedure
+                                                  </th>
+                                                  <th style={{ width: 160 }}>
+                                                    Accuracy / Valuation
+                                                  </th>
+                                                  <th style={{ width: 130 }}>
+                                                    Assigned
+                                                  </th>
+                                                  <th style={{ width: 90 }}>
+                                                    Action
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {matched.flatMap((mp) =>
+                                                  (mp.procedures ?? []).map(
+                                                    (step, i) => {
+                                                      const rowKey = `${mp.code}-${i}`;
+                                                      const savedProc =
+                                                        currentProgramme.procedures.find(
+                                                          (p) =>
+                                                            p.procedure ===
+                                                              step &&
+                                                            p.area ===
+                                                              li.accountName,
+                                                        );
+                                                      return (
+                                                        <tr key={rowKey}>
+                                                          <td
+                                                            style={{
+                                                              fontWeight: 600,
+                                                              color:
+                                                                "var(--text-3)",
+                                                              fontSize:
+                                                                "0.78rem",
+                                                            }}
+                                                          >
+                                                            {String(
+                                                              i + 1,
+                                                            ).padStart(2, "0")}
+                                                          </td>
+                                                          <td
+                                                            style={{
+                                                              fontSize:
+                                                                "0.82rem",
+                                                              lineHeight: 1.55,
+                                                              maxWidth: 260,
+                                                              whiteSpace:
+                                                                "normal",
+                                                              wordBreak:
+                                                                "break-word",
+                                                            }}
+                                                          >
+                                                            {step}
+                                                          </td>
+                                                          <td>
+                                                            <div
+                                                              style={{
+                                                                display: "flex",
+                                                                flexWrap:
+                                                                  "wrap",
+                                                                gap: "0.25rem",
+                                                              }}
+                                                            >
+                                                              {(
+                                                                mp.assertions ??
+                                                                []
+                                                              ).map((a) => (
+                                                                <span
+                                                                  key={a}
+                                                                  style={{
+                                                                    fontSize:
+                                                                      "0.65rem",
+                                                                    background:
+                                                                      "#eff6ff",
+                                                                    color:
+                                                                      "#1d4ed8",
+                                                                    padding:
+                                                                      "0.15rem 0.45rem",
+                                                                    borderRadius:
+                                                                      "100px",
+                                                                    fontWeight: 600,
+                                                                    textTransform:
+                                                                      "uppercase",
+                                                                    letterSpacing:
+                                                                      "0.04em",
+                                                                    whiteSpace:
+                                                                      "nowrap",
+                                                                  }}
+                                                                >
+                                                                  {a}
+                                                                </span>
+                                                              ))}
+                                                            </div>
+                                                          </td>
+                                                          <td
+                                                            style={{
+                                                              fontSize:
+                                                                "0.78rem",
+                                                              color:
+                                                                "var(--text-2)",
+                                                            }}
+                                                          >
+                                                            {savedProc?.assignedTo
+                                                              ? getUserName(
+                                                                  savedProc.assignedTo,
+                                                                )
+                                                              : "-"}
+                                                          </td>
+                                                          <td>
+                                                            <button
+                                                              className={
+                                                                s.btnIcon
+                                                              }
+                                                              title="Open Procedure Workspace"
+                                                              onClick={() => {
+                                                                const store =
+                                                                  useAuditStore.getState();
+                                                                /* find or create a procedure execution record */
+                                                                let exec =
+                                                                  savedProc
+                                                                    ? store.procedureExecutions.find(
+                                                                        (e) =>
+                                                                          e.procedureId ===
+                                                                          savedProc.id,
+                                                                      )
+                                                                    : undefined;
+                                                                if (!exec) {
+                                                                  /* ensure there's a programme procedure to attach to */
+                                                                  let procId =
+                                                                    savedProc?.id;
+                                                                  if (
+                                                                    !procId &&
+                                                                    currentProgramme
+                                                                  ) {
+                                                                    /* create a minimal programme procedure on-the-fly */
+                                                                    const newProc =
+                                                                      {
+                                                                        id: `proc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                                                                        area: li.accountName,
+                                                                        procedure:
+                                                                          step,
+                                                                        status:
+                                                                          "Not Started" as const,
+                                                                        evidenceUploaded: false,
+                                                                      };
+                                                                    useAuditStore.setState(
+                                                                      (st) => ({
+                                                                        programmes:
+                                                                          st.programmes.map(
+                                                                            (
+                                                                              p,
+                                                                            ) =>
+                                                                              p.id ===
+                                                                              currentProgramme.id
+                                                                                ? {
+                                                                                    ...p,
+                                                                                    procedures:
+                                                                                      [
+                                                                                        ...p.procedures,
+                                                                                        newProc,
+                                                                                      ],
+                                                                                  }
+                                                                                : p,
+                                                                          ),
+                                                                      }),
+                                                                    );
+                                                                    procId =
+                                                                      newProc.id;
+                                                                  }
+                                                                  if (
+                                                                    procId &&
+                                                                    selectedAuditId &&
+                                                                    currentProgramme
+                                                                  ) {
+                                                                    const newExec =
+                                                                      {
+                                                                        id: `exec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                                                                        auditId:
+                                                                          selectedAuditId,
+                                                                        programmeId:
+                                                                          currentProgramme.id,
+                                                                        procedureId:
+                                                                          procId,
+                                                                        procedureRef: `REF-${Date.now()}`,
+                                                                        procedureDescription:
+                                                                          step,
+                                                                        auditArea:
+                                                                          li.accountName,
+                                                                        assertions:
+                                                                          (mp.assertions ??
+                                                                            []) as import("../../types").AuditAssertion[],
+                                                                        riskRating:
+                                                                          "Medium" as const,
+                                                                        assignedTo:
+                                                                          "",
+                                                                        dueDate:
+                                                                          new Date(
+                                                                            Date.now() +
+                                                                              14 *
+                                                                                86400000,
+                                                                          )
+                                                                            .toISOString()
+                                                                            .split(
+                                                                              "T",
+                                                                            )[0],
+                                                                        status:
+                                                                          "Not Started" as const,
+                                                                        budgetedHours: 4,
+                                                                        timeEntries:
+                                                                          [],
+                                                                        loggedHours: 0,
+                                                                        evidence:
+                                                                          [],
+                                                                        workPerformed:
+                                                                          "",
+                                                                        exceptionIds:
+                                                                          [],
+                                                                        createdAt:
+                                                                          new Date().toISOString(),
+                                                                      };
+                                                                    useAuditStore.setState(
+                                                                      (st) => ({
+                                                                        procedureExecutions:
+                                                                          [
+                                                                            ...st.procedureExecutions,
+                                                                            newExec,
+                                                                          ],
+                                                                      }),
+                                                                    );
+                                                                    exec =
+                                                                      newExec;
+                                                                  }
+                                                                }
+                                                                if (exec) {
+                                                                  onOpenProcedure?.(
+                                                                    exec.id,
+                                                                  );
+                                                                }
+                                                              }}
+                                                            >
+                                                              <ArrowRight
+                                                                size={13}
+                                                              />
+                                                            </button>
+                                                          </td>
+                                                        </tr>
+                                                      );
+                                                    },
+                                                  ),
+                                                )}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ─── Currently saved in Work Programme ─── (hidden — use reference table above) */}
+          {null}
         </>
       )}
-
       {/* ─── TAB: EVIDENCE LIBRARY ─── */}
       {currentProgramme && activeTab === "evidence" && (
         <div>
@@ -2290,7 +2218,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  color: "#64748b",
+                  color: "var(--text-2)",
                 }}
               >
                 Evidence Library
@@ -2298,7 +2226,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               <div
                 style={{
                   fontSize: "0.82rem",
-                  color: "#334155",
+                  color: "var(--text-2)",
                   marginTop: "0.15rem",
                 }}
               >
@@ -2329,7 +2257,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   style={{
                     textAlign: "center",
                     padding: "2rem 0",
-                    color: "#94a3b8",
+                    color: "var(--border)",
                     fontSize: "0.85rem",
                   }}
                 >
@@ -2350,10 +2278,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             const evidenceByArea: Record<
               string,
               {
+                executionId: string;
+                evidenceId: string;
                 code: string;
                 fileName: string;
                 fileType: string;
                 fileSize: string;
+                fileUrl: string;
                 uploadedAt: string;
                 uploadedBy: string;
                 procedureRef: string;
@@ -2362,10 +2293,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             procedureExecutions.forEach((ex) => {
               ex.evidence.forEach((ev) => {
                 (evidenceByArea[ex.auditArea] ||= []).push({
+                  executionId: ex.id,
+                  evidenceId: ev.id,
                   code: ev.code,
                   fileName: ev.fileName,
                   fileType: ev.fileType,
                   fileSize: ev.fileSize,
+                  fileUrl: ev.fileUrl,
                   uploadedAt: ev.uploadedAt,
                   uploadedBy: ev.uploadedBy,
                   procedureRef: ex.procedureRef,
@@ -2393,17 +2327,18 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     <table className={s.table}>
                       <thead>
                         <tr>
-                          <th>Code</th>
+                          <th style={{ width: 90 }}>Code</th>
                           <th>File Name</th>
-                          <th>Type</th>
-                          <th>Procedure</th>
-                          <th>Uploaded</th>
-                          <th>By</th>
+                          <th style={{ width: 80 }}>Type</th>
+                          <th style={{ width: 110 }}>Procedure</th>
+                          <th style={{ width: 90 }}>Uploaded</th>
+                          <th style={{ width: 90 }}>By</th>
+                          <th style={{ width: 80 }}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {files.map((f) => (
-                          <tr key={f.code}>
+                          <tr key={f.evidenceId}>
                             <td
                               style={{
                                 fontFamily: "monospace",
@@ -2433,7 +2368,41 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                               )}
                             </td>
                             <td style={{ fontSize: "0.78rem" }}>
-                              {f.uploadedBy}
+                              {getUserName(f.uploadedBy)}
+                            </td>
+                            <td>
+                              <div style={{ display: "flex", gap: "0.25rem" }}>
+                                <button
+                                  className={s.btnIcon}
+                                  title="View evidence"
+                                  onClick={() =>
+                                    setPreviewEvidence({
+                                      name: f.fileName,
+                                      type: f.fileType,
+                                      uploadedBy: getUserName(f.uploadedBy),
+                                      uploadedAt: f.uploadedAt,
+                                      size: f.fileSize,
+                                      url: f.fileUrl,
+                                    })
+                                  }
+                                >
+                                  <Eye size={14} />
+                                </button>
+                                <button
+                                  className={s.btnIcon}
+                                  title="Delete evidence"
+                                  style={{ color: "var(--text-3)" }}
+                                  onClick={() =>
+                                    setConfirmDeleteEvidence({
+                                      executionId: f.executionId,
+                                      evidenceId: f.evidenceId,
+                                      fileName: f.fileName,
+                                    })
+                                  }
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -2447,12 +2416,181 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
+      {/* ─── Evidence preview modal ─── */}
+      {previewEvidence && (
+        <DocumentPreviewModal
+          document={previewEvidence}
+          onClose={() => setPreviewEvidence(null)}
+        />
+      )}
+
+      {/* ─── Evidence delete confirm ─── */}
+      {confirmDeleteEvidence && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            className={s.card}
+            style={{ maxWidth: 420, width: "90%", padding: "1.5rem" }}
+          >
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: "1rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Delete Evidence
+            </div>
+            <div
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--text-2)",
+                marginBottom: "1.25rem",
+              }}
+            >
+              Remove <strong>{confirmDeleteEvidence.fileName}</strong> from this
+              audit? This action cannot be undone.
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "0.75rem",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                className={s.btnSecondary}
+                onClick={() => setConfirmDeleteEvidence(null)}
+              >
+                Cancel
+              </button>
+              <button
+                style={{
+                  background: "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "0.4rem",
+                  padding: "0.45rem 1rem",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  removeProcedureEvidence(
+                    confirmDeleteEvidence.executionId,
+                    confirmDeleteEvidence.evidenceId,
+                  );
+                  addToast?.({
+                    type: "success",
+                    title: "Deleted",
+                    message: "Evidence removed.",
+                  });
+                  setConfirmDeleteEvidence(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Exception delete confirm ─── */}
+      {confirmDeleteException && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            className={s.card}
+            style={{ maxWidth: 420, width: "90%", padding: "1.5rem" }}
+          >
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: "1rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Delete Exception
+            </div>
+            <div
+              style={{
+                fontSize: "0.85rem",
+                color: "var(--text-2)",
+                marginBottom: "1.25rem",
+              }}
+            >
+              Permanently delete exception{" "}
+              <strong>{confirmDeleteException.ref}</strong>? This cannot be
+              undone.
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "0.75rem",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                className={s.btnSecondary}
+                onClick={() => setConfirmDeleteException(null)}
+              >
+                Cancel
+              </button>
+              <button
+                style={{
+                  background: "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "0.4rem",
+                  padding: "0.45rem 1rem",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  removeFieldworkException(confirmDeleteException.id);
+                  addToast({
+                    type: "success",
+                    title: "Deleted",
+                    message: `${confirmDeleteException.ref} removed.`,
+                  });
+                  setConfirmDeleteException(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── TAB: EXCEPTIONS REGISTER ─── */}
       {currentProgramme && activeTab === "exceptions" && (
         <div>
           <div
             className={s.card}
-            style={{ borderLeft: "4px solid #dc2626", marginBottom: "0.75rem" }}
+            style={{
+              borderLeft: "4px solid var(--text-3)",
+              marginBottom: "0.75rem",
+            }}
           >
             <div className={s.cardBody}>
               <div
@@ -2471,7 +2609,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       fontWeight: 700,
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
-                      color: "#64748b",
+                      color: "var(--text-2)",
                     }}
                   >
                     Open Exceptions Summary
@@ -2479,12 +2617,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <div
                     style={{
                       fontSize: "0.82rem",
-                      color: "#334155",
+                      color: "var(--text-2)",
                       marginTop: "0.15rem",
                     }}
                   >
                     Critical:{" "}
-                    <strong style={{ color: "#dc2626" }}>
+                    <strong style={{ color: "var(--text-3)" }}>
                       {excStats.critical}
                     </strong>{" "}
                     · High:{" "}
@@ -2500,7 +2638,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <div
                     style={{
                       fontSize: "0.78rem",
-                      color: "#64748b",
+                      color: "var(--text-2)",
                       marginTop: "0.15rem",
                     }}
                   >
@@ -2546,7 +2684,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   style={{
                     textAlign: "center",
                     padding: "2rem 0",
-                    color: "#94a3b8",
+                    color: "var(--border)",
                     fontSize: "0.85rem",
                   }}
                 >
@@ -2568,12 +2706,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 marginBottom: "0.75rem",
                 borderLeft: `4px solid ${
                   exc.severity === "Critical"
-                    ? "#dc2626"
+                    ? "var(--text-3)"
                     : exc.severity === "High"
                       ? "#ea580c"
                       : exc.severity === "Medium"
                         ? "#ca8a04"
-                        : "#22c55e"
+                        : "var(--primary)"
                 }`,
               }}
             >
@@ -2628,7 +2766,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     <div
                       style={{
                         fontSize: "0.78rem",
-                        color: "#64748b",
+                        color: "var(--text-2)",
                         marginBottom: "0.35rem",
                       }}
                     >
@@ -2638,7 +2776,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     <div
                       style={{
                         fontSize: "0.82rem",
-                        color: "#334155",
+                        color: "var(--text-2)",
                         lineHeight: 1.6,
                       }}
                     >
@@ -2650,7 +2788,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         gap: "1.5rem",
                         marginTop: "0.5rem",
                         fontSize: "0.78rem",
-                        color: "#64748b",
+                        color: "var(--text-2)",
                       }}
                     >
                       <span>
@@ -2720,6 +2858,16 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           Escalate to HLG
                         </button>
                       )}
+                    <button
+                      className={s.btnIcon}
+                      title="Delete exception"
+                      style={{ color: "var(--text-3)", marginTop: "0.15rem" }}
+                      onClick={() =>
+                        setConfirmDeleteException({ id: exc.id, ref: exc.ref })
+                      }
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
                 {classifyId === exc.id && (
@@ -2727,7 +2875,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     style={{
                       marginTop: "0.75rem",
                       padding: "0.75rem",
-                      background: "#f8fafc",
+                      background: "var(--border)",
                       borderRadius: "0.5rem",
                       display: "flex",
                       gap: "0.35rem",
@@ -2840,7 +2988,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                               <div
                                 style={{
                                   fontSize: "0.7rem",
-                                  color: "#64748b",
+                                  color: "var(--text-2)",
                                   marginTop: "0.2rem",
                                 }}
                               >
@@ -2851,8 +2999,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           <td>
                             <InlineBadge
                               label={wp.category}
-                              bg="#f0fdf4"
-                              color="#065f46"
+                              bg="var(--bg-card)"
+                              color="var(--primary)"
                             />
                           </td>
                           <td style={{ fontSize: "0.78rem" }}>
@@ -3149,7 +3297,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             </div>
           </div>
 
-          {isLead && (
+          {/* {isLead && (
             <div
               style={{
                 display: "flex",
@@ -3165,7 +3313,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 <PenTool size={14} /> Record Journal Entry
               </button>
             </div>
-          )}
+          )} */}
 
           {filteredJournals.map((journal) => {
             const sc = statusColor[journal.status] || {
@@ -3194,8 +3342,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     </span>
                     <InlineBadge
                       label={journal.type}
-                      bg="#d1fae5"
-                      color="#065f46"
+                      bg="var(--bg-card)"
+                      color="var(--primary)"
                     />
                     <InlineBadge
                       label={journal.status}
@@ -3460,8 +3608,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       style={{
                         marginTop: "0.75rem",
                         padding: "0.75rem 1rem",
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border)",
                         borderRadius: "6px",
                       }}
                     >
@@ -3480,7 +3628,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       <div
                         style={{
                           fontSize: "0.82rem",
-                          color: "#334155",
+                          color: "var(--text-2)",
                           lineHeight: 1.6,
                         }}
                       >
@@ -3674,7 +3822,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                             <td
                               style={{
                                 fontSize: "0.72rem",
-                                color: "#64748b",
+                                color: "var(--text-2)",
                                 maxWidth: "200px",
                               }}
                             >
@@ -3789,8 +3937,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     <FileText size={16} /> {report.title}
                     <InlineBadge
                       label={report.type}
-                      bg="#d1fae5"
-                      color="#065f46"
+                      bg="var(--bg-card)"
+                      color="var(--primary)"
                     />
                     <InlineBadge
                       label={report.status}
@@ -3872,7 +4020,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                     <div
                                       style={{
                                         fontSize: "0.72rem",
-                                        color: "#64748b",
+                                        color: "var(--text-2)",
                                         marginTop: "0.2rem",
                                       }}
                                     >
@@ -3899,17 +4047,17 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                       label={f.status}
                                       bg={
                                         f.status === "Closed"
-                                          ? "#d1fae5"
+                                          ? "var(--bg-card)"
                                           : f.status === "Addressed"
-                                            ? "#fef3c7"
-                                            : "#fee2e2"
+                                            ? "var(--text-3)"
+                                            : "var(--text-3)"
                                       }
                                       color={
                                         f.status === "Closed"
-                                          ? "#065f46"
+                                          ? "var(--primary)"
                                           : f.status === "Addressed"
-                                            ? "#92400e"
-                                            : "#991b1b"
+                                            ? "var(--text-3)"
+                                            : "var(--text-3)"
                                       }
                                     />
                                   </td>
@@ -4021,7 +4169,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         style={{
                           height: "100%",
                           width: `${items.length > 0 ? (done / items.length) * 100 : 0}%`,
-                          background: "#064e3b",
+                          background: "var(--primary)",
                           borderRadius: 3,
                           transition: "width 0.3s",
                         }}
@@ -4050,10 +4198,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                             height: 22,
                             borderRadius: "4px",
                             border: item.completed
-                              ? "2px solid #064e3b"
+                              ? "2px solid var(--primary)"
                               : "2px solid var(--border)",
                             background: item.completed
-                              ? "#064e3b"
+                              ? "var(--primary)"
                               : "transparent",
                             display: "flex",
                             alignItems: "center",
@@ -4063,7 +4211,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           }}
                         >
                           {item.completed && (
-                            <Check size={14} style={{ color: "#fff" }} />
+                            <Check
+                              size={14}
+                              style={{ color: "var(--bg-card)" }}
+                            />
                           )}
                         </div>
                         <div style={{ flex: 1 }}>
@@ -4094,7 +4245,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                   style={{
                                     fontSize: "0.7rem",
                                     fontFamily: "monospace",
-                                    color: "#065f46",
+                                    color: "var(--primary)",
                                   }}
                                 >
                                   Ref: {item.reference}
@@ -4104,7 +4255,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                 <span
                                   style={{
                                     fontSize: "0.7rem",
-                                    color: "#92400e",
+                                    color: "var(--text-3)",
                                     fontStyle: "italic",
                                   }}
                                 >
@@ -4163,7 +4314,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             style={{
               position: "relative",
               zIndex: 1,
-              background: "var(--bg-card,#fff)",
+              background: "var(--bg-card,var(--bg-card))",
               borderRadius: "16px",
               width: "min(680px,96vw)",
               maxHeight: "92vh",
@@ -4176,7 +4327,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             {/* Header */}
             <div
               style={{
-                background: "linear-gradient(135deg, #064e3b 0%, #059669 100%)",
+                background: "var(--bg-card) 0%, var(--primary) 100%)",
                 padding: "1.5rem 1.75rem",
                 borderRadius: "16px 16px 0 0",
                 display: "flex",
@@ -4194,19 +4345,19 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               >
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.18)",
+                    background: "var(--bg-card)",
                     borderRadius: "10px",
                     padding: "0.5rem",
                     display: "flex",
                   }}
                 >
-                  <Calculator size={22} style={{ color: "#fff" }} />
+                  <Calculator size={22} style={{ color: "var(--bg-card)" }} />
                 </div>
                 <div>
                   <h2
                     style={{
                       margin: 0,
-                      color: "#fff",
+                      color: "var(--bg-card)",
                       fontSize: "1.1rem",
                       fontWeight: 700,
                     }}
@@ -4216,7 +4367,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <p
                     style={{
                       margin: 0,
-                      color: "rgba(255,255,255,0.75)",
+                      color: "var(--bg-card)",
                       fontSize: "0.75rem",
                       marginTop: "0.2rem",
                     }}
@@ -4228,12 +4379,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               <button
                 onClick={() => setShowMatModal(false)}
                 style={{
-                  background: "rgba(255,255,255,0.15)",
+                  background: "var(--bg-card)",
                   border: "none",
                   borderRadius: "8px",
                   padding: "0.4rem",
                   cursor: "pointer",
-                  color: "#fff",
+                  color: "var(--bg-card)",
                   display: "flex",
                 }}
               >
@@ -4282,15 +4433,15 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         borderRadius: "8px",
                         border:
                           matForm.basisLabel === basis
-                            ? "2px solid #059669"
+                            ? "2px solid var(--primary)"
                             : "2px solid var(--border)",
                         background:
                           matForm.basisLabel === basis
-                            ? "#ecfdf5"
+                            ? "var(--bg-card)"
                             : "transparent",
                         color:
                           matForm.basisLabel === basis
-                            ? "#059669"
+                            ? "var(--primary)"
                             : "var(--text-2)",
                         fontWeight: 600,
                         fontSize: "0.78rem",
@@ -4354,15 +4505,15 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           borderRadius: "6px",
                           border:
                             matForm.percentage === p
-                              ? "1.5px solid #059669"
+                              ? "1.5px solid var(--primary)"
                               : "1.5px solid var(--border)",
                           background:
                             matForm.percentage === p
-                              ? "#ecfdf5"
+                              ? "var(--bg-card)"
                               : "transparent",
                           color:
                             matForm.percentage === p
-                              ? "#059669"
+                              ? "var(--primary)"
                               : "var(--text-3)",
                           fontSize: "0.72rem",
                           cursor: "pointer",
@@ -4379,8 +4530,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               {matOverall > 0 && (
                 <div
                   style={{
-                    background: "#f0fdf4",
-                    border: "1px solid #bbf7d0",
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border)",
                     borderRadius: "12px",
                     padding: "1rem 1.25rem",
                     marginBottom: "0.5rem",
@@ -4390,7 +4541,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     style={{
                       fontSize: "0.72rem",
                       fontWeight: 700,
-                      color: "#065f46",
+                      color: "var(--primary)",
                       textTransform: "uppercase",
                       letterSpacing: "0.07em",
                       marginBottom: "0.75rem",
@@ -4409,8 +4560,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       {
                         label: "Overall Materiality",
                         value: matOverall,
-                        color: "#064e3b",
-                        bg: "#ecfdf5",
+                        color: "var(--primary)",
+                        bg: "var(--bg-card)",
                       },
                       {
                         label: "Performance Materiality (70%)",
@@ -4421,8 +4572,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       {
                         label: "Clearly Trivial (5%)",
                         value: matTrivial,
-                        color: "#059669",
-                        bg: "#ecfdf5",
+                        color: "var(--primary)",
+                        bg: "var(--bg-card)",
                       },
                     ].map((t) => (
                       <div
@@ -4470,7 +4621,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "var(--surface-2,#f8fafc)",
+                background: "var(--surface-2,var(--border))",
                 borderRadius: "0 0 16px 16px",
               }}
             >
@@ -4495,7 +4646,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   className={s.btnPrimary}
                   onClick={handleSaveMateriality}
                   style={{
-                    background: "linear-gradient(135deg,#064e3b,#059669)",
+                    background: "var(--bg-card),var(--primary))",
                     border: "none",
                   }}
                 >
@@ -4536,7 +4687,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             style={{
               position: "relative",
               zIndex: 1,
-              background: "var(--bg-card,#fff)",
+              background: "var(--bg-card,var(--bg-card))",
               borderRadius: "16px",
               width: "min(720px,96vw)",
               maxHeight: "92vh",
@@ -4549,7 +4700,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             {/* Header */}
             <div
               style={{
-                background: "linear-gradient(135deg, #1c3a5e 0%, #2563eb 100%)",
+                background: "var(--bg-card) 100%)",
                 padding: "1.5rem 1.75rem",
                 borderRadius: "16px 16px 0 0",
                 display: "flex",
@@ -4567,19 +4718,19 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               >
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.18)",
+                    background: "var(--bg-card)",
                     borderRadius: "10px",
                     padding: "0.5rem",
                     display: "flex",
                   }}
                 >
-                  <PenTool size={22} style={{ color: "#fff" }} />
+                  <PenTool size={22} style={{ color: "var(--bg-card)" }} />
                 </div>
                 <div>
                   <h2
                     style={{
                       margin: 0,
-                      color: "#fff",
+                      color: "var(--bg-card)",
                       fontSize: "1.1rem",
                       fontWeight: 700,
                     }}
@@ -4589,7 +4740,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <p
                     style={{
                       margin: 0,
-                      color: "rgba(255,255,255,0.75)",
+                      color: "var(--bg-card)",
                       fontSize: "0.75rem",
                       marginTop: "0.2rem",
                     }}
@@ -4601,12 +4752,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               <button
                 onClick={() => setShowAddJournal(false)}
                 style={{
-                  background: "rgba(255,255,255,0.15)",
+                  background: "var(--bg-card)",
                   border: "none",
                   borderRadius: "8px",
                   padding: "0.4rem",
                   cursor: "pointer",
-                  color: "#fff",
+                  color: "var(--bg-card)",
                   display: "flex",
                 }}
               >
@@ -4638,14 +4789,14 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       {
                         val: "Adjusting",
                         label: "AJE — Audit Journal Entry",
-                        color: "#dc2626",
-                        bg: "#fef2f2",
+                        color: "var(--text-3)",
+                        bg: "var(--text-3)",
                       },
                       {
                         val: "Reclassifying",
                         label: "RJE — Reclassification Entry",
-                        color: "#d97706",
-                        bg: "#fffbeb",
+                        color: "var(--text-3)",
+                        bg: "var(--text-3)",
                       },
                       {
                         val: "Passed",
@@ -4656,8 +4807,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       {
                         val: "Proposed",
                         label: "EJE — Unadjusted Entry",
-                        color: "#64748b",
-                        bg: "#f1f5f9",
+                        color: "var(--text-2)",
+                        bg: "var(--border)",
                       },
                     ] as const
                   ).map((t) => (
@@ -4757,7 +4908,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               >
                 <div
                   style={{
-                    background: "var(--surface-2,#f8fafc)",
+                    background: "var(--surface-2,var(--border))",
                     padding: "0.5rem 0.75rem",
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr 1fr auto",
@@ -4835,12 +4986,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           )
                         }
                         style={{
-                          background: "#fee2e2",
+                          background: "var(--text-3)",
                           border: "none",
                           borderRadius: "6px",
                           padding: "0.3rem",
                           cursor: "pointer",
-                          color: "#dc2626",
+                          color: "var(--text-3)",
                           display: "flex",
                         }}
                       >
@@ -4868,14 +5019,16 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         gap: "0.5rem",
                         padding: "0.5rem 0.75rem",
                         borderTop: "2px solid var(--border)",
-                        background: balanced ? "#ecfdf5" : "#fef2f2",
+                        background: balanced
+                          ? "var(--bg-card)"
+                          : "var(--text-3)",
                       }}
                     >
                       <div
                         style={{
                           fontSize: "0.75rem",
                           fontWeight: 700,
-                          color: balanced ? "#059669" : "#dc2626",
+                          color: balanced ? "var(--primary)" : "var(--text-3)",
                           display: "flex",
                           alignItems: "center",
                           gap: "0.35rem",
@@ -4893,7 +5046,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           fontSize: "0.8rem",
                           fontWeight: 700,
                           fontFamily: "monospace",
-                          color: "#1e293b",
+                          color: "var(--text-2)",
                         }}
                       >
                         {fmtCurrency(totalDr)}
@@ -4903,7 +5056,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           fontSize: "0.8rem",
                           fontWeight: 700,
                           fontFamily: "monospace",
-                          color: "#1e293b",
+                          color: "var(--text-2)",
                         }}
                       >
                         {fmtCurrency(totalCr)}
@@ -4946,7 +5099,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "var(--surface-2,#f8fafc)",
+                background: "var(--surface-2,var(--border))",
                 borderRadius: "0 0 16px 16px",
               }}
             >
@@ -4970,7 +5123,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   className={s.btnPrimary}
                   onClick={handleAddJournal}
                   style={{
-                    background: "linear-gradient(135deg,#1c3a5e,#2563eb)",
+                    background: "var(--bg-card))",
                     border: "none",
                   }}
                 >
@@ -5011,7 +5164,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             style={{
               position: "relative",
               zIndex: 1,
-              background: "var(--bg-card,#fff)",
+              background: "var(--bg-card,var(--bg-card))",
               borderRadius: "16px",
               width: "min(760px,96vw)",
               maxHeight: "92vh",
@@ -5024,7 +5177,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             {/* Header */}
             <div
               style={{
-                background: "linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%)",
+                background: "var(--bg-card) 0%, var(--text-3) 100%)",
                 padding: "1.5rem 1.75rem",
                 borderRadius: "16px 16px 0 0",
                 display: "flex",
@@ -5042,19 +5195,22 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               >
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.18)",
+                    background: "var(--bg-card)",
                     borderRadius: "10px",
                     padding: "0.5rem",
                     display: "flex",
                   }}
                 >
-                  <MessageSquare size={22} style={{ color: "#fff" }} />
+                  <MessageSquare
+                    size={22}
+                    style={{ color: "var(--bg-card)" }}
+                  />
                 </div>
                 <div>
                   <h2
                     style={{
                       margin: 0,
-                      color: "#fff",
+                      color: "var(--bg-card)",
                       fontSize: "1.1rem",
                       fontWeight: 700,
                     }}
@@ -5064,7 +5220,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <p
                     style={{
                       margin: 0,
-                      color: "rgba(255,255,255,0.75)",
+                      color: "var(--bg-card)",
                       fontSize: "0.75rem",
                       marginTop: "0.2rem",
                     }}
@@ -5077,12 +5233,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               <button
                 onClick={() => setShowAddComment(false)}
                 style={{
-                  background: "rgba(255,255,255,0.15)",
+                  background: "var(--bg-card)",
                   border: "none",
                   borderRadius: "8px",
                   padding: "0.4rem",
                   cursor: "pointer",
-                  color: "#fff",
+                  color: "var(--bg-card)",
                   display: "flex",
                 }}
               >
@@ -5111,9 +5267,17 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 >
                   {(
                     [
-                      { val: "Low", color: "#16a34a", bg: "#f0fdf4" },
-                      { val: "Medium", color: "#d97706", bg: "#fffbeb" },
-                      { val: "High", color: "#dc2626", bg: "#fef2f2" },
+                      { val: "Low", color: "#16a34a", bg: "var(--bg-card)" },
+                      {
+                        val: "Medium",
+                        color: "var(--text-3)",
+                        bg: "var(--text-3)",
+                      },
+                      {
+                        val: "High",
+                        color: "var(--text-3)",
+                        bg: "var(--text-3)",
+                      },
                       { val: "Critical", color: "#7c2d12", bg: "#fff7ed" },
                     ] as const
                   ).map((sv) => (
@@ -5177,7 +5341,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       tag: "THE WHAT",
                       placeholder:
                         "What did we find? Describe the control weakness or non-compliance.",
-                      color: "#dc2626",
+                      color: "var(--text-3)",
                     },
                     {
                       key: "criteria",
@@ -5186,7 +5350,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       tag: "THE STANDARD",
                       placeholder:
                         "What should it be? Reference the applicable law, regulation or policy.",
-                      color: "#d97706",
+                      color: "var(--text-3)",
                     },
                     {
                       key: "cause",
@@ -5204,7 +5368,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       tag: "THE IMPACT",
                       placeholder:
                         "What is the financial, compliance or operational impact?",
-                      color: "#065f46",
+                      color: "var(--primary)",
                     },
                     {
                       key: "recommendation",
@@ -5213,7 +5377,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       tag: "THE REMEDY",
                       placeholder:
                         "What corrective action is required? Be specific and actionable.",
-                      color: "#059669",
+                      color: "var(--primary)",
                     },
                   ] as {
                     key: keyof typeof commentForm;
@@ -5321,7 +5485,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "var(--surface-2,#f8fafc)",
+                background: "var(--surface-2,var(--border))",
                 borderRadius: "0 0 16px 16px",
               }}
             >
@@ -5346,7 +5510,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   className={s.btnPrimary}
                   onClick={handleAddComment}
                   style={{
-                    background: "linear-gradient(135deg,#7f1d1d,#dc2626)",
+                    background: "var(--bg-card),var(--text-3))",
                     border: "none",
                   }}
                 >
@@ -5403,7 +5567,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 style={{
                   position: "relative",
                   zIndex: 1,
-                  background: "var(--bg-card,#fff)",
+                  background: "var(--bg-card,var(--bg-card))",
                   borderRadius: "16px",
                   width: "min(640px,96vw)",
                   maxHeight: "92vh",
@@ -5416,8 +5580,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 {/* Header */}
                 <div
                   style={{
-                    background:
-                      "linear-gradient(135deg, #064e3b 0%, #059669 100%)",
+                    background: "var(--bg-card) 0%, var(--primary) 100%)",
                     padding: "1.5rem 1.75rem",
                     borderRadius: "16px 16px 0 0",
                     display: "flex",
@@ -5435,19 +5598,22 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   >
                     <div
                       style={{
-                        background: "rgba(255,255,255,0.18)",
+                        background: "var(--bg-card)",
                         borderRadius: "10px",
                         padding: "0.5rem",
                         display: "flex",
                       }}
                     >
-                      <DollarSign size={22} style={{ color: "#fff" }} />
+                      <DollarSign
+                        size={22}
+                        style={{ color: "var(--bg-card)" }}
+                      />
                     </div>
                     <div>
                       <h2
                         style={{
                           margin: 0,
-                          color: "#fff",
+                          color: "var(--bg-card)",
                           fontSize: "1.1rem",
                           fontWeight: 700,
                         }}
@@ -5457,7 +5623,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       <p
                         style={{
                           margin: 0,
-                          color: "rgba(255,255,255,0.75)",
+                          color: "var(--bg-card)",
                           fontSize: "0.75rem",
                           marginTop: "0.2rem",
                         }}
@@ -5469,12 +5635,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <button
                     onClick={() => setEditingStmtId(null)}
                     style={{
-                      background: "rgba(255,255,255,0.15)",
+                      background: "var(--bg-card)",
                       border: "none",
                       borderRadius: "8px",
                       padding: "0.4rem",
                       cursor: "pointer",
-                      color: "#fff",
+                      color: "var(--bg-card)",
                       display: "flex",
                     }}
                   >
@@ -5543,12 +5709,14 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                 borderRadius: "50%",
                                 border: "2px solid",
                                 borderColor:
-                                  done || active ? "#059669" : "var(--border)",
+                                  done || active
+                                    ? "var(--primary)"
+                                    : "var(--border)",
                                 background: done
-                                  ? "#059669"
+                                  ? "var(--primary)"
                                   : active
-                                    ? "#ecfdf5"
-                                    : "var(--bg-card,#fff)",
+                                    ? "var(--bg-card)"
+                                    : "var(--bg-card,var(--bg-card))",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
@@ -5557,7 +5725,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                               }}
                             >
                               {done ? (
-                                <Check size={13} style={{ color: "#fff" }} />
+                                <Check
+                                  size={13}
+                                  style={{ color: "var(--bg-card)" }}
+                                />
                               ) : (
                                 <span
                                   style={{
@@ -5565,7 +5736,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                     height: 8,
                                     borderRadius: "50%",
                                     background: active
-                                      ? "#059669"
+                                      ? "var(--primary)"
                                       : "transparent",
                                     display: "block",
                                   }}
@@ -5577,9 +5748,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                 fontSize: "0.6rem",
                                 fontWeight: active ? 700 : 500,
                                 color: active
-                                  ? "#059669"
+                                  ? "var(--primary)"
                                   : done
-                                    ? "#059669"
+                                    ? "var(--primary)"
                                     : "var(--text-3)",
                                 textAlign: "center",
                                 lineHeight: 1.2,
@@ -5649,11 +5820,11 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       style={{
                         marginTop: "0.75rem",
                         padding: "0.75rem 1rem",
-                        background: "#ecfdf5",
+                        background: "var(--bg-card)",
                         border: "1px solid #6ee7b7",
                         borderRadius: "8px",
                         fontSize: "0.78rem",
-                        color: "#065f46",
+                        color: "var(--primary)",
                         display: "flex",
                         alignItems: "center",
                         gap: "0.5rem",
@@ -5661,7 +5832,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     >
                       <CheckCircle2
                         size={16}
-                        style={{ color: "#059669", flexShrink: 0 }}
+                        style={{ color: "var(--primary)", flexShrink: 0 }}
                       />
                       Marking as <strong>Final</strong> will set today as the
                       final date and lock this statement from further updates.
@@ -5676,7 +5847,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    background: "var(--surface-2,#f8fafc)",
+                    background: "var(--surface-2,var(--border))",
                     borderRadius: "0 0 16px 16px",
                   }}
                 >
@@ -5717,7 +5888,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         });
                       }}
                       style={{
-                        background: "linear-gradient(135deg,#064e3b,#059669)",
+                        background: "var(--bg-card),var(--primary))",
                         border: "none",
                       }}
                     >

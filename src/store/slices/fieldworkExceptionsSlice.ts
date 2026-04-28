@@ -9,6 +9,7 @@ export type FieldworkExceptionsActions = Pick<
   AuditStore,
   | "addFieldworkException"
   | "updateFieldworkException"
+  | "removeFieldworkException"
   | "classifyException"
   | "escalateExceptionToHlg"
   | "getAuditFieldworkExceptions"
@@ -56,6 +57,19 @@ export function createFieldworkExceptionsActions(
       set((s) => ({
         fieldworkExceptions: s.fieldworkExceptions.map((e) =>
           e.id === id ? { ...e, ...updates } : e,
+        ),
+      })),
+
+    removeFieldworkException: (id) =>
+      set((s) => ({
+        fieldworkExceptions: s.fieldworkExceptions.filter((e) => e.id !== id),
+        procedureExecutions: s.procedureExecutions.map((pe) =>
+          pe.exceptionIds.includes(id)
+            ? {
+                ...pe,
+                exceptionIds: pe.exceptionIds.filter((eid) => eid !== id),
+              }
+            : pe,
         ),
       })),
 

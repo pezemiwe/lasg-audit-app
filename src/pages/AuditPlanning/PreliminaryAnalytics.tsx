@@ -721,18 +721,18 @@ const TYPE_META: Record<
   { bg: string; text: string; border: string; label: string }
 > = {
   revenue: {
-    bg: "#f0fdf4",
-    text: "#166534",
-    border: "#bbf7d0",
+    bg: "var(--bg-card)",
+    text: "var(--primary)",
+    border: "var(--border)",
     label: "Revenue",
   },
   expense: {
-    bg: "#fef2f2",
-    text: "#991b1b",
-    border: "#fecaca",
+    bg: "var(--text-3)",
+    text: "var(--text-3)",
+    border: "var(--text-3)",
     label: "Expense",
   },
-  asset: { bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe", label: "Asset" },
+  asset: { bg: "var(--primary)", text: "var(--primary)", border: "var(--primary)", label: "Asset" },
   liability: {
     bg: "#fff7ed",
     text: "#9a3412",
@@ -745,7 +745,7 @@ const TYPE_META: Record<
     border: "#ddd6fe",
     label: "Equity",
   },
-  pbt: { bg: "#fffbeb", text: "#92400e", border: "#fde68a", label: "PBT" },
+  pbt: { bg: "var(--text-3)", text: "var(--text-3)", border: "var(--text-3)", label: "PBT" },
 };
 
 const fmt = (val: number) =>
@@ -762,13 +762,13 @@ function varianceFlag(
   bold: boolean,
 ): { label: string; bg: string; text: string; Icon: React.ElementType } {
   if (bold)
-    return { label: "Total", bg: "#f1f5f9", text: "#475569", Icon: Minus };
+    return { label: "Total", bg: "var(--border)", text: "var(--text-2)", Icon: Minus };
   const abs = Math.abs(pct);
   if (abs >= 20)
     return {
       label: "Investigate",
-      bg: "#fee2e2",
-      text: "#b91c1c",
+      bg: "var(--text-3)",
+      text: "var(--text-3)",
       Icon: AlertCircle,
     };
   if (abs >= 10)
@@ -781,11 +781,11 @@ function varianceFlag(
   if (abs >= 3)
     return {
       label: "Notable",
-      bg: "#fffbeb",
-      text: "#b45309",
+      bg: "var(--text-3)",
+      text: "var(--text-3)",
       Icon: TrendingDown,
     };
-  return { label: "Stable", bg: "#f0fdf4", text: "#15803d", Icon: Minus };
+  return { label: "Stable", bg: "var(--bg-card)", text: "#15803d", Icon: Minus };
 }
 
 // ---------------------------------------------------------------
@@ -870,8 +870,8 @@ export const PreliminaryAnalytics: React.FC = () => {
           <div
             style={{
               padding: "0.5rem",
-              background: "#ecfdf5",
-              color: "#059669",
+              background: "var(--bg-card)",
+              color: "var(--primary)",
               borderRadius: "8px",
             }}
           >
@@ -927,14 +927,14 @@ export const PreliminaryAnalytics: React.FC = () => {
                 top: "50%",
                 transform: "translateY(-50%)",
                 pointerEvents: "none",
-                color: "#94a3b8",
+                color: "var(--border)",
               }}
             />
           </div>
           <div
             style={{
               display: "flex",
-              background: "#f1f5f9",
+              background: "var(--border)",
               padding: "0.2rem",
               borderRadius: "8px",
               gap: "0.2rem",
@@ -957,7 +957,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                   background: viewMode === mode ? "white" : "transparent",
                   boxShadow:
                     viewMode === mode ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                  color: viewMode === mode ? "#0f172a" : "#64748b",
+                  color: viewMode === mode ? "var(--text-2)" : "var(--text-2)",
                   transition: "all 0.15s",
                 }}
               >
@@ -986,8 +986,8 @@ export const PreliminaryAnalytics: React.FC = () => {
           {topExpected && (
             <div
               style={{
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border)",
                 borderRadius: "12px",
                 padding: "1.25rem",
               }}
@@ -998,7 +998,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  color: "#166534",
+                  color: "var(--primary)",
                   marginBottom: "0.5rem",
                   display: "flex",
                   alignItems: "center",
@@ -1011,7 +1011,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 style={{
                   fontWeight: 700,
                   fontSize: "0.9rem",
-                  color: "#0f172a",
+                  color: "var(--text-2)",
                   marginBottom: "0.2rem",
                 }}
               >
@@ -1021,7 +1021,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 style={{
                   fontSize: "1.1rem",
                   fontWeight: 800,
-                  color: "#059669",
+                  color: "var(--primary)",
                 }}
               >
                 {fmt(topExpected.current)}
@@ -1041,8 +1041,8 @@ export const PreliminaryAnalytics: React.FC = () => {
           {topPerforming && (
             <div
               style={{
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
+                background: "var(--primary)",
+                border: "1px solid var(--primary)",
                 borderRadius: "12px",
                 padding: "1.25rem",
               }}
@@ -1053,7 +1053,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  color: "#1e40af",
+                  color: "var(--primary)",
                   marginBottom: "0.5rem",
                   display: "flex",
                   alignItems: "center",
@@ -1066,7 +1066,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 style={{
                   fontWeight: 700,
                   fontSize: "0.9rem",
-                  color: "#0f172a",
+                  color: "var(--text-2)",
                   marginBottom: "0.2rem",
                 }}
               >
@@ -1076,7 +1076,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 style={{
                   fontSize: "1.1rem",
                   fontWeight: 800,
-                  color: "#2563eb",
+                  color: "var(--primary)",
                 }}
               >
                 {fmt(topPerforming.current)}
@@ -1084,7 +1084,7 @@ export const PreliminaryAnalytics: React.FC = () => {
               <div
                 style={{
                   fontSize: "0.72rem",
-                  color: "#1d4ed8",
+                  color: "var(--primary)",
                   marginTop: "0.2rem",
                 }}
               >
@@ -1121,7 +1121,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 style={{
                   fontWeight: 700,
                   fontSize: "0.9rem",
-                  color: "#0f172a",
+                  color: "var(--text-2)",
                   marginBottom: "0.2rem",
                 }}
               >
@@ -1204,9 +1204,9 @@ export const PreliminaryAnalytics: React.FC = () => {
               style={{
                 padding: "0.3rem 0.85rem",
                 borderRadius: "20px",
-                border: `1px solid ${sectionFilter === sec ? "#059669" : "#e2e8f0"}`,
-                background: sectionFilter === sec ? "#ecfdf5" : "white",
-                color: sectionFilter === sec ? "#059669" : "#64748b",
+                border: `1px solid ${sectionFilter === sec ? "var(--primary)" : "var(--border)"}`,
+                background: sectionFilter === sec ? "var(--bg-card)" : "white",
+                color: sectionFilter === sec ? "var(--primary)" : "var(--text-2)",
                 fontWeight: sectionFilter === sec ? 700 : 500,
                 fontSize: "0.78rem",
                 cursor: "pointer",
@@ -1231,8 +1231,8 @@ export const PreliminaryAnalytics: React.FC = () => {
               <thead>
                 <tr
                   style={{
-                    background: "#f8fafc",
-                    borderBottom: "2px solid #e2e8f0",
+                    background: "var(--border)",
+                    borderBottom: "2px solid var(--border)",
                   }}
                 >
                   {selectedDoc === "tb" && (
@@ -1241,7 +1241,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                         padding: "0.85rem 1rem",
                         textAlign: "left",
                         fontWeight: 700,
-                        color: "#475569",
+                        color: "var(--text-2)",
                         fontSize: "0.78rem",
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
@@ -1256,7 +1256,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       padding: "0.85rem 1rem",
                       textAlign: "left",
                       fontWeight: 700,
-                      color: "#475569",
+                      color: "var(--text-2)",
                       fontSize: "0.78rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -1269,7 +1269,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       padding: "0.85rem 1rem",
                       textAlign: "right",
                       fontWeight: 700,
-                      color: "#475569",
+                      color: "var(--text-2)",
                       fontSize: "0.78rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -1283,7 +1283,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       padding: "0.85rem 1rem",
                       textAlign: "right",
                       fontWeight: 700,
-                      color: "#475569",
+                      color: "var(--text-2)",
                       fontSize: "0.78rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -1297,7 +1297,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       padding: "0.85rem 1rem",
                       textAlign: "right",
                       fontWeight: 700,
-                      color: "#475569",
+                      color: "var(--text-2)",
                       fontSize: "0.78rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -1310,7 +1310,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       padding: "0.85rem 1rem",
                       textAlign: "right",
                       fontWeight: 700,
-                      color: "#475569",
+                      color: "var(--text-2)",
                       fontSize: "0.78rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -1323,7 +1323,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       padding: "0.85rem 1rem",
                       textAlign: "center",
                       fontWeight: 700,
-                      color: "#475569",
+                      color: "var(--text-2)",
                       fontSize: "0.78rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -1348,14 +1348,14 @@ export const PreliminaryAnalytics: React.FC = () => {
                             colSpan={selectedDoc === "tb" ? 7 : 6}
                             style={{
                               padding: "0.75rem 1rem",
-                              background: "#f1f5f9",
+                              background: "var(--border)",
                               fontWeight: 700,
                               fontSize: "0.75rem",
                               textTransform: "uppercase",
                               letterSpacing: "0.06em",
-                              color: "#334155",
-                              borderTop: "2px solid #e2e8f0",
-                              borderBottom: "1px solid #e2e8f0",
+                              color: "var(--text-2)",
+                              borderTop: "2px solid var(--border)",
+                              borderBottom: "1px solid var(--border)",
                             }}
                           >
                             {SECTION_LABELS[section] ?? section}
@@ -1376,7 +1376,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                             <tr
                               key={row.id}
                               style={{
-                                borderBottom: "1px solid #f1f5f9",
+                                borderBottom: "1px solid var(--border)",
                                 background: row.bold ? "#fafbfd" : "white",
                               }}
                             >
@@ -1386,7 +1386,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                                     padding: "0.85rem 1rem",
                                     fontFamily: "monospace",
                                     fontSize: "0.75rem",
-                                    color: "#94a3b8",
+                                    color: "var(--border)",
                                   }}
                                 >
                                   {row.code}
@@ -1396,7 +1396,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                                 style={{
                                   padding: "0.85rem 1rem",
                                   fontWeight: row.bold ? 700 : 500,
-                                  color: row.bold ? "#0f172a" : "var(--text)",
+                                  color: row.bold ? "var(--text-2)" : "var(--text)",
                                   paddingLeft: row.bold ? "1rem" : "1.75rem",
                                 }}
                               >
@@ -1421,7 +1421,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                                   textAlign: "right",
                                   fontFamily: "monospace",
                                   fontSize: "0.85rem",
-                                  color: "#475569",
+                                  color: "var(--text-2)",
                                   fontWeight: row.bold ? 700 : 400,
                                 }}
                               >
@@ -1433,7 +1433,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                                   textAlign: "right",
                                   fontFamily: "monospace",
                                   fontSize: "0.85rem",
-                                  color: "#0f172a",
+                                  color: "var(--text-2)",
                                   fontWeight: row.bold ? 800 : 500,
                                 }}
                               >
@@ -1447,10 +1447,10 @@ export const PreliminaryAnalytics: React.FC = () => {
                                   fontSize: "0.85rem",
                                   fontWeight: 600,
                                   color: unfavourable
-                                    ? "#dc2626"
+                                    ? "var(--text-3)"
                                     : row.variance >= 0
-                                      ? "#059669"
-                                      : "#dc2626",
+                                      ? "var(--primary)"
+                                      : "var(--text-3)",
                                 }}
                               >
                                 {row.variance >= 0 ? "+" : ""}
@@ -1465,8 +1465,8 @@ export const PreliminaryAnalytics: React.FC = () => {
                                   fontWeight: 700,
                                   color:
                                     Math.abs(row.pct) >= 10
-                                      ? "#dc2626"
-                                      : "#475569",
+                                      ? "var(--text-3)"
+                                      : "var(--text-2)",
                                 }}
                               >
                                 {fmtPct(row.pct)}
@@ -1480,7 +1480,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                                 {row.bold ? (
                                   <span
                                     style={{
-                                      color: "#94a3b8",
+                                      color: "var(--border)",
                                       fontSize: "0.75rem",
                                     }}
                                   >
@@ -1533,7 +1533,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                 display: "flex",
                 gap: "1.5rem",
                 fontSize: "0.78rem",
-                color: "#64748b",
+                color: "var(--text-2)",
                 marginBottom: "0.5rem",
               }}
             >
@@ -1545,7 +1545,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                     display: "inline-block",
                     width: "14px",
                     height: "8px",
-                    background: "#cbd5e1",
+                    background: "var(--border)",
                     borderRadius: "3px",
                   }}
                 />
@@ -1559,7 +1559,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                     display: "inline-block",
                     width: "14px",
                     height: "8px",
-                    background: "#3b82f6",
+                    background: "var(--primary)",
                     borderRadius: "3px",
                   }}
                 />
@@ -1573,7 +1573,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                     display: "inline-block",
                     width: "14px",
                     height: "8px",
-                    background: "#ef4444",
+                    background: "var(--text-3)",
                     borderRadius: "3px",
                   }}
                 />
@@ -1589,7 +1589,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                   row.type !== "liability") ||
                 (row.variance > 0 &&
                   (row.type === "expense" || row.type === "liability"));
-              const barColor = unfavourable ? "#ef4444" : "#3b82f6";
+              const barColor = unfavourable ? "var(--text-3)" : "var(--primary)";
               return (
                 <div
                   key={row.id}
@@ -1600,8 +1600,8 @@ export const PreliminaryAnalytics: React.FC = () => {
                     alignItems: "center",
                     padding: "0.85rem 1rem",
                     borderRadius: "8px",
-                    background: row.bold ? "#f8fafc" : "white",
-                    border: "1px solid #f1f5f9",
+                    background: row.bold ? "var(--border)" : "white",
+                    border: "1px solid var(--border)",
                   }}
                 >
                   <div>
@@ -1609,7 +1609,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       style={{
                         fontSize: "0.82rem",
                         fontWeight: row.bold ? 700 : 600,
-                        color: "#334155",
+                        color: "var(--text-2)",
                         marginBottom: "0.5rem",
                       }}
                     >
@@ -1627,7 +1627,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                         style={{
                           fontSize: "0.65rem",
                           fontWeight: 600,
-                          color: "#94a3b8",
+                          color: "var(--border)",
                           width: "32px",
                           textAlign: "right",
                           flexShrink: 0,
@@ -1639,7 +1639,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                         style={{
                           flex: 1,
                           height: "10px",
-                          background: "#f1f5f9",
+                          background: "var(--border)",
                           borderRadius: "5px",
                           overflow: "hidden",
                         }}
@@ -1648,7 +1648,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                           style={{
                             width: `${priorW}%`,
                             height: "100%",
-                            background: "#cbd5e1",
+                            background: "var(--border)",
                             borderRadius: "5px",
                             transition: "width 0.5s ease",
                           }}
@@ -1657,7 +1657,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       <span
                         style={{
                           fontSize: "0.72rem",
-                          color: "#64748b",
+                          color: "var(--text-2)",
                           width: "130px",
                           textAlign: "right",
                           flexShrink: 0,
@@ -1677,7 +1677,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                         style={{
                           fontSize: "0.65rem",
                           fontWeight: 700,
-                          color: "#0f172a",
+                          color: "var(--text-2)",
                           width: "32px",
                           textAlign: "right",
                           flexShrink: 0,
@@ -1689,7 +1689,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                         style={{
                           flex: 1,
                           height: "10px",
-                          background: "#f1f5f9",
+                          background: "var(--border)",
                           borderRadius: "5px",
                           overflow: "hidden",
                         }}
@@ -1708,7 +1708,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                         style={{
                           fontSize: "0.72rem",
                           fontWeight: 700,
-                          color: "#0f172a",
+                          color: "var(--text-2)",
                           width: "130px",
                           textAlign: "right",
                           flexShrink: 0,
@@ -1723,7 +1723,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                       style={{
                         fontSize: "1rem",
                         fontWeight: 800,
-                        color: Math.abs(row.pct) >= 10 ? "#dc2626" : "#475569",
+                        color: Math.abs(row.pct) >= 10 ? "var(--text-3)" : "var(--text-2)",
                       }}
                     >
                       {fmtPct(row.pct)}
@@ -1731,7 +1731,7 @@ export const PreliminaryAnalytics: React.FC = () => {
                     <div
                       style={{
                         fontSize: "0.68rem",
-                        color: "#94a3b8",
+                        color: "var(--border)",
                         marginTop: "0.1rem",
                       }}
                     >

@@ -920,20 +920,11 @@ export const MOCK_TB: ArRow[] = [
     bold: true,
     type: "total",
   },
-  // Net Surplus
-  {
-    id: "tb-s1",
-    section: "net_surplus",
-    account: "Net Surplus / (Deficit)",
-    code: "9001",
-    note: "",
-    prior: 28_630_907_246.27,
-    budget: 39_562_507_630.09,
-    current: 34_078_772_925.21,
-    bold: true,
-    type: "pbt",
-  },
 ];
+
+// Total Revenue (current year) from MOCK_TB — used to calibrate materiality
+export const MOCK_TB_REVENUE_BASIS: number =
+  MOCK_TB.find((r) => r.id === "tb-r0")?.current ?? 41_843_772_925;
 
 export const AR_FS_SECTIONS = [
   "stat_allocation",
@@ -964,12 +955,10 @@ export const AR_TB_SECTIONS = [
   "personnel",
   "overhead",
   "capital",
-  "net_surplus",
 ];
 export const AR_TB_LABELS: Record<string, string> = {
   revenue: "Revenue Accounts",
   personnel: "Personnel Cost Ledger",
   overhead: "Overhead & Administrative Costs",
   capital: "Capital Expenditure",
-  net_surplus: "Net Surplus / (Deficit)",
 };

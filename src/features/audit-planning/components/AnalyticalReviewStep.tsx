@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { type AuditStore } from "../../../store/useAuditStore";
 import type { User, PreliminaryAnalytic } from "../../../types";
 import { FileText, Check, Save, Sparkles, Layers } from "lucide-react";
@@ -9,6 +9,7 @@ import { fmtCurrency } from "../utils/format";
 import {
   MOCK_FS,
   MOCK_TB,
+  MOCK_TB_REVENUE_BASIS,
   AR_FS_SECTIONS,
   AR_FS_LABELS,
   AR_TB_SECTIONS,
@@ -41,7 +42,6 @@ const AnalyticalReviewStep: React.FC<{
 }> = ({
   audit,
   lgaName,
-  analytics,
   materialityData,
   store,
   user,
@@ -76,15 +76,8 @@ const AnalyticalReviewStep: React.FC<{
 
   // ── Materiality state — basis is fixed as Profit Before Tax (PBT) ──
   const FIXED_BASIS = "Profit Before Tax (PBT)";
-  const totalRevenue = useMemo(
-    () =>
-      analytics
-        .filter((a) => a.category === "Revenue")
-        .reduce((s, r) => s + r.currentYear, 0),
-    [analytics],
-  );
   const [basisAmount, setBasisAmount] = useState(
-    materialityData?.basisAmount || totalRevenue || 66_072_546_352,
+    materialityData?.basisAmount || MOCK_TB_REVENUE_BASIS,
   );
   const [percentage, setPercentage] = useState(
     materialityData?.percentage || 5,
@@ -1476,12 +1469,6 @@ const AnalyticalReviewStep: React.FC<{
             </div>
           </PlanningCard>
 
-          <div className={s.formActions}>
-            <button className={s.btnPrimary} onClick={handleSaveMat}>
-              <Save size={14} /> Save Materiality
-            </button>
-          </div>
-
           {/* ── Selection Criteria & Substantive Testing Items ── */}
           <div className={s.card}>
             <div className={s.cardHeader}>
@@ -2076,6 +2063,12 @@ const AnalyticalReviewStep: React.FC<{
                 </table>
               </div>
             </div>
+          </div>
+
+          <div className={s.formActions}>
+            <button className={s.btnPrimary} onClick={handleSaveMat}>
+              <Save size={14} /> Save Materiality
+            </button>
           </div>
         </div>
       )}

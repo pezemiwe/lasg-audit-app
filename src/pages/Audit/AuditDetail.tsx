@@ -441,7 +441,9 @@ const AuditDetail: React.FC = () => {
             </div>
 
             {/* Pre-Engagement Tasks */}
-            <PreAuditPage auditId={audit.id} embedded />
+            <div style={{ margin: "0 -2rem" }}>
+              <PreAuditPage auditId={audit.id} embedded />
+            </div>
           </div>
         );
 

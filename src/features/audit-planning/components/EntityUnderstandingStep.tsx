@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import { type AuditStore } from "../../../store/useAuditStore";
 import type { User, EntityProfile } from "../../../types";
-import { AlertTriangle, FileText, Plus, Pencil, X, Save, Info } from "lucide-react";
+import {
+  AlertTriangle,
+  FileText,
+  Plus,
+  Pencil,
+  X,
+  Save,
+  Info,
+} from "lucide-react";
 import s from "../../../styles/pages.module.css";
 import PlanningCard from "./PlanningCard";
 import InfoRow from "./InfoRow";
@@ -25,10 +33,10 @@ const EntityUnderstandingStep: React.FC<{
     zoneId: profile?.zoneId || lga?.zoneId || "",
     establishedYear: profile?.establishedYear || 1976,
     population: profile?.population || 350000,
-    chairmanName: profile?.chairmanName || "",
-    treasurerName: profile?.treasurerName || "",
+    chairmanName: profile?.chairmanName || "Hon. Adewale Rasheed Olawale",
+    treasurerName: profile?.treasurerName || "Mrs. Folake Adeyemi-Bello",
     councilManagerName: profile?.councilManagerName || "",
-    internalAuditorName: profile?.internalAuditorName || "",
+    internalAuditorName: profile?.internalAuditorName || "Mr. Biodun Okonkwo",
     financialFramework: profile?.financialFramework || "IPSAS Cash Basis",
     priorYearOpinion: profile?.priorYearOpinion || "Qualified",
     priorYearFindings: profile?.priorYearFindings || [
@@ -88,10 +96,6 @@ const EntityUnderstandingStep: React.FC<{
             <InfoRow
               label="Established"
               value={String(profile.establishedYear)}
-            />
-            <InfoRow
-              label="Population (est.)"
-              value={profile.population.toLocaleString()}
             />
             <InfoRow
               label="Chairman / Council Manager"
@@ -403,18 +407,6 @@ const EntityUnderstandingStep: React.FC<{
             >
               {form.establishedYear}
             </div>
-          </div>
-          <div className={s.formGroup}>
-            <label className={s.formLabel}>Population (Est.)</label>
-            <input
-              type="number"
-              className={s.formInput}
-              value={form.population}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, population: Number(e.target.value) }))
-              }
-              placeholder="Estimated population size"
-            />
           </div>
         </div>
       </PlanningCard>

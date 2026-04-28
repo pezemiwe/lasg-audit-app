@@ -52,6 +52,18 @@ const Navbar: React.FC = () => {
               Regulations
             </a>
           </li>
+          <li>
+            <a
+              href="/public-audit-procedures"
+              className={s.link}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/public-audit-procedures");
+              }}
+            >
+              Audit Procedures
+            </a>
+          </li>
         </ul>
 
         <div className={s.right}>

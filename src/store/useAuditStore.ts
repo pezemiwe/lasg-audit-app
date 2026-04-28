@@ -426,7 +426,6 @@ export interface AuditStore {
   addSubstantiveTest: (
     test: Omit<SubstantiveTest, "id" | "performedAt">,
   ) => void;
-
   updateProgrammeProcedure: (
     programmeId: string,
     procedureId: string,
@@ -525,6 +524,7 @@ export interface AuditStore {
     executionId: string,
     evidence: Omit<ProcedureEvidence, "id" | "code">,
   ) => void;
+  removeProcedureEvidence: (executionId: string, evidenceId: string) => void;
   addProcedureTimeEntry: (executionId: string, minutes: number) => void;
   submitProcedureForReview: (executionId: string) => void;
   reviewProcedure: (
@@ -542,6 +542,7 @@ export interface AuditStore {
     id: string,
     updates: Partial<FieldworkException>,
   ) => void;
+  removeFieldworkException: (id: string) => void;
   classifyException: (
     id: string,
     classification: ExceptionClassification,
@@ -2705,6 +2706,18 @@ Lagos State
         }));
       },
 
+      removeProcedureEvidence: (executionId: string, evidenceId: string) =>
+        set((s) => ({
+          procedureExecutions: s.procedureExecutions.map((p) =>
+            p.id === executionId
+              ? {
+                  ...p,
+                  evidence: p.evidence.filter((ev) => ev.id !== evidenceId),
+                }
+              : p,
+          ),
+        })),
+
       addProcedureTimeEntry: (executionId, minutes) =>
         set((s) => ({
           procedureExecutions: s.procedureExecutions.map((pe) =>
@@ -2876,38 +2889,73 @@ Lagos State
         const s = get();
         const pe = s.procedureExecutions.find((p) => p.id === executionId);
         if (!pe) return;
+        const programme = s.programmes.find((p) => p.id === pe.programmeId);
+        const procedure = programme?.procedures.find(
+          (item) => item.id === pe.procedureId,
+        );
         const existing = s.fieldworkWorkingPapers.find(
           (wp) => wp.procedureExecutionId === executionId,
         );
-        if (existing) return;
         const areaCode =
           pe.auditArea.replace(/[^A-Z]/g, "").slice(0, 3) || "GEN";
-        const wpRef = `WP-${areaCode}-${pe.procedureRef.split("-")[1] || "000"}`;
+        const wpRef =
+          procedure?.workpaperRef ||
+          `WP-${areaCode}-${pe.procedureRef.split("-")[1] || "000"}`;
         const exceptions = s.fieldworkExceptions.filter((e) =>
           pe.exceptionIds.includes(e.id),
         );
-        const wp: FieldworkWorkingPaper = {
-          id: uid(),
-          auditId: pe.auditId,
-          procedureExecutionId: executionId,
-          reference: wpRef,
-          title: pe.procedureDescription,
-          auditArea: pe.auditArea,
-          procedureDescription: pe.procedureDescription,
-          workPerformed: pe.workPerformed,
-          evidenceCodes: pe.evidence.map((ev) => ev.code),
-          sampleDetails: pe.sampleSize
-            ? `Population: ${pe.populationSize}, Sample: ${pe.sampleSize}, Method: ${pe.samplingMethod || "N/A"}`
-            : undefined,
-          resultsAndAnalysis: pe.conclusionNotes || "",
-          conclusion: pe.conclusion || "No Exception",
-          exceptionRefs: exceptions.map((e) => e.ref),
-          preparedBy: pe.assignedTo,
-          preparedAt: now(),
-          reviewStatus: "Prepared",
-        };
+        const indexedWorkpaperExists = s.auditWorkpapers.some(
+          (wp) => wp.auditId === pe.auditId && wp.reference === wpRef,
+        );
+        const createdAt = now();
+        const category =
+          pe.natureOfTest === "Analytical"
+            ? "Analytical Procedure"
+            : "Supporting Schedule";
+
         set((st) => ({
-          fieldworkWorkingPapers: [...st.fieldworkWorkingPapers, wp],
+          fieldworkWorkingPapers: existing
+            ? st.fieldworkWorkingPapers
+            : [
+                ...st.fieldworkWorkingPapers,
+                {
+                  id: uid(),
+                  auditId: pe.auditId,
+                  procedureExecutionId: executionId,
+                  reference: wpRef,
+                  title: pe.procedureDescription,
+                  auditArea: pe.auditArea,
+                  procedureDescription: pe.procedureDescription,
+                  workPerformed: pe.workPerformed,
+                  evidenceCodes: pe.evidence.map((ev) => ev.code),
+                  sampleDetails: pe.sampleSize
+                    ? `Population: ${pe.populationSize}, Sample: ${pe.sampleSize}, Method: ${pe.samplingMethod || "N/A"}`
+                    : undefined,
+                  resultsAndAnalysis: pe.conclusionNotes || "",
+                  conclusion: pe.conclusion || "No Exception",
+                  exceptionRefs: exceptions.map((e) => e.ref),
+                  preparedBy: pe.assignedTo,
+                  preparedAt: createdAt,
+                  reviewStatus: "Prepared",
+                },
+              ],
+          auditWorkpapers: indexedWorkpaperExists
+            ? st.auditWorkpapers
+            : [
+                ...st.auditWorkpapers,
+                {
+                  id: `awp-${uid()}`,
+                  auditId: pe.auditId,
+                  reference: wpRef,
+                  title: pe.procedureDescription,
+                  category,
+                  section: pe.auditArea,
+                  preparedBy: pe.assignedTo,
+                  preparedAt: createdAt,
+                  status: "Prepared",
+                  notes: pe.conclusionNotes || undefined,
+                },
+              ],
         }));
       },
 
@@ -2988,7 +3036,27 @@ Lagos State
     }),
     {
       name: "audit-storage-v16",
+      version: 18,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persistedState, version) => {
+        const state = persistedState as AuditStore;
+        if (version < 17) {
+          return {
+            ...state,
+            auditJournals: [],
+            auditComments: [],
+            auditWorkpapers: [],
+            reports: [],
+          };
+        }
+        if (version < 18) {
+          return {
+            ...state,
+            auditWorkpapers: [],
+          };
+        }
+        return state;
+      },
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { questionnaireQuestions, ...rest } = state;

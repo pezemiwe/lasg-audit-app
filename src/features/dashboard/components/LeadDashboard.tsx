@@ -419,7 +419,7 @@ const LeadDashboard: React.FC<LeadDashboardProps> = ({
             >
               <button
                 className={s.btnPrimary}
-                onClick={() => navigate("/fieldwork")}
+                onClick={() => navigate(`/audits/${auditId}?tab=fieldwork`)}
               >
                 <Search size={14} /> Fieldwork
               </button>

@@ -33,8 +33,18 @@ const LeadTeamView: React.FC<Props> = ({
     [users],
   );
 
-  const myLga = lgas.find((l) => l.auditLeadId === user.id);
-  const myAudit = audits.find((a) => a.lgaId === myLga?.id);
+  // Resolve audit from audits[].leadId first (source of truth), then derive
+  // the LGA from the audit. Falling back to lgas[].auditLeadId keeps legacy
+  // assignments working for leads whose audit is not yet created.
+  const myAudit =
+    audits.find((a) => a.leadId === user.id) ||
+    audits.find((a) => {
+      const lga = lgas.find((l) => l.auditLeadId === user.id);
+      return lga ? a.lgaId === lga.id : false;
+    });
+  const myLga =
+    lgas.find((l) => l.id === myAudit?.lgaId) ||
+    lgas.find((l) => l.auditLeadId === user.id);
   const teamInvitations = invitations.filter(
     (i) => i.auditId === myAudit?.id && i.role === "TEAM_AUDITOR",
   );

@@ -9,6 +9,7 @@ import ProtectedRoute from "../components/UI/ProtectedRoute";
 const Dashboard = React.lazy(() => import("../pages/Dashboard"));
 const Audit = React.lazy(() => import("../pages/Audit"));
 const Regulations = React.lazy(() => import("../pages/Regulations"));
+const AuditProcedures = React.lazy(() => import("../pages/AuditProcedures"));
 const AIAssistant = React.lazy(() => import("../pages/AIAssistant"));
 const Mandates = React.lazy(() => import("../pages/Mandates"));
 const Zones = React.lazy(() => import("../pages/Zones"));
@@ -19,7 +20,6 @@ const Workpapers = React.lazy(() => import("../pages/Workpapers"));
 const Reports = React.lazy(() => import("../pages/Reports"));
 const PreAudit = React.lazy(() => import("../pages/PreAudit"));
 const AuditPlanning = React.lazy(() => import("../pages/AuditPlanning"));
-const Fieldwork = React.lazy(() => import("../pages/Fieldwork"));
 const AuditDocs = React.lazy(() => import("../pages/AuditDocs"));
 const UserManagement = React.lazy(() => import("../pages/UserManagement"));
 const AuditTrail = React.lazy(() => import("../pages/AuditTrail"));
@@ -102,8 +102,21 @@ const AppRoutes = () => (
         </PublicLayout>
       }
     />
+    <Route
+      path="/public-audit-procedures"
+      element={
+        <PublicLayout>
+          <L comp={AuditProcedures} />
+        </PublicLayout>
+      }
+    />
     <Route path="/ai-assistant" element={<L comp={AIAssistant} />} />
     <Route path="/public-ai-assistant" element={<L comp={AIAssistant} />} />
+    <Route path="/ai-audit-procedures" element={<L comp={AIAssistant} />} />
+    <Route
+      path="/public-ai-audit-procedures"
+      element={<L comp={AIAssistant} />}
+    />
 
     <Route element={<DashboardLayout />}>
       <Route
@@ -115,6 +128,7 @@ const AppRoutes = () => (
         }
       />
       <Route path="/regulations" element={<L comp={Regulations} />} />
+      <Route path="/audit-procedures" element={<L comp={AuditProcedures} />} />
       <Route path="/audit" element={<L comp={Audit} />} />
       <Route path="/audits/:id" element={<L comp={AuditDetail} />} />
       <Route path="/mandates" element={<L comp={Mandates} />} />
@@ -126,7 +140,6 @@ const AppRoutes = () => (
       <Route path="/reports" element={<L comp={Reports} />} />
       <Route path="/pre-audit" element={<L comp={PreAudit} />} />
       <Route path="/audit-planning" element={<L comp={AuditPlanning} />} />
-      <Route path="/fieldwork" element={<L comp={Fieldwork} />} />
       <Route path="/audit-docs" element={<L comp={AuditDocs} />} />
       <Route
         path="/user-management"

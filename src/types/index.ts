@@ -542,7 +542,6 @@ export interface AuditProgressWeights {
   postAudit: number;
 }
 
-
 export type FollowUpStatus =
   | "Open"
   | "In Progress"
@@ -618,7 +617,6 @@ export interface ExitConference {
   createdAt: string;
 }
 
-
 export interface ProgrammeTemplateSection {
   title: string;
   objective: string;
@@ -638,7 +636,6 @@ export interface ProgrammeTemplate {
   methodology: string;
   sections: ProgrammeTemplateSection[];
 }
-
 
 export type AuditJournalType =
   | "Adjusting"

@@ -5,19 +5,17 @@ import {
   CheckCircle,
   Send,
   Save,
-  Play,
-  Pause,
   MessageSquare,
   ShieldCheck,
   Zap,
   X,
 } from "lucide-react";
+import { MOCK_FS } from "../../audit-planning/arMockData";
 import type { AuditStore } from "../../../store/useAuditStore";
 import StatusBadge from "../../../components/UI/StatusBadge";
 import Card from "../../../components/UI/Card";
 import type {
   ProcedureExecution,
-  FieldworkException,
   ExceptionSeverity,
   BankAccount,
   ContractFlag,
@@ -34,7 +32,7 @@ import type {
 } from "../../../types";
 import s from "../../../styles/pages.module.css";
 import { statusBadgeVariant, severityVariant } from "../utils/statusVariants";
-import { suggestSeverity, userNameById } from "../utils/suggestSeverity";
+import { userNameById } from "../utils/suggestSeverity";
 const ProcedureWorkspace: React.FC<{
   executionId: string;
   store: AuditStore;
@@ -77,9 +75,6 @@ const ProcedureWorkspace: React.FC<{
   const [conclusionNotes, setConclusionNotes] = useState(
     exec?.conclusionNotes || "",
   );
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [timerStart, setTimerStart] = useState<number | null>(null);
-  const [showExceptionForm, setShowExceptionForm] = useState(false);
   const [reviewMsg, setReviewMsg] = useState("");
 
   const [staffVerification, setStaffVerification] = useState<
@@ -409,35 +404,56 @@ const ProcedureWorkspace: React.FC<{
     return [];
   });
 
-  const [excType, setExcType] = useState("");
-  const [excAssertion, setExcAssertion] = useState<
-    FieldworkException["assertionAffected"]
-  >("Existence/Occurrence");
-  const [excSeverity, setExcSeverity] = useState<ExceptionSeverity>("High");
-  const [excFinding, setExcFinding] = useState("");
+  const excSeverity: ExceptionSeverity = "High";
   const [excImpact, setExcImpact] = useState(0);
-  const [excQual, setExcQual] = useState("");
-  const [excSeveritySuggested, setExcSeveritySuggested] =
-    useState<ExceptionSeverity | null>(null);
+
+  const [showJournalPrompt, setShowJournalPrompt] = useState(false);
+  const [tbJournalDesc, setTbJournalDesc] = useState("");
+  const [tbAdjustments, setTbAdjustments] = useState<
+    Record<string, { dr: number; cr: number; selected: boolean }>
+  >({});
+
+  // Use the real trial balance for this audit when available; fall back to mock data
+  const realTb = store.trialBalances?.find((tb) => tb.auditId === auditId);
+  const tbLines: {
+    id: string;
+    code: string;
+    account: string;
+    section: string;
+    current: number;
+  }[] = realTb
+    ? realTb.lines
+        .filter((l) => !/total|net/i.test(l.accountName))
+        .map((l) => ({
+          id: l.id,
+          code: l.ncoaCode ?? "",
+          account: l.accountName,
+          section: l.classification,
+          current: l.currentYear,
+        }))
+    : MOCK_FS.filter(
+        (row) => row.type === "line" && !/total|net/i.test(row.account),
+      ).map((row) => ({
+        id: row.id,
+        code: row.code,
+        account: row.account,
+        section: row.section,
+        current: row.current,
+      }));
 
   if (!exec) return null;
 
-  const handleStartTimer = () => {
-    setTimerRunning(true);
-    setTimerStart(Date.now());
-    if (exec.status === "Not Started") {
-      store.updateProcedureExecution(exec.id, { status: "In Progress" });
-    }
-  };
-
-  const handleStopTimer = () => {
-    if (timerStart) {
-      const mins = Math.round((Date.now() - timerStart) / 60000);
-      store.addProcedureTimeEntry(exec.id, Math.max(1, mins));
-    }
-    setTimerRunning(false);
-    setTimerStart(null);
-  };
+  const totalAdjDr = Object.values(tbAdjustments).reduce(
+    (sum, item) => sum + (item.selected ? item.dr || 0 : 0),
+    0,
+  );
+  const totalAdjCr = Object.values(tbAdjustments).reduce(
+    (sum, item) => sum + (item.selected ? item.cr || 0 : 0),
+    0,
+  );
+  const journalHasEntries = totalAdjDr > 0 || totalAdjCr > 0;
+  const isJournalBalanced = totalAdjDr === totalAdjCr;
+  const journalStateInvalid = journalHasEntries && !isJournalBalanced;
 
   const handleUploadEvidence = () => {
     const input = document.createElement("input");
@@ -505,6 +521,32 @@ const ProcedureWorkspace: React.FC<{
     });
     store.submitProcedureForReview(exec.id);
     store.generateWorkingPaper(exec.id);
+
+    // Log work done & findings as an Audit Comment
+    store.addAuditComment({
+      auditId,
+      referenceNumber: `AC-${exec.id}`,
+      title: `${exec.procedureRef} — ${exec.procedureDescription.slice(0, 80)}`,
+      observation: workPerformed,
+      criteria: `${exec.auditArea} — Assertions: ${exec.assertions.join(", ")}`,
+      cause: conclusionNotes || "See work performed narrative above.",
+      effect:
+        conclusion === "Exception Raised"
+          ? "Exception identified requiring management attention and corrective action."
+          : conclusion === "Limitation"
+            ? "Audit scope limitation — records were unavailable for inspection."
+            : "No adverse effect on the financial statements identified.",
+      recommendation:
+        conclusion === "Exception Raised"
+          ? "Management is advised to take corrective action. Refer to linked exception(s) in the Exceptions Register."
+          : "Continue monitoring. No further action required at this stage.",
+      severity:
+        (currentExec.riskRating as "Low" | "Medium" | "High" | "Critical") ||
+        "Low",
+      status: "Draft",
+      preparedBy: uName,
+    });
+
     store.addToast({
       type: "success",
       title: "Procedure Submitted",
@@ -514,22 +556,22 @@ const ProcedureWorkspace: React.FC<{
   };
 
   const handleLogException = () => {
-    if (!excFinding.trim() || !excType.trim()) return;
+    if (!conclusionNotes.trim()) return;
     store.addFieldworkException({
       auditId,
       procedureId: exec.procedureId,
       procedureRef: exec.procedureRef,
       auditArea: exec.auditArea,
-      exceptionType: excType,
-      assertionAffected: excAssertion,
+      exceptionType: exec.auditArea,
+      assertionAffected: "Existence/Occurrence",
       severity: excSeverity,
-      finding: excFinding,
+      finding: conclusionNotes,
       evidenceCodes: exec.evidence.map((e) => e.code),
       financialImpact: excImpact,
-      qualitativeImpact: excQual,
+      qualitativeImpact: "",
       status: "Open",
       raisedBy: userId,
-      potentialAuditQuery: excSeverity === "Critical" || excSeverity === "High",
+      potentialAuditQuery: true,
       notes: "",
       escalatedToHlg: false,
     });
@@ -538,17 +580,99 @@ const ProcedureWorkspace: React.FC<{
       title: "Exception Logged",
       message: `Exception raised for ${exec.procedureRef}`,
     });
-    setShowExceptionForm(false);
-    setExcType("");
-    setExcFinding("");
     setExcImpact(0);
-    setExcQual("");
+    // prompt user to log a journal for this exception
+    setTbJournalDesc(
+      `Exception — ${exec.procedureRef}: ${conclusionNotes.slice(0, 120)}`,
+    );
+
+    const initialMatches: Record<
+      string,
+      { dr: number; cr: number; selected: boolean }
+    > = {};
+    tbLines.forEach((line) => {
+      const lAcc = line.account.toLowerCase();
+      const eDesc = exec.procedureDescription.toLowerCase();
+      const eArea = exec.auditArea.toLowerCase();
+      // Match by exact or partial string matching to auto-select the row
+      if (
+        lAcc.includes(eDesc) ||
+        eDesc.includes(lAcc) ||
+        lAcc.includes(eArea) ||
+        eArea.includes(lAcc)
+      ) {
+        initialMatches[line.id] = { selected: true, dr: 0, cr: 0 };
+      }
+    });
+    setTbAdjustments(initialMatches);
+
+    setShowJournalPrompt(true);
+  };
+
+  const handleLogJournal = () => {
+    if (!tbJournalDesc.trim()) return;
+    if (journalStateInvalid) {
+      store.addToast({
+        type: "error",
+        title: "Unbalanced Journal",
+        message: "Total debits must equal total credits before logging.",
+      });
+      return;
+    }
+
+    const entries: import("../../../types").AuditJournalEntry[] = [];
+    let netDebit = 0;
+
+    Object.entries(tbAdjustments).forEach(([lineId, { selected, dr, cr }]) => {
+      if (selected && (dr > 0 || cr > 0)) {
+        const line = tbLines.find((l) => l.id === lineId);
+        if (line) {
+          entries.push({
+            account: line.code
+              ? `${line.code} - ${line.account}`
+              : line.account,
+            debit: dr,
+            credit: cr,
+          });
+          if (dr > 0) netDebit += dr;
+        }
+      }
+    });
+
+    if (entries.length === 0) {
+      store.addToast({
+        type: "error",
+        title: "No Adjustments",
+        message:
+          "Please select at least one line and enter an adjustment amount.",
+      });
+      return;
+    }
+
+    store.addAuditJournal({
+      auditId,
+      journalNumber: `AJE-${exec.id}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+      type: "Proposed",
+      description: tbJournalDesc,
+      entries,
+      netEffect: netDebit,
+      affectedArea: exec.auditArea,
+      preparedBy: uName,
+      status: "Draft",
+      workpaperRef: exec.procedureRef,
+    });
+    store.addToast({
+      type: "info",
+      title: "Journal Entry Created",
+      message: `Draft journal logged for ${exec.procedureRef}`,
+    });
+    setShowJournalPrompt(false);
   };
 
   const handleAddReviewComment = () => {
     if (!reviewMsg.trim()) return;
     const comment: ReviewComment = {
-      id: `rc-${Date.now()}`,
+      id: `rc-${exec.id}-${(exec.reviewComments || []).length}`,
       authorId: userId,
       authorName: uName,
       authorRole: userRole as ReviewComment["authorRole"],
@@ -768,6 +892,14 @@ const ProcedureWorkspace: React.FC<{
   const currentExec = refreshedExec || exec;
   const procedureNature = currentExec?.natureOfTest;
 
+  const currentProgramme = store.programmes.find(
+    (p) => p.id === currentExec.programmeId,
+  );
+  const currentProc = currentProgramme?.procedures.find(
+    (p) => p.id === currentExec.procedureId,
+  );
+  const selectedAudit = store.audits.find((a) => a.id === auditId);
+
   return (
     <div
       style={{
@@ -859,48 +991,6 @@ const ProcedureWorkspace: React.FC<{
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div
-              style={{
-                textAlign: "center",
-                padding: "0.25rem 0.75rem",
-                background: timerRunning ? "#fef3c7" : "#f1f5f9",
-                borderRadius: "0.5rem",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  color: "#64748b",
-                }}
-              >
-                Hours
-              </div>
-              <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-                {currentExec.loggedHours.toFixed(1)}/{currentExec.budgetedHours}
-              </div>
-            </div>
-            {isWriter &&
-              currentExec.status !== "Cleared" &&
-              currentExec.status !== "Locked" &&
-              (timerRunning ? (
-                <button
-                  className={s.btnDanger}
-                  onClick={handleStopTimer}
-                  style={{ fontSize: "0.72rem" }}
-                >
-                  <Pause size={12} /> Stop
-                </button>
-              ) : (
-                <button
-                  className={s.btnOutline}
-                  onClick={handleStartTimer}
-                  style={{ fontSize: "0.72rem" }}
-                >
-                  <Play size={12} /> Start Timer
-                </button>
-              ))}
             <button className={s.btnIcon} onClick={onClose}>
               <X size={16} />
             </button>
@@ -947,6 +1037,58 @@ const ProcedureWorkspace: React.FC<{
               >
                 {currentExec.procedureDescription}
               </div>
+
+              {(isSupervisor || isLead) && currentProgramme && currentProc && (
+                <div style={{ marginTop: "1rem" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      color: "#334155",
+                      marginBottom: "0.4rem",
+                    }}
+                  >
+                    Assign Procedure
+                  </label>
+                  <select
+                    style={{
+                      width: "100%",
+                      padding: "0.5rem",
+                      fontSize: "0.85rem",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "0.35rem",
+                      background: "#f8fafc",
+                      color: "#334155",
+                    }}
+                    value={currentProc?.assignedTo || ""}
+                    onChange={(e) => {
+                      store.updateProgrammeProcedure(
+                        currentProgramme.id,
+                        currentProc.id,
+                        {
+                          assignedTo: e.target.value,
+                        },
+                      );
+                      store.addToast({
+                        title: "Assigned successfully",
+                        type: "success",
+                      });
+                    }}
+                  >
+                    <option value="">— Assign Auditor —</option>
+                    {store.users
+                      .filter((u) => selectedAudit?.teamIds?.includes(u.id))
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
 
               <div
                 style={{
@@ -1059,22 +1201,24 @@ const ProcedureWorkspace: React.FC<{
                     </option>
                   </select>
                 </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>Conclusion Notes</label>
-                  <input
-                    className={s.formInput}
-                    value={conclusionNotes}
-                    onChange={(e) => setConclusionNotes(e.target.value)}
-                    disabled={!isWriter}
-                  />
-                </div>
+              </div>
+              <div className={s.formGroupFull} style={{ marginTop: "0.75rem" }}>
+                <label className={s.formLabel}>Conclusion Notes</label>
+                <textarea
+                  className={s.formTextarea}
+                  value={conclusionNotes}
+                  onChange={(e) => setConclusionNotes(e.target.value)}
+                  disabled={!isWriter}
+                  rows={4}
+                />
               </div>
 
-              {conclusion === "Exception Raised" && (
+              {conclusion === "Exception Raised" && isWriter && (
                 <div style={{ marginTop: "0.5rem" }}>
                   <button
                     className={s.btnDanger}
-                    onClick={() => setShowExceptionForm(!showExceptionForm)}
+                    onClick={handleLogException}
+                    disabled={!conclusionNotes.trim()}
                     style={{ fontSize: "0.75rem" }}
                   >
                     <AlertTriangle size={12} /> Log Exception
@@ -3935,194 +4079,287 @@ const ProcedureWorkspace: React.FC<{
             </div>
           )}
 
-          {showExceptionForm && (
-            <div
-              style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 1001,
-                display: "flex",
-                justifyContent: "flex-end",
-              }}
-            >
+          {/* ─── JOURNAL PROMPT (after exception logged) ─── */}
+          {showJournalPrompt && (
+            <div style={{ marginTop: "1.25rem" }}>
               <div
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "rgba(0,0,0,0.35)",
-                }}
-                onClick={() => setShowExceptionForm(false)}
-              />
-              <div
-                style={{
-                  position: "relative",
-                  width: 420,
-                  height: "100vh",
-                  background: "var(--card-bg, #fff)",
-                  boxShadow: "-4px 0 24px rgba(0,0,0,0.18)",
-                  overflowY: "auto",
-                  padding: "1.5rem 1.25rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.85rem",
+                  border: "1px solid #f59e0b",
+                  borderRadius: "0.5rem",
+                  overflow: "hidden",
                 }}
               >
                 <div
                   style={{
+                    background: "#fffbeb",
+                    borderBottom: "1px solid #f59e0b",
+                    padding: "0.75rem 1rem",
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: "0.25rem",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <span
+                  <div
                     style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
                       fontWeight: 700,
-                      fontSize: "1rem",
-                      color: "#dc2626",
+                      fontSize: "0.82rem",
+                      color: "#92400e",
                     }}
                   >
-                    Log Exception
-                  </span>
+                    <AlertTriangle size={14} style={{ color: "#d97706" }} />
+                    Exception logged — would you like to create a journal entry?
+                  </div>
                   <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "1.1rem",
-                      color: "#64748b",
-                    }}
-                    onClick={() => setShowExceptionForm(false)}
+                    className={s.btnIcon}
+                    onClick={() => setShowJournalPrompt(false)}
+                    style={{ fontSize: "0.72rem", color: "#92400e" }}
                   >
-                    ✕
+                    <X size={14} />
                   </button>
                 </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>Exception Type</label>
-                  <select
-                    className={s.formSelect}
-                    value={excType}
-                    onChange={(e) => setExcType(e.target.value)}
-                  >
-                    <option value="">— Select type —</option>
-                    {[
-                      "Ghost Worker",
-                      "Unretired Advance",
-                      "Contract Splitting",
-                      "Missing Documentation",
-                      "Unremitted Deduction",
-                      "Revenue Leakage",
-                      "Site Discrepancy",
-                      "Unauthorised Payment",
-                      "Bank Discrepancy",
-                      "Grant Misuse",
-                      "Other",
-                    ].map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>Assertion Affected</label>
-                  <select
-                    className={s.formSelect}
-                    value={excAssertion}
-                    onChange={(e) =>
-                      setExcAssertion(
-                        e.target
-                          .value as FieldworkException["assertionAffected"],
-                      )
-                    }
-                  >
-                    {[
-                      "Existence/Occurrence",
-                      "Completeness",
-                      "Accuracy/Valuation",
-                      "Rights & Obligations",
-                      "Presentation & Disclosure",
-                      "Cut-off",
-                    ].map((a) => (
-                      <option key={a} value={a}>
-                        {a}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>Financial Impact (₦)</label>
-                  <input
-                    type="number"
-                    className={s.formInput}
-                    value={excImpact || ""}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setExcImpact(v);
-                      const suggested = suggestSeverity(v);
-                      setExcSeveritySuggested(suggested);
-                      setExcSeverity(suggested);
+                <div style={{ padding: "1rem", background: "#fff" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.75rem",
+                      marginBottom: "0.75rem",
+                      alignItems: "flex-end",
                     }}
-                  />
-                </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>
-                    Severity
-                    {excSeveritySuggested && (
-                      <span
+                  >
+                    <div className={s.formGroupFull} style={{ flex: 1 }}>
+                      <label className={s.formLabel}>Description</label>
+                      <input
+                        className={s.formInput}
+                        value={tbJournalDesc}
+                        onChange={(e) => setTbJournalDesc(e.target.value)}
+                        placeholder="Journal Description..."
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    className={s.tableWrap}
+                    style={{
+                      maxHeight: "350px",
+                      overflowY: "auto",
+                      border: journalStateInvalid
+                        ? "2px solid #ef4444" // red base for invalid
+                        : "1px solid var(--border)",
+                      borderRadius: "0.5rem",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    <table
+                      className={s.table}
+                      style={{ fontSize: "0.75rem", margin: 0 }}
+                    >
+                      <thead
                         style={{
-                          marginLeft: "0.5rem",
-                          fontSize: "0.7rem",
-                          color: "#2563eb",
-                          fontWeight: 500,
+                          position: "sticky",
+                          top: 0,
+                          zIndex: 1,
+                          backgroundColor: "var(--bg-subtle)",
                         }}
                       >
-                        (auto-suggested from impact)
-                      </span>
-                    )}
-                  </label>
-                  <select
-                    className={s.formSelect}
-                    value={excSeverity}
-                    onChange={(e) => {
-                      setExcSeverity(e.target.value as ExceptionSeverity);
-                      setExcSeveritySuggested(null);
-                    }}
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                  </select>
-                </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>Finding</label>
-                  <textarea
-                    className={s.formTextarea}
-                    value={excFinding}
-                    onChange={(e) => setExcFinding(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                <div className={s.formGroup}>
-                  <label className={s.formLabel}>Qualitative Impact</label>
-                  <input
-                    className={s.formInput}
-                    value={excQual}
-                    onChange={(e) => setExcQual(e.target.value)}
-                    placeholder="e.g. High — potential fraud, governance failure"
-                  />
-                </div>
-                <div className={s.formActions} style={{ marginTop: "auto" }}>
-                  <button
-                    className={s.btnSecondary}
-                    onClick={() => setShowExceptionForm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button className={s.btnDanger} onClick={handleLogException}>
-                    <AlertTriangle size={12} /> Log Exception
-                  </button>
+                        <tr>
+                          <th style={{ width: "40px" }} />
+                          <th>Code</th>
+                          <th>Description</th>
+                          <th>Class</th>
+                          <th style={{ textAlign: "right" }}>Amount (₦)</th>
+                          <th style={{ width: "130px" }}>Adj. Debit (₦)</th>
+                          <th style={{ width: "130px" }}>Adj. Credit (₦)</th>
+                          <th style={{ textAlign: "right" }}>
+                            Adj. Amount (₦)
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tbLines.map((line) => {
+                          const isSelected =
+                            tbAdjustments[line.id]?.selected || false;
+                          const dr = tbAdjustments[line.id]?.dr || 0;
+                          const cr = tbAdjustments[line.id]?.cr || 0;
+                          const adjAmount = line.current + dr - cr;
+                          return (
+                            <tr
+                              key={line.id}
+                              style={{
+                                background: isSelected
+                                  ? "rgba(6, 78, 59, 0.05)"
+                                  : "transparent",
+                              }}
+                            >
+                              <td>
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) =>
+                                    setTbAdjustments((p) => ({
+                                      ...p,
+                                      [line.id]: {
+                                        ...p[line.id],
+                                        selected: e.target.checked,
+                                      },
+                                    }))
+                                  }
+                                />
+                              </td>
+                              <td>{line.code || "-"}</td>
+                              <td>
+                                <div
+                                  style={{
+                                    maxWidth: "180px",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                  title={line.account}
+                                >
+                                  {line.account}
+                                </div>
+                              </td>
+                              <td>{line.section}</td>
+                              <td
+                                style={{
+                                  textAlign: "right",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {line.current.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  style={{
+                                    padding: "0.25rem 0.5rem",
+                                    height: "auto",
+                                    fontSize: "0.75rem",
+                                    opacity: isSelected ? 1 : 0.5,
+                                    pointerEvents: isSelected ? "auto" : "none",
+                                  }}
+                                  value={dr || ""}
+                                  onChange={(e) =>
+                                    setTbAdjustments((p) => ({
+                                      ...p,
+                                      [line.id]: {
+                                        ...p[line.id],
+                                        selected: true,
+                                        dr: Number(e.target.value),
+                                      },
+                                    }))
+                                  }
+                                  disabled={!isSelected}
+                                  min={0}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="number"
+                                  className={s.formInput}
+                                  style={{
+                                    padding: "0.25rem 0.5rem",
+                                    height: "auto",
+                                    fontSize: "0.75rem",
+                                    opacity: isSelected ? 1 : 0.5,
+                                    pointerEvents: isSelected ? "auto" : "none",
+                                  }}
+                                  value={cr || ""}
+                                  onChange={(e) =>
+                                    setTbAdjustments((p) => ({
+                                      ...p,
+                                      [line.id]: {
+                                        ...p[line.id],
+                                        selected: true,
+                                        cr: Number(e.target.value),
+                                      },
+                                    }))
+                                  }
+                                  disabled={!isSelected}
+                                  min={0}
+                                />
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: "right",
+                                  whiteSpace: "nowrap",
+                                  fontWeight:
+                                    (dr || cr) && isSelected ? 700 : 400,
+                                  color:
+                                    (dr || cr) && isSelected
+                                      ? "var(--primary)"
+                                      : "inherit",
+                                }}
+                              >
+                                {adjAmount.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {tbLines.length === 0 && (
+                          <tr>
+                            <td
+                              colSpan={7}
+                              style={{
+                                textAlign: "center",
+                                padding: "1.5rem",
+                                color: "#64748b",
+                              }}
+                            >
+                              No Financial Statement data found for this audit.
+                              Make sure it is uploaded during Planning.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ background: "var(--bg-subtle)", fontWeight: 700 }}>
+                          <td colSpan={5} style={{ textAlign: "right", paddingRight: "1rem" }}>
+                            Totals:
+                          </td>
+                          <td style={{ color: journalStateInvalid ? "#ef4444" : "inherit" }}>
+                            {totalAdjDr.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                          <td style={{ color: journalStateInvalid ? "#ef4444" : "inherit" }}>
+                            {totalAdjCr.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                          <td></td>
+                        </tr>
+                        {journalStateInvalid && (
+                          <tr>
+                            <td colSpan={8} style={{ color: "#ef4444", fontSize: "0.75rem", textAlign: "right", padding: "0.25rem 1rem" }}>
+                              Total Debits must equal Total Credits before logging.
+                            </td>
+                          </tr>
+                        )}
+                      </tfoot>
+                    </table>
+                  </div>
+
+                  <div className={s.formActions}>
+                    <button
+                      className={s.btnSecondary}
+                      onClick={() => setShowJournalPrompt(false)}
+                      style={{ fontSize: "0.75rem" }}
+                    >
+                      Skip — No Journal
+                    </button>
+                    <button
+                      className={s.btnPrimary}
+                      onClick={handleLogJournal}
+                      style={{ fontSize: "0.75rem" }}
+                    >
+                      <Save size={12} /> Log Journal Entry
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4166,7 +4403,7 @@ const ProcedureWorkspace: React.FC<{
             </div>
           )}
 
-          {(isLead || isSupervisor) && (
+          {(isLead || isSupervisor) && currentExec.status === "Submitted" && (
             <div style={{ marginTop: "1rem" }}>
               <div
                 style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}

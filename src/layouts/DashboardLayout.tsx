@@ -29,6 +29,7 @@ import {
   ChevronRight,
   FileCheck,
   FolderOpen,
+  ClipboardCheck,
 } from "lucide-react";
 import s from "../styles/dashboard.module.css";
 import MessagingWidget from "../components/UI/MessagingWidget";
@@ -181,6 +182,11 @@ const DashboardLayout: React.FC = () => {
     label: "Dashboard",
   };
   const regLink = { to: "/regulations", icon: BookOpen, label: "Regulations" };
+  const procLink = {
+    to: "/audit-procedures",
+    icon: ClipboardCheck,
+    label: "Audit Procedures",
+  };
 
   interface NavGroup {
     label: string;
@@ -360,7 +366,7 @@ const DashboardLayout: React.FC = () => {
 
   navGroups.push({
     label: "Reference",
-    items: [regLink],
+    items: [regLink, procLink],
   });
 
   const renderNavItems = (items: NavItem[]) =>
