@@ -1181,7 +1181,7 @@ const ProcedureWorkspace: React.FC<{
                   marginBottom: "0.5rem",
                 }}
               >
-                Work Done & Findings
+                Work Done &amp; Findings
               </div>
               <div className={s.formGroup}>
                 <label className={s.formLabel}>Work Performed</label>
@@ -1235,6 +1235,57 @@ const ProcedureWorkspace: React.FC<{
                   disabled={!isWriter}
                   rows={4}
                 />
+                {isWriter && (
+                  <button
+                    className={s.btnOutline}
+                    disabled={!conclusionNotes.trim()}
+                    onClick={() => {
+                      if (!conclusionNotes.trim()) return;
+                      store.addAuditComment({
+                        auditId,
+                        referenceNumber: `AC-${exec.id}-${Date.now().toString(36).slice(-5).toUpperCase()}`,
+                        title: `${exec.procedureRef} — Conclusion Note`,
+                        observation: conclusionNotes,
+                        criteria: `${exec.auditArea} — Assertions: ${exec.assertions.join(", ")}`,
+                        cause: conclusionNotes,
+                        effect:
+                          conclusion === "Exception Raised"
+                            ? "Exception identified requiring management attention."
+                            : conclusion === "Limitation"
+                              ? "Audit scope limitation — records unavailable."
+                              : "No adverse effect identified.",
+                        recommendation:
+                          conclusion === "Exception Raised"
+                            ? "Management is advised to take corrective action."
+                            : "Continue monitoring. No further action required.",
+                        severity:
+                          (currentExec.riskRating as
+                            | "Low"
+                            | "Medium"
+                            | "High"
+                            | "Critical") || "Low",
+                        status: "Draft",
+                        preparedBy: uName,
+                      });
+                      store.addToast({
+                        type: "success",
+                        title: "Comment Recorded",
+                        message:
+                          "Conclusion note added to the Audit Comments tab",
+                      });
+                    }}
+                    style={{
+                      marginTop: "0.5rem",
+                      fontSize: "0.75rem",
+                      opacity: conclusionNotes.trim() ? 1 : 0.45,
+                      cursor: conclusionNotes.trim()
+                        ? "pointer"
+                        : "not-allowed",
+                    }}
+                  >
+                    <MessageSquare size={12} /> Record as Audit Comment
+                  </button>
+                )}
               </div>
 
               {conclusion === "Exception Raised" && isWriter && (
