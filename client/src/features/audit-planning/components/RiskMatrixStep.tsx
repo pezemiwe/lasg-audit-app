@@ -1,16 +1,42 @@
 import React, { useState, useMemo } from "react";
 import { type AuditStore } from "../../../store/useAuditStore";
-import type { User, RiskLevel, RiskMatrix, PreliminaryAnalytic } from "../../../types";
-import { FileText, Plus, X, Save, Sparkles, Shield, Search, Download, Trash2 } from "lucide-react";
+import type {
+  User,
+  RiskLevel,
+  RiskMatrix,
+  PreliminaryAnalytic,
+} from "../../../types";
+import {
+  FileText,
+  Plus,
+  X,
+  Save,
+  Sparkles,
+  Shield,
+  Search,
+  Download,
+} from "lucide-react";
 import StatusBadge from "../../../components/UI/StatusBadge";
 import s from "../../../styles/pages.module.css";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import PlanningCard from "./PlanningCard";
 import RiskBadge from "./RiskBadge";
-import { RISK_LEVELS, RISK_AREAS, riskColor, type ArDocType } from "../constants";
+import {
+  RISK_LEVELS,
+  RISK_AREAS,
+  riskColor,
+  type ArDocType,
+} from "../constants";
 import { calculateOverallRisk, fmtPercent } from "../utils/format";
-import { MOCK_FS, MOCK_TB, AR_FS_SECTIONS, AR_FS_LABELS, AR_TB_SECTIONS, AR_TB_LABELS } from "../arMockData";
+import {
+  MOCK_FS,
+  MOCK_TB,
+  AR_FS_SECTIONS,
+  AR_FS_LABELS,
+  AR_TB_SECTIONS,
+  AR_TB_LABELS,
+} from "../arMockData";
 
 const RiskMatrixStep: React.FC<{
   audit: AuditStore["audits"][0];
@@ -1255,7 +1281,7 @@ const RiskMatrixStep: React.FC<{
             </button>
             {!showForm && (
               <>
-                {risks.length > 0 && viewMode === "table" && (
+                {/* {risks.length > 0 && viewMode === "table" && (
                   <button
                     className={s.btnSecondary}
                     onClick={() => {
@@ -1272,7 +1298,7 @@ const RiskMatrixStep: React.FC<{
                   >
                     <Trash2 size={13} /> Clear Textareas
                   </button>
-                )}
+                )} */}
                 <button
                   className={s.btnPrimary}
                   onClick={() => setShowForm(true)}
