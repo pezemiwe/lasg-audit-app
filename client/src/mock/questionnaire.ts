@@ -1,10 +1,10 @@
-import type {
+﻿import type {
   QuestionnaireQuestion,
   QuestionnaireResponse,
 } from "../types";
 
 export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
-  // ═══ Understanding the Entity (ISA 315) ═══
+  // â•â•â• Understanding the Entity (ISA 315) â•â•â•
   {
     id: "q-1",
     section: "Understanding the Entity",
@@ -17,10 +17,10 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
         value: "well_defined",
       },
       {
-        label: "Partially defined — some gaps in reporting lines",
+        label: "Partially defined â€” some gaps in reporting lines",
         value: "partial",
       },
-      { label: "Poorly defined — no formal organogram", value: "poor" },
+      { label: "Poorly defined â€” no formal organogram", value: "poor" },
     ],
   },
   {
@@ -45,9 +45,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Current and comprehensive", value: "yes_current" },
-      { label: "Yes — Available but outdated", value: "yes_outdated" },
-      { label: "No — Organizational chart not available", value: "no" },
+      { label: "Yes â€” Current and comprehensive", value: "yes_current" },
+      { label: "Yes â€” Available but outdated", value: "yes_outdated" },
+      { label: "No â€” Organizational chart not available", value: "no" },
     ],
   },
   {
@@ -59,8 +59,8 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       { label: "Under 500", value: "under_500" },
-      { label: "500 – 1,000", value: "500_1000" },
-      { label: "1,000 – 2,000", value: "1000_2000" },
+      { label: "500 â€“ 1,000", value: "500_1000" },
+      { label: "1,000 â€“ 2,000", value: "1000_2000" },
       { label: "Over 2,000", value: "over_2000" },
     ],
   },
@@ -72,9 +72,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Major leadership change", value: "yes_major" },
-      { label: "Yes — Minor restructuring only", value: "yes_minor" },
-      { label: "No — Stable structure", value: "no" },
+      { label: "Yes â€” Major leadership change", value: "yes_major" },
+      { label: "Yes â€” Minor restructuring only", value: "yes_minor" },
+      { label: "No â€” Stable structure", value: "no" },
     ],
   },
   {
@@ -86,8 +86,8 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       { label: "Increased by more than 20%", value: "increase_20plus" },
-      { label: "Increased by 5–20%", value: "increase_5_20" },
-      { label: "Roughly the same (±5%)", value: "same" },
+      { label: "Increased by 5â€“20%", value: "increase_5_20" },
+      { label: "Roughly the same (Â±5%)", value: "same" },
       { label: "Decreased", value: "decreased" },
     ],
   },
@@ -98,9 +98,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Reviewed within the last 3 years", value: "yes_recent" },
-      { label: "No — Last reviewed over 5 years ago", value: "no_old" },
-      { label: "Unknown — Not verified", value: "unknown" },
+      { label: "Yes â€” Reviewed within the last 3 years", value: "yes_recent" },
+      { label: "No â€” Last reviewed over 5 years ago", value: "no_old" },
+      { label: "Unknown â€” Not verified", value: "unknown" },
     ],
   },
   {
@@ -122,7 +122,7 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     ],
   },
 
-  // ═══ Key Accounting Systems ═══
+  // â•â•â• Key Accounting Systems â•â•â•
   {
     id: "q-9",
     section: "Key Accounting Systems",
@@ -130,9 +130,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Fully automated", value: "yes_full" },
-      { label: "Yes — Partially automated", value: "yes_partial" },
-      { label: "No — Manual system only", value: "no" },
+      { label: "Yes â€” Fully automated", value: "yes_full" },
+      { label: "Yes â€” Partially automated", value: "yes_partial" },
+      { label: "No â€” Manual system only", value: "no" },
     ],
   },
   {
@@ -193,12 +193,12 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Monthly, by a preparer with independent reviewer",
+        label: "Yes â€” Monthly, by a preparer with independent reviewer",
         value: "yes_monthly",
       },
-      { label: "Yes — Quarterly", value: "yes_quarterly" },
-      { label: "Irregularly — No fixed schedule", value: "irregular" },
-      { label: "No — Not performed", value: "no" },
+      { label: "Yes â€” Quarterly", value: "yes_quarterly" },
+      { label: "Irregularly â€” No fixed schedule", value: "irregular" },
+      { label: "No â€” Not performed", value: "no" },
     ],
   },
   {
@@ -226,13 +226,13 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — All three years available and filed", value: "yes_all" },
-      { label: "Yes — Partially (1-2 years only)", value: "yes_partial" },
-      { label: "No — Accounts are in arrears", value: "no" },
+      { label: "Yes â€” All three years available and filed", value: "yes_all" },
+      { label: "Yes â€” Partially (1-2 years only)", value: "yes_partial" },
+      { label: "No â€” Accounts are in arrears", value: "no" },
     ],
   },
 
-  // ═══ Internal Control Environment (ISA 315/330) ═══
+  // â•â•â• Internal Control Environment (ISA 315/330) â•â•â•
   {
     id: "q-16",
     section: "Internal Control Environment",
@@ -240,15 +240,15 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "risk-scoring",
     required: true,
     options: [
-      { label: "Strong — Well-designed and operating effectively", value: "1" },
-      { label: "Adequate — Generally effective with minor gaps", value: "2" },
+      { label: "Strong â€” Well-designed and operating effectively", value: "1" },
+      { label: "Adequate â€” Generally effective with minor gaps", value: "2" },
       {
-        label: "Moderate — Some significant weaknesses identified",
+        label: "Moderate â€” Some significant weaknesses identified",
         value: "3",
       },
-      { label: "Weak — Multiple material weaknesses present", value: "4" },
+      { label: "Weak â€” Multiple material weaknesses present", value: "4" },
       {
-        label: "Very Weak — Controls are largely absent or ineffective",
+        label: "Very Weak â€” Controls are largely absent or ineffective",
         value: "5",
       },
     ],
@@ -260,9 +260,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Active and reports regularly", value: "yes_active" },
-      { label: "Yes — Exists but not fully functional", value: "yes_limited" },
-      { label: "No — No internal audit function", value: "no" },
+      { label: "Yes â€” Active and reports regularly", value: "yes_active" },
+      { label: "Yes â€” Exists but not fully functional", value: "yes_limited" },
+      { label: "No â€” No internal audit function", value: "no" },
     ],
   },
   {
@@ -274,11 +274,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Fully segregated across all functions",
+        label: "Yes â€” Fully segregated across all functions",
         value: "yes_full",
       },
-      { label: "Partially — Some functions are combined", value: "partial" },
-      { label: "No — Inadequate segregation", value: "no" },
+      { label: "Partially â€” Some functions are combined", value: "partial" },
+      { label: "No â€” Inadequate segregation", value: "no" },
     ],
   },
   {
@@ -288,9 +288,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Current and actively followed", value: "yes_current" },
-      { label: "Yes — Available but compliance is weak", value: "yes_weak" },
-      { label: "No — No documented financial manual", value: "no" },
+      { label: "Yes â€” Current and actively followed", value: "yes_current" },
+      { label: "Yes â€” Available but compliance is weak", value: "yes_weak" },
+      { label: "No â€” No documented financial manual", value: "no" },
     ],
   },
   {
@@ -319,10 +319,10 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "No — All prior queries resolved", value: "all_resolved" },
-      { label: "Yes — Some queries remain unresolved", value: "some_pending" },
+      { label: "No â€” All prior queries resolved", value: "all_resolved" },
+      { label: "Yes â€” Some queries remain unresolved", value: "some_pending" },
       {
-        label: "Yes — Majority of queries remain unresolved",
+        label: "Yes â€” Majority of queries remain unresolved",
         value: "most_pending",
       },
     ],
@@ -334,14 +334,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "risk-scoring",
     required: true,
     options: [
-      { label: "Strong — Robust IT controls in place", value: "1" },
-      { label: "Adequate — Basic controls with some gaps", value: "2" },
-      { label: "Moderate — Significant IT weaknesses", value: "3" },
-      { label: "Weak — Minimal or no IT controls", value: "4" },
+      { label: "Strong â€” Robust IT controls in place", value: "1" },
+      { label: "Adequate â€” Basic controls with some gaps", value: "2" },
+      { label: "Moderate â€” Significant IT weaknesses", value: "3" },
+      { label: "Weak â€” Minimal or no IT controls", value: "4" },
     ],
   },
 
-  // ═══ Risk Assessment (ISA 315/330) ═══
+  // â•â•â• Risk Assessment (ISA 315/330) â•â•â•
   {
     id: "q-23",
     section: "Risk Assessment",
@@ -365,10 +365,10 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Specific indicators identified", value: "yes" },
-      { label: "No — No indicators at this stage", value: "no" },
+      { label: "Yes â€” Specific indicators identified", value: "yes" },
+      { label: "No â€” No indicators at this stage", value: "no" },
       {
-        label: "Inconclusive — Further investigation needed",
+        label: "Inconclusive â€” Further investigation needed",
         value: "inconclusive",
       },
     ],
@@ -382,11 +382,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Significant related-party transactions noted",
+        label: "Yes â€” Significant related-party transactions noted",
         value: "yes_significant",
       },
-      { label: "Yes — Minor related-party matters noted", value: "yes_minor" },
-      { label: "No — None identified", value: "no" },
+      { label: "Yes â€” Minor related-party matters noted", value: "yes_minor" },
+      { label: "No â€” None identified", value: "no" },
     ],
   },
   {
@@ -397,11 +397,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Significant financial exposure",
+        label: "Yes â€” Significant financial exposure",
         value: "yes_significant",
       },
-      { label: "Yes — Minor or immaterial exposure", value: "yes_minor" },
-      { label: "No — None identified", value: "no" },
+      { label: "Yes â€” Minor or immaterial exposure", value: "yes_minor" },
+      { label: "No â€” None identified", value: "no" },
     ],
   },
   {
@@ -413,10 +413,10 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Resulted in recoveries or sanctions",
+        label: "Yes â€” Resulted in recoveries or sanctions",
         value: "yes_sanctions",
       },
-      { label: "Yes — Cleared without findings", value: "yes_cleared" },
+      { label: "Yes â€” Cleared without findings", value: "yes_cleared" },
       { label: "No", value: "no" },
       { label: "Not aware", value: "unknown" },
     ],
@@ -429,10 +429,10 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "risk-scoring",
     required: true,
     options: [
-      { label: "High — Strong tone at the top", value: "1" },
-      { label: "Adequate — Generally cooperative", value: "2" },
-      { label: "Moderate — Some concerns noted", value: "3" },
-      { label: "Low — Significant integrity concerns", value: "4" },
+      { label: "High â€” Strong tone at the top", value: "1" },
+      { label: "Adequate â€” Generally cooperative", value: "2" },
+      { label: "Moderate â€” Some concerns noted", value: "3" },
+      { label: "Low â€” Significant integrity concerns", value: "4" },
     ],
   },
   {
@@ -443,9 +443,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Frequent — Multiple changes yearly", value: "frequent" },
-      { label: "Occasional — Some changes", value: "occasional" },
-      { label: "Rare — Systems and personnel are stable", value: "rare" },
+      { label: "Frequent â€” Multiple changes yearly", value: "frequent" },
+      { label: "Occasional â€” Some changes", value: "occasional" },
+      { label: "Rare â€” Systems and personnel are stable", value: "rare" },
     ],
   },
   {
@@ -456,9 +456,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Regular formal assessments", value: "yes_formal" },
-      { label: "Yes — Informal assessments only", value: "yes_informal" },
-      { label: "No — No mechanism in place", value: "no" },
+      { label: "Yes â€” Regular formal assessments", value: "yes_formal" },
+      { label: "Yes â€” Informal assessments only", value: "yes_informal" },
+      { label: "No â€” No mechanism in place", value: "no" },
     ],
   },
   {
@@ -469,9 +469,9 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Documented and regularly tested", value: "yes_tested" },
-      { label: "Yes — Documented but rarely tested", value: "yes_untested" },
-      { label: "No — No formal plan", value: "no" },
+      { label: "Yes â€” Documented and regularly tested", value: "yes_tested" },
+      { label: "Yes â€” Documented but rarely tested", value: "yes_untested" },
+      { label: "No â€” No formal plan", value: "no" },
     ],
   },
   {
@@ -482,13 +482,13 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Consistently met on time", value: "yes" },
-      { label: "Partially — Occasional delays or issues", value: "partial" },
-      { label: "No — Frequent delays or compliance failures", value: "no" },
+      { label: "Yes â€” Consistently met on time", value: "yes" },
+      { label: "Partially â€” Occasional delays or issues", value: "partial" },
+      { label: "No â€” Frequent delays or compliance failures", value: "no" },
     ],
   },
 
-  // ═══ Additional: Understanding the Entity ═══
+  // â•â•â• Additional: Understanding the Entity â•â•â•
   {
     id: "q-ue-1",
     section: "Understanding the Entity",
@@ -520,11 +520,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — With documented agreements and reporting",
+        label: "Yes â€” With documented agreements and reporting",
         value: "yes_documented",
       },
       {
-        label: "Yes — Informal arrangements not fully documented",
+        label: "Yes â€” Informal arrangements not fully documented",
         value: "yes_informal",
       },
       { label: "No", value: "no" },
@@ -540,15 +540,15 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Always submitted on time and publicly available",
+        label: "Yes â€” Always submitted on time and publicly available",
         value: "yes_timely",
       },
       {
-        label: "Partially — Submitted late or not publicly disclosed",
+        label: "Partially â€” Submitted late or not publicly disclosed",
         value: "partial",
       },
       {
-        label: "No — Budget submissions are consistently delayed",
+        label: "No â€” Budget submissions are consistently delayed",
         value: "no",
       },
     ],
@@ -561,16 +561,16 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — MTEF is in place and budget-aligned", value: "yes_mtef" },
+      { label: "Yes â€” MTEF is in place and budget-aligned", value: "yes_mtef" },
       {
-        label: "Partially — Plans exist but not integrated with budget",
+        label: "Partially â€” Plans exist but not integrated with budget",
         value: "partial",
       },
-      { label: "No — No formal MTEF or development plan", value: "no" },
+      { label: "No â€” No formal MTEF or development plan", value: "no" },
     ],
   },
 
-  // ═══ Additional: Key Accounting Systems ═══
+  // â•â•â• Additional: Key Accounting Systems â•â•â•
   {
     id: "q-kas-1",
     section: "Key Accounting Systems",
@@ -580,11 +580,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Fully aligned and consistently applied",
+        label: "Yes â€” Fully aligned and consistently applied",
         value: "yes_aligned",
       },
-      { label: "Yes — Exists but partially applied", value: "yes_partial" },
-      { label: "No — No formal chart of accounts in use", value: "no" },
+      { label: "Yes â€” Exists but partially applied", value: "yes_partial" },
+      { label: "No â€” No formal chart of accounts in use", value: "no" },
     ],
   },
   {
@@ -611,12 +611,12 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — All advances retired on time", value: "yes_all" },
+      { label: "Yes â€” All advances retired on time", value: "yes_all" },
       {
-        label: "Partially — Some advances remain outstanding beyond due date",
+        label: "Partially â€” Some advances remain outstanding beyond due date",
         value: "partial",
       },
-      { label: "No — Significant unretired advances exist", value: "no" },
+      { label: "No â€” Significant unretired advances exist", value: "no" },
     ],
   },
   {
@@ -628,15 +628,15 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Full stores management with periodic stock-taking",
+        label: "Yes â€” Full stores management with periodic stock-taking",
         value: "yes_full",
       },
-      { label: "Yes — Exists but not effectively managed", value: "yes_weak" },
-      { label: "No — No formal stores management", value: "no" },
+      { label: "Yes â€” Exists but not effectively managed", value: "yes_weak" },
+      { label: "No â€” No formal stores management", value: "no" },
     ],
   },
 
-  // ═══ Additional: Internal Control Environment ═══
+  // â•â•â• Additional: Internal Control Environment â•â•â•
   {
     id: "q-ice-1",
     section: "Internal Control Environment",
@@ -646,14 +646,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Conducted at least annually with documented outcomes",
+        label: "Yes â€” Conducted at least annually with documented outcomes",
         value: "yes_annual",
       },
       {
-        label: "Yes — Informally, without documented outputs",
+        label: "Yes â€” Informally, without documented outputs",
         value: "yes_informal",
       },
-      { label: "No — No formal risk assessment process", value: "no" },
+      { label: "No â€” No formal risk assessment process", value: "no" },
     ],
   },
   {
@@ -665,14 +665,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Documented and consistently enforced",
+        label: "Yes â€” Documented and consistently enforced",
         value: "yes_enforced",
       },
       {
-        label: "Yes — Documented but inconsistently applied",
+        label: "Yes â€” Documented but inconsistently applied",
         value: "yes_weak",
       },
-      { label: "No — No formal approval thresholds in place", value: "no" },
+      { label: "No â€” No formal approval thresholds in place", value: "no" },
     ],
   },
   {
@@ -685,14 +685,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     options: [
       {
         label:
-          "Yes — Policy exists, staff are aware, and complaints channel is active",
+          "Yes â€” Policy exists, staff are aware, and complaints channel is active",
         value: "yes_active",
       },
       {
-        label: "Yes — Policy exists but staff awareness is low",
+        label: "Yes â€” Policy exists but staff awareness is low",
         value: "yes_low_awareness",
       },
-      { label: "No — No such policy exists", value: "no" },
+      { label: "No â€” No such policy exists", value: "no" },
     ],
   },
   {
@@ -706,11 +706,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
       { label: "Monthly or more frequently", value: "monthly" },
       { label: "Quarterly", value: "quarterly" },
       { label: "Annually or less", value: "annually" },
-      { label: "Never — No such checks are conducted", value: "never" },
+      { label: "Never â€” No such checks are conducted", value: "never" },
     ],
   },
 
-  // ═══ Additional: Risk Assessment ═══
+  // â•â•â• Additional: Risk Assessment â•â•â•
   {
     id: "q-ra-1",
     section: "Risk Assessment",
@@ -720,12 +720,12 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Multiple significant breaches identified",
+        label: "Yes â€” Multiple significant breaches identified",
         value: "yes_significant",
       },
-      { label: "Yes — Minor deviations with explanations", value: "yes_minor" },
+      { label: "Yes â€” Minor deviations with explanations", value: "yes_minor" },
       {
-        label: "No — Expenditures are within appropriated limits",
+        label: "No â€” Expenditures are within appropriated limits",
         value: "no",
       },
     ],
@@ -739,18 +739,18 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Prepared quarterly and submitted on time",
+        label: "Yes â€” Prepared quarterly and submitted on time",
         value: "yes_timely",
       },
       {
-        label: "Yes — Prepared but not submitted or submitted late",
+        label: "Yes â€” Prepared but not submitted or submitted late",
         value: "yes_late",
       },
-      { label: "No — BIRs are not prepared", value: "no" },
+      { label: "No â€” BIRs are not prepared", value: "no" },
     ],
   },
 
-  // ═══ Information Security ═══
+  // â•â•â• Information Security â•â•â•
   {
     id: "q-37",
     section: "Information Security",
@@ -758,10 +758,10 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "risk-scoring",
     required: true,
     options: [
-      { label: "Mature — Comprehensive security framework", value: "1" },
-      { label: "Developing — Basic protections in place", value: "2" },
-      { label: "Minimal — Significant gaps", value: "3" },
-      { label: "Non-existent — No cybersecurity measures", value: "4" },
+      { label: "Mature â€” Comprehensive security framework", value: "1" },
+      { label: "Developing â€” Basic protections in place", value: "2" },
+      { label: "Minimal â€” Significant gaps", value: "3" },
+      { label: "Non-existent â€” No cybersecurity measures", value: "4" },
     ],
   },
   {
@@ -772,12 +772,12 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     type: "multiple-choice",
     required: true,
     options: [
-      { label: "Yes — Documented and enforced", value: "yes_enforced" },
+      { label: "Yes â€” Documented and enforced", value: "yes_enforced" },
       {
-        label: "Yes — Documented but not actively enforced",
+        label: "Yes â€” Documented but not actively enforced",
         value: "yes_not_enforced",
       },
-      { label: "No — No formal IT policies", value: "no" },
+      { label: "No â€” No formal IT policies", value: "no" },
     ],
   },
   {
@@ -790,14 +790,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     options: [
       {
         label:
-          "Yes — Role-based access with unique accounts and regular reviews",
+          "Yes â€” Role-based access with unique accounts and regular reviews",
         value: "yes_rbac",
       },
       {
-        label: "Partially — Some shared accounts or unreviewed access rights",
+        label: "Partially â€” Some shared accounts or unreviewed access rights",
         value: "partial",
       },
-      { label: "No — No formal access controls in place", value: "no" },
+      { label: "No â€” No formal access controls in place", value: "no" },
     ],
   },
   {
@@ -809,14 +809,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Daily or weekly backups with secure off-site storage",
+        label: "Yes â€” Daily or weekly backups with secure off-site storage",
         value: "yes_regular",
       },
       {
-        label: "Yes — Backups exist but not tested or stored off-site",
+        label: "Yes â€” Backups exist but not tested or stored off-site",
         value: "yes_weak",
       },
-      { label: "No — No regular backup process", value: "no" },
+      { label: "No â€” No regular backup process", value: "no" },
     ],
   },
   {
@@ -828,11 +828,11 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Major incident with significant data or financial impact",
+        label: "Yes â€” Major incident with significant data or financial impact",
         value: "yes_major",
       },
-      { label: "Yes — Minor incidents that were resolved", value: "yes_minor" },
-      { label: "No — No known incidents", value: "no" },
+      { label: "Yes â€” Minor incidents that were resolved", value: "yes_minor" },
+      { label: "No â€” No known incidents", value: "no" },
       { label: "Other", value: "other" },
     ],
   },
@@ -845,14 +845,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Dedicated ICT unit with qualified staff",
+        label: "Yes â€” Dedicated ICT unit with qualified staff",
         value: "yes_dedicated",
       },
       {
-        label: "Yes — Shared responsibility with limited IT expertise",
+        label: "Yes â€” Shared responsibility with limited IT expertise",
         value: "yes_shared",
       },
-      { label: "No — No dedicated IT function", value: "no" },
+      { label: "No â€” No dedicated IT function", value: "no" },
     ],
   },
   {
@@ -864,14 +864,14 @@ export const SEED_QUESTIONNAIRE_QUESTIONS: QuestionnaireQuestion[] = [
     required: true,
     options: [
       {
-        label: "Yes — Regular structured training conducted",
+        label: "Yes â€” Regular structured training conducted",
         value: "yes_regular",
       },
       {
-        label: "Yes — Occasional or informal training only",
+        label: "Yes â€” Occasional or informal training only",
         value: "yes_occasional",
       },
-      { label: "No — No IT security training provided", value: "no" },
+      { label: "No â€” No IT security training provided", value: "no" },
     ],
   },
 ];

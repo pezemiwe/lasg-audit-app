@@ -77,7 +77,7 @@ const ComplianceLgaModal: React.FC<{
                 color: "rgba(255,255,255,0.75)",
               }}
             >
-              Compliance Checklist — {mandate.title}
+              Compliance Checklist: {mandate.title}
             </p>
           </div>
           <button

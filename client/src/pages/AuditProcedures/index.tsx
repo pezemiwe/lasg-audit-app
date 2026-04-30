@@ -116,7 +116,7 @@ const AuditProcedures: React.FC = () => {
                   </h1>
                   <p className={s.hero_desc}>
                     A complete, ISA-compliant reference of audit procedures for
-                    every National Chart of Accounts (NCOA) line — Revenue,
+                    every National Chart of Accounts (NCOA) line: Revenue,
                     Expenditure, Assets, Liabilities and Equity. Risks,
                     assertions, evidence and step-by-step procedures, designed
                     for Lagos State LGA audits.
@@ -240,14 +240,14 @@ const AuditProcedures: React.FC = () => {
                     fontSize: "0.875rem",
                   }}
                 >
-                  ISA-compliant procedures for every NCOA line — click any card
+                  ISA-compliant procedures for every NCOA line; click any card
                   for full guidance.
                 </p>
               </div>
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                   gap: "0.625rem",
                   width: "100%",
                   marginTop: "0.75rem",
@@ -263,18 +263,18 @@ const AuditProcedures: React.FC = () => {
                         type="button"
                         onClick={() => setCategory(isActive ? "all" : k)}
                         style={{
-                          background: isActive ? m.border : m.bg,
+                          background: isActive ? m.border : "#fff",
                           color: isActive ? "#fff" : m.color,
-                          border: `1.5px solid ${m.border}`,
+                          border: `1.5px solid ${isActive ? m.border : "#e2e8f0"}`,
                           padding: "0.75rem 1rem",
                           borderRadius: "10px",
                           fontSize: "0.78rem",
                           fontWeight: 600,
                           cursor: "pointer",
                           display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          gap: "0.35rem",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: "0.75rem",
                           textAlign: "left",
                           boxShadow: isActive
                             ? `0 4px 12px ${m.border}40`
@@ -283,7 +283,20 @@ const AuditProcedures: React.FC = () => {
                         }}
                       >
                         <span
-                          style={{ fontSize: "1.2rem", lineHeight: 1 }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "2.25rem",
+                            height: "2.25rem",
+                            borderRadius: "8px",
+                            background: isActive
+                              ? "rgba(255,255,255,0.2)"
+                              : m.bg,
+                            fontSize: "1.2rem",
+                            lineHeight: 1,
+                            flexShrink: 0,
+                          }}
                           aria-hidden="true"
                         >
                           {m.icon}

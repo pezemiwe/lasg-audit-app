@@ -274,8 +274,8 @@ const MandateLetter: React.FC<MandateLetterProps> = ({
         </p>
         <p>
           15. The Local Government is responsible for ensuring that records held
-          by third parties — including banks, contractors, agents, or any other
-          external party — are made available to the Office upon request.
+          by third parties (including banks, contractors, agents, or any other
+          external party) are made available to the Office upon request.
         </p>
         <p>
           16. As part of the audit process, the Office may request from
@@ -286,7 +286,7 @@ const MandateLetter: React.FC<MandateLetterProps> = ({
         </p>
 
         <h4 style={{ fontWeight: "bold", marginTop: "1.5rem" }}>
-          6. Local Government Audit — Specific Requirements
+          6. Local Government Audit: Specific Requirements
         </h4>
         <p>
           17. In expressing the audit opinion, the Office is required to

@@ -5,5 +5,5 @@ export const AI_RESPONSES: string[] = [
 
   "The State Auditor-General has constitutional authority under <strong>Section 125</strong> to audit all LGA accounts, issue mandates, and report directly to the State House of Assembly. The role is independent and non-partisan, with security of tenure.",
 
-  '<strong>Performance audits</strong> assess efficiency, effectiveness, and economy (the "3 Es") of government programmes, while <strong>financial audits</strong> verify the accuracy of financial statements and compliance with accounting standards. Performance audits ask "are we getting value for money?" — financial audits ask "are the numbers correct?"',
+  '<strong>Performance audits</strong> assess efficiency, effectiveness, and economy (the "3 Es") of government programmes, while <strong>financial audits</strong> verify the accuracy of financial statements and compliance with accounting standards. Performance audits ask "are we getting value for money?"; financial audits ask "are the numbers correct?"',
 ];

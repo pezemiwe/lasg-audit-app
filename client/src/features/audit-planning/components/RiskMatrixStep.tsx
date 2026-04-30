@@ -1366,7 +1366,7 @@ const RiskMatrixStep: React.FC<{
                       marginTop: "0.15rem",
                     }}
                   >
-                    ISA 315 — Identifying and Assessing Risks of Material
+                    ISA 315: Identifying and Assessing Risks of Material
                     Misstatement
                   </div>
                 </div>

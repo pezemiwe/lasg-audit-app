@@ -36,7 +36,7 @@ const AISection: React.FC = () => {
               <div className="ai-pt-body">
                 <h5>Natural Language Queries</h5>
                 <p>
-                  Ask questions in plain language — the AI responds with cited
+                  Ask questions in plain language; the AI responds with cited
                   regulatory references and compliance guidance.
                 </p>
               </div>

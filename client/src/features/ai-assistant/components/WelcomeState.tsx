@@ -43,7 +43,7 @@ const PROC_EXAMPLES: { icon: string; prompt: string }[] = [
   {
     icon: "🏗️",
     prompt:
-      "How do I audit a capital project — from BOQ to certificate of completion?",
+      "How do I audit a capital project, from BOQ to certificate of completion?",
   },
   {
     icon: "🧾",
@@ -58,7 +58,7 @@ const COPY: Record<
 > = {
   regulations: {
     title: "Ask Me About Lagos Audit Regulations",
-    desc: "I'm trained on the 1999 Constitution, the Audit Act, Fiscal Responsibility Act, and all relevant Lagos State regulations. Ask anything about Financial, Performance, or Compliance audit frameworks — I'll cite specific sections.",
+    desc: "I'm trained on the 1999 Constitution, the Audit Act, Fiscal Responsibility Act, and all relevant Lagos State regulations. Ask anything about Financial, Performance, or Compliance audit frameworks; I'll cite specific sections.",
     examples: REG_EXAMPLES,
   },
   "audit-procedures": {

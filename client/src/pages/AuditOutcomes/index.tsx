@@ -196,7 +196,7 @@ const AuditOutcomesPage: React.FC = () => {
           >
             {store.auditOutcomes?.map((o) => (
               <option key={o.id} value={o.id}>
-                {o.auditYear} — {o.title.slice(0, 40)}
+                {o.auditYear}: {o.title.slice(0, 40)}
               </option>
             ))}
           </select>

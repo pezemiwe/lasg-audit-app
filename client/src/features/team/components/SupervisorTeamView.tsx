@@ -77,7 +77,7 @@ const SupervisorTeamView: React.FC<Props> = ({
         <div>
           <h1 className={s.pageTitle}>Team Management</h1>
           <p className={s.pageSubtitle}>
-            {myZone?.name} Zone — Assign audit leads to {myLgas.length} council
+            {myZone?.name} Zone: Assign audit leads to {myLgas.length} council
             {myLgas.length !== 1 ? "s" : ""}
           </p>
         </div>

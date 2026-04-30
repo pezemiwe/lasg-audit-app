@@ -5,6 +5,8 @@ import type {
   AuditComment,
   AuditWorkpaper,
   MaterialityThreshold,
+  FinancialStatementItem,
+  FinancialStatementType,
 } from "../../types";
 
 type SetFn = (updater: (state: AuditStore) => Partial<AuditStore>) => void;
@@ -18,6 +20,7 @@ export type WorkDeliverableActions = Pick<
   | "addAuditComment"
   | "updateAuditComment"
   | "getAuditComments"
+  | "initFinancialStatements"
   | "updateFinancialStatement"
   | "getAuditFinancialStatements"
   | "toggleCompletionItem"
@@ -83,6 +86,37 @@ export function createWorkDeliverableActions(
 
     getAuditComments: (auditId) =>
       get().auditComments.filter((c) => c.auditId === auditId),
+
+    initFinancialStatements: (auditId) => {
+      const existing = get().financialStatements.filter(
+        (f) => f.auditId === auditId,
+      );
+      if (existing.length > 0) return;
+
+      const STATEMENT_TYPES: FinancialStatementType[] = [
+        "Statement of Financial Position",
+        "Statement of Financial Performance",
+        "Cash Flow Statement",
+        "Statement of Changes in Net Assets/Equity",
+        "Notes to the Financial Statements",
+        "Budget vs Actual Comparison",
+      ];
+
+      const generated: FinancialStatementItem[] = STATEMENT_TYPES.map(
+        (statementType) => ({
+          id: `fs-${uid()}`,
+          auditId,
+          statementType,
+          status: "Not Received" as const,
+          adjustmentsCount: 0,
+          adjustmentsAmount: 0,
+        }),
+      );
+
+      set((s) => ({
+        financialStatements: [...s.financialStatements, ...generated],
+      }));
+    },
 
     updateFinancialStatement: (id, updates) =>
       set((s) => ({

@@ -88,13 +88,13 @@ const ReportsPage: React.FC<{ auditId?: string; embedded?: boolean }> = ({
         if (approved) {
           addToast({
             type: "success",
-            title: "Report Approved — Awaiting Management Response",
+            title: "Report Approved: Awaiting Management Response",
             message: "The HLGA will now respond to each finding",
           });
           logActivity({
             userId: user.id,
             action: "APPROVE_DRAFT_REPORT",
-            details: "Draft report approved — sent for management response",
+            details: "Draft report approved, sent for management response",
             entityType: "report",
             entityId: reportId,
           });

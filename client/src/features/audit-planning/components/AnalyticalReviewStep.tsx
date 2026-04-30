@@ -185,7 +185,7 @@ const AnalyticalReviewStep: React.FC<{
                   marginTop: "0.1rem",
                 }}
               >
-                ISA 520 — Select the document type uploaded by the Head of Local
+                ISA 520: Select the document type uploaded by the Head of Local
                 Government
               </p>
             </div>
@@ -201,7 +201,7 @@ const AnalyticalReviewStep: React.FC<{
             }}
           >
             The following documents have been uploaded by the Head of Local
-            Government. Select a document type to import — each package contains
+            Government. Select a document type to import; each package contains
             both the <strong>Current Year (Unaudited)</strong> and{" "}
             <strong>Prior Year (Audited)</strong> figures.
           </p>
@@ -281,8 +281,8 @@ const AnalyticalReviewStep: React.FC<{
                         }}
                       >
                         {isFS
-                          ? "IPSAS — Statement of Receipts, Payments & Balance Sheet"
-                          : "General Ledger — Full Chart of Accounts Summary"}
+                          ? "IPSAS: Statement of Receipts, Payments & Balance Sheet"
+                          : "General Ledger: Full Chart of Accounts Summary"}
                       </div>
                     </div>
                     {active && (
@@ -312,13 +312,13 @@ const AnalyticalReviewStep: React.FC<{
                   >
                     {[
                       {
-                        label: "FY 2022 — Current Year (Unaudited / Draft)",
+                        label: "FY 2022: Current Year (Unaudited / Draft)",
                         icon: "📄",
                         note: "Uploaded by HLG",
                         code: cyCode,
                       },
                       {
-                        label: "FY 2021 — Prior Year (Audited)",
+                        label: "FY 2021: Prior Year (Audited)",
                         icon: "✅",
                         note: "Verified & signed",
                         code: pyCode,
@@ -416,14 +416,36 @@ const AnalyticalReviewStep: React.FC<{
                 }}
               />
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontWeight: 600, color: "#0f172a", fontSize: "0.95rem" }}>
-                  {docType === "fs" ? "Importing Financial Statements…" : "Importing Trial Balance…"}
+                <div
+                  style={{
+                    fontWeight: 600,
+                    color: "#0f172a",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  {docType === "fs"
+                    ? "Importing Financial Statements…"
+                    : "Importing Trial Balance…"}
                 </div>
-                <div style={{ fontSize: "0.78rem", color: "#64748b", marginTop: "0.25rem" }}>
+                <div
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "#64748b",
+                    marginTop: "0.25rem",
+                  }}
+                >
                   Parsing CY & PY figures for analytical review
                 </div>
               </div>
-              <div style={{ width: "220px", background: "#e2e8f0", borderRadius: "99px", height: "6px", overflow: "hidden" }}>
+              <div
+                style={{
+                  width: "220px",
+                  background: "#e2e8f0",
+                  borderRadius: "99px",
+                  height: "6px",
+                  overflow: "hidden",
+                }}
+              >
                 <div
                   style={{
                     height: "100%",
@@ -581,8 +603,8 @@ const AnalyticalReviewStep: React.FC<{
                   marginTop: "0.1rem",
                 }}
               >
-                ISA 520 — Comparing FY 2022 (Current Year) against FY 2021
-                (Prior Year) for {lgaName}
+                ISA 520: Comparing FY 2022 (Current Year) against FY 2021 (Prior
+                Year) for {lgaName}
               </p>
             </div>
 
@@ -1567,7 +1589,7 @@ const AnalyticalReviewStep: React.FC<{
                     marginTop: "0.1rem",
                   }}
                 >
-                  ISA 520 — Criteria-based selection from {docLabel}
+                  ISA 520: Criteria-based selection from {docLabel}
                 </p>
               </div>
             </div>

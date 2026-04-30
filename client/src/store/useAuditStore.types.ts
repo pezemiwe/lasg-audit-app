@@ -339,6 +339,7 @@ export interface AuditStore {
   updateAuditComment: (id: string, updates: Partial<AuditComment>) => void;
   getAuditComments: (auditId: string) => AuditComment[];
 
+  initFinancialStatements: (auditId: string) => void;
   updateFinancialStatement: (
     id: string,
     updates: Partial<FinancialStatementItem>,

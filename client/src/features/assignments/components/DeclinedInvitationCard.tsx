@@ -43,7 +43,7 @@ const DeclinedInvitationCard: React.FC<Props> = ({ inv, getLgaName }) => (
               color: "var(--text, #0f172a)",
             }}
           >
-            {getRoleName(inv.role)} — {inv.lgaId ? getLgaName(inv.lgaId) : ""}
+            {getRoleName(inv.role)}: {inv.lgaId ? getLgaName(inv.lgaId) : ""}
           </div>
         </div>
       </div>

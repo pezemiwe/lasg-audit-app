@@ -86,7 +86,7 @@ const MandateDetailView: React.FC<{
         <div>
           <h1 className={s.pageTitle}>{mandate.title}</h1>
           <p className={s.pageSubtitle}>
-            FY {mandate.auditYear} — Created{" "}
+            FY {mandate.auditYear} · Created{" "}
             {new Date(mandate.createdAt).toLocaleDateString("en-NG", {
               year: "numeric",
               month: "long",

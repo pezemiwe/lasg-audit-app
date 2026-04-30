@@ -961,7 +961,7 @@ export type ExceptionSeverity = "Low" | "Medium" | "High" | "Critical";
 
 export type ExceptionClassification =
   | "Proceed to Audit Query"
-  | "Resolved — No Query"
+  | "Resolved: No Query"
   | "Limitation"
   | "Below Materiality";
 

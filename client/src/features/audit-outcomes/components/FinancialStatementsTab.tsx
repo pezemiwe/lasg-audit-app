@@ -12,10 +12,16 @@ import SegmentedBtn from "./SegmentedBtn";
 import { cellInput, primaryBtn, td, th } from "../utils/styles";
 
 const FS_SUBTABS: Array<{ key: FinancialStatementKind; label: string }> = [
-  { key: "StatementOfFinancialPosition", label: "SoFP" },
-  { key: "StatementOfFinancialPerformance", label: "SoF Perf" },
-  { key: "CashFlowStatement", label: "Cash Flow" },
-  { key: "NotesToTheAccounts", label: "Notes" },
+  {
+    key: "StatementOfFinancialPosition",
+    label: "Statement of Financial Position",
+  },
+  {
+    key: "StatementOfFinancialPerformance",
+    label: "Statement of Financial Performance",
+  },
+  { key: "CashFlowStatement", label: "Cash Flow Statement" },
+  { key: "NotesToTheAccounts", label: "Notes to the Accounts" },
 ];
 
 const FinancialStatementEditor: React.FC<{
@@ -213,7 +219,7 @@ const FinancialStatementsTab: React.FC<{
   return (
     <Card
       title="Audited Financial Statements (Consolidated)"
-      subtitle="The four pillars of the audited accounts. Values are pre-populated from the trial balance — adjust as required for audit adjustments."
+      subtitle="The four pillars of the audited accounts. Values are pre-populated from the trial balance; adjust as required for audit adjustments."
     >
       <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
         {FS_SUBTABS.map((t) => (

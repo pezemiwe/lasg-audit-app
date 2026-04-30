@@ -17,7 +17,7 @@ const Mandate: React.FC = () => {
               public funds across all Local Governments in Lagos State."
             </h2>
             <div className="mandate-cite">
-              — Office of the Auditor General of Lagos State
+              Office of the Auditor General of Lagos State
             </div>
           </div>
           <div className="mandate-pillars rv rv-r" ref={rightRef}>

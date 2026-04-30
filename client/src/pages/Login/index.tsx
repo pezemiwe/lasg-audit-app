@@ -173,7 +173,7 @@ const Login: React.FC = () => {
                     onChange={(e) => handleUserChange(e.target.value)}
                     className={s.selectEl}
                   >
-                    <option value="">— Choose a user —</option>
+                    <option value="">Select a user</option>
                     {usersByRole.map((group) => (
                       <optgroup
                         key={group.role}

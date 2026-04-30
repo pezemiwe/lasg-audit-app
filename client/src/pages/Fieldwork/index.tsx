@@ -124,7 +124,7 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
       {!embedded && (
         <div className={s.pageHeader}>
           <div>
-            <h1 className={s.pageTitle}>Fieldwork — {lgaName}</h1>
+            <h1 className={s.pageTitle}>Fieldwork: {lgaName}</h1>
             <p className={s.pageSubtitle}>
               Execute audit procedures, document evidence, and log findings
             </p>
@@ -132,7 +132,7 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
               <StatusBadge
                 label={
                   fieldworkApproval.status === "Pending"
-                    ? "Submitted — Awaiting Supervisor Review"
+                    ? "Submitted: Awaiting Supervisor Review"
                     : fieldworkApproval.status === "Approved"
                       ? "Fieldwork Complete"
                       : "Changes Requested"
@@ -233,7 +233,7 @@ const FieldworkPage: React.FC<FieldworkPageProps> = ({
                     store.addToast({
                       type: "success",
                       title: "Fieldwork Acknowledged",
-                      message: `${lgaName} fieldwork acknowledged — proceeding to Audit Queries`,
+                      message: `${lgaName} fieldwork acknowledged; proceeding to Audit Queries`,
                     });
                   }}
                 >

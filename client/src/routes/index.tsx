@@ -132,7 +132,21 @@ const AppRoutes = () => (
       <Route path="/mandates" element={<L comp={Mandates} />} />
       <Route path="/zones" element={<L comp={Zones} />} />
       <Route path="/notifications" element={<L comp={Notifications} />} />
-      <Route path="/team" element={<L comp={Team} />} />
+      <Route
+        path="/team"
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              "AUDIT_LEAD",
+              "AUDIT_SUPERVISOR",
+              "TEAM_AUDITOR",
+              "SYSTEM_ADMIN",
+            ]}
+          >
+            <L comp={Team} />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/assignments" element={<L comp={Assignments} />} />
       <Route path="/workpapers" element={<L comp={Workpapers} />} />
       <Route path="/reports" element={<L comp={Reports} />} />

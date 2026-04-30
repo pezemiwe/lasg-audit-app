@@ -81,7 +81,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
         return (
           <PreAuditCard
             key={`ind-${audit.id}`}
-            title={`${lgaName} — Independence & Ethics Declarations`}
+            title={`${lgaName}: Independence & Ethics Declarations`}
             subtitle={`${declarations.filter((d) => d.confirmed).length}/${teamMembers.length || 1} declarations filed`}
           >
             <div style={{ marginBottom: "1rem" }}>
@@ -141,7 +141,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
                   marginBottom: "0.5rem",
                 }}
               >
-                ISA 220 — Quality Management for an Audit
+                ISA 220: Quality Management for an Audit
               </div>
               <div
                 style={{

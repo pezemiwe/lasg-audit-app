@@ -83,7 +83,7 @@ const COIDeclarationModal: React.FC<Props> = ({
               marginTop: "0.25rem",
             }}
           >
-            LASG Office of the Auditor-General — Mandatory Pre-Engagement
+            LASG Office of the Auditor-General: Mandatory Pre-Engagement
             Requirement
           </div>
         </div>

@@ -19,7 +19,6 @@ import type {
 const NOW = new Date().toISOString();
 const OUTCOME_ID = "ao-2025-lasg";
 
-
 export const SEED_TRIAL_BALANCE: TrialBalance = {
   id: "tb-2025-consol",
   auditOutcomeId: OUTCOME_ID,
@@ -158,7 +157,6 @@ export const SEED_TRIAL_BALANCE: TrialBalance = {
   ],
 };
 
-
 const PBT = SEED_TRIAL_BALANCE.profitBeforeTax; // 11.35bn
 
 export const SEED_MATERIALITY_CALC: MaterialityCalc = {
@@ -184,7 +182,6 @@ export const SEED_MATERIALITY_CALC: MaterialityCalc = {
   locked: false,
 };
 
-
 export const SEED_STATEMENT_OF_RESPONSIBILITY: StatementOfResponsibility = {
   id: "sor-2025-lasg",
   auditOutcomeId: OUTCOME_ID,
@@ -209,7 +206,6 @@ export const SEED_STATEMENT_OF_RESPONSIBILITY: StatementOfResponsibility = {
   updatedAt: NOW,
 };
 
-
 export const SEED_AUDIT_REPORT_STATE: AuditReportDocument = {
   id: "arpt-state-2025",
   auditOutcomeId: OUTCOME_ID,
@@ -225,8 +221,7 @@ export const SEED_AUDIT_REPORT_STATE: AuditReportDocument = {
       id: "sec-1",
       order: 1,
       header: "Revenue",
-      description:
-        `During the year ended 31st December, 2025, the Local Government Councils of Lagos State realised revenue of approximately ₦89.54bn. Of this amount, ₦85.70bn was received as statutory allocations from the Federation Account, representing approximately 96% of total revenue, while the balance of ₦3.84bn (approx. 4%) was from Internally Generated Revenue (IGR).`,
+      description: `During the year ended 31st December, 2025, the Local Government Councils of Lagos State realised revenue of approximately ₦89.54bn. Of this amount, ₦85.70bn was received as statutory allocations from the Federation Account, representing approximately 96% of total revenue, while the balance of ₦3.84bn (approx. 4%) was from Internally Generated Revenue (IGR).`,
       recommendation:
         "There remains significant over-dependence on Federation Account allocations. Councils are advised to develop and implement IGR strategies — property tenement enumeration, daily market charges automation, digital tax receipts — to diversify revenue and strengthen fiscal autonomy.",
     },
@@ -286,13 +281,12 @@ export const SEED_AUDIT_REPORT_STATE: AuditReportDocument = {
   },
   auditorGeneralSignature: {
     role: "AUDITOR_GENERAL",
-    name: "",
+    name: "Hon. Adebayo Oluwaseun",
     title: "Auditor-General for Local Governments",
   },
   status: "Draft",
   updatedAt: NOW,
 };
-
 
 export const SEED_ACCOUNTING_POLICIES: AccountingPolicies = {
   id: "ap-2025-lasg",
@@ -380,7 +374,6 @@ export const SEED_ACCOUNTING_POLICIES: AccountingPolicies = {
   updatedAt: NOW,
 };
 
-
 export const SEED_CONSOL_SOFP: FinancialStatement = {
   id: "fs-sofp-2025",
   auditOutcomeId: OUTCOME_ID,
@@ -390,7 +383,13 @@ export const SEED_CONSOL_SOFP: FinancialStatement = {
   priorYear: 2024,
   status: "Draft",
   rows: [
-    { id: "r1", description: "ASSETS", isHeader: true, currentYear: null, priorYear: null },
+    {
+      id: "r1",
+      description: "ASSETS",
+      isHeader: true,
+      currentYear: null,
+      priorYear: null,
+    },
     {
       id: "r2",
       description: "Current Assets:",
@@ -466,7 +465,13 @@ export const SEED_CONSOL_SOFP: FinancialStatement = {
       currentYear: 48_530_000_000,
       priorYear: 44_033_000_000,
     },
-    { id: "r11", description: "LIABILITIES", isHeader: true, currentYear: null, priorYear: null },
+    {
+      id: "r11",
+      description: "LIABILITIES",
+      isHeader: true,
+      currentYear: null,
+      priorYear: null,
+    },
     {
       id: "r12",
       description: "Current Liabilities:",
@@ -540,7 +545,13 @@ export const SEED_CONSOL_SOFP: FinancialStatement = {
       currentYear: 32_460_000_000,
       priorYear: 29_208_000_000,
     },
-    { id: "r21", description: "NET ASSETS / EQUITY", isHeader: true, currentYear: null, priorYear: null },
+    {
+      id: "r21",
+      description: "NET ASSETS / EQUITY",
+      isHeader: true,
+      currentYear: null,
+      priorYear: null,
+    },
     {
       id: "r22",
       ncoaCode: "430301",
@@ -578,7 +589,13 @@ export const SEED_CONSOL_SOFPERF: FinancialStatement = {
   priorYear: 2024,
   status: "Draft",
   rows: [
-    { id: "p1", description: "REVENUE", isHeader: true, currentYear: null, priorYear: null },
+    {
+      id: "p1",
+      description: "REVENUE",
+      isHeader: true,
+      currentYear: null,
+      priorYear: null,
+    },
     {
       id: "p2",
       description: "Statutory Allocations:",
@@ -672,7 +689,13 @@ export const SEED_CONSOL_SOFPERF: FinancialStatement = {
       currentYear: 89_540_000_000,
       priorYear: 79_050_000_000,
     },
-    { id: "p13", description: "EXPENDITURE", isHeader: true, currentYear: null, priorYear: null },
+    {
+      id: "p13",
+      description: "EXPENDITURE",
+      isHeader: true,
+      currentYear: null,
+      priorYear: null,
+    },
     {
       id: "p14",
       description: "Recurrent Expenditure:",
@@ -792,7 +815,14 @@ export const SEED_CONSOL_CASHFLOW: FinancialStatement = {
       currentYear: null,
       priorYear: null,
     },
-    { id: "c2", description: "Inflows:", indent: 1, currentYear: null, priorYear: null, isHeader: true },
+    {
+      id: "c2",
+      description: "Inflows:",
+      indent: 1,
+      currentYear: null,
+      priorYear: null,
+      isHeader: true,
+    },
     {
       id: "c3",
       description: "Statutory Allocations",
@@ -817,7 +847,14 @@ export const SEED_CONSOL_CASHFLOW: FinancialStatement = {
       priorYear: 79_050_000_000,
       indent: 1,
     },
-    { id: "c6", description: "Outflows:", indent: 1, currentYear: null, priorYear: null, isHeader: true },
+    {
+      id: "c6",
+      description: "Outflows:",
+      indent: 1,
+      currentYear: null,
+      priorYear: null,
+      isHeader: true,
+    },
     {
       id: "c7",
       description: "Salaries and Wages",
@@ -1082,10 +1119,7 @@ export const SEED_CONSOL_NOTES: FinancialStatement = {
   ],
 };
 
-
-export const seedLgaPackagesForLgaIds = (
-  lgaIds: string[],
-): LgaAuditPackage[] =>
+export const seedLgaPackagesForLgaIds = (lgaIds: string[]): LgaAuditPackage[] =>
   lgaIds.map((lgaId, idx) => ({
     id: `lgp-${lgaId}`,
     auditOutcomeId: OUTCOME_ID,
@@ -1095,7 +1129,6 @@ export const seedLgaPackagesForLgaIds = (
     // Per-LGA FS will be populated when user clicks "Generate from TB"
     // (we keep stubs out so we don't bloat localStorage)
   }));
-
 
 export const SEED_AUDIT_OUTCOMES: AuditOutcome[] = [
   {

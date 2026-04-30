@@ -161,7 +161,7 @@ const MaterialityCalculator: React.FC<MaterialityCalculatorProps> = ({
             )}
           </h3>
           <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}>
-            ISA 320 &middot; ISSAI 1320 — Benchmark: Profit Before Tax
+            ISA 320 &middot; ISSAI 1320: Benchmark: Profit Before Tax
           </div>
         </div>
       </div>
@@ -202,7 +202,7 @@ const MaterialityCalculator: React.FC<MaterialityCalculatorProps> = ({
         }}
       >
         <LabeledInput
-          label="Profit Before Tax (₦) — from Trial Balance"
+          label="Profit Before Tax (₦), from Trial Balance"
           value={pbt}
           onChange={setPbt}
           disabled={locked}
@@ -309,7 +309,7 @@ const MaterialityCalculator: React.FC<MaterialityCalculatorProps> = ({
           }}
         >
           <AlertCircle size={14} />
-          PBT is zero or negative — materiality may not be meaningful. Consider
+          PBT is zero or negative; materiality may not be meaningful. Consider
           using Total Revenue or Net Assets as an alternative benchmark.
         </div>
       )}

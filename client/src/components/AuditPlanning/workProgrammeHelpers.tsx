@@ -27,8 +27,8 @@ export const fmtCurrency = (n: number) =>
 
 export const sevColor: Record<string, { bg: string; color: string }> = {
   Low: { bg: "var(--bg-hover)", color: "var(--primary)" },
-  Medium: { bg: "var(--text)", color: "var(--text)" },
-  High: { bg: "var(--text)", color: "var(--text)" },
+  Medium: { bg: "#fef3c7", color: "#92400e" },
+  High: { bg: "#fee2e2", color: "#991b1b" },
   Critical: { bg: "#fce7f3", color: "#9d174d" },
 };
 
@@ -38,16 +38,16 @@ export const statusColor: Record<string, { bg: string; color: string }> = {
   Agreed: { bg: "var(--bg-hover)", color: "var(--primary)" },
   Posted: { bg: "var(--bg-hover)", color: "var(--primary)" },
   Waived: { bg: "#f3f4f6", color: "#9ca3af" },
-  Discussed: { bg: "var(--text)", color: "var(--text)" },
+  Discussed: { bg: "#ede9fe", color: "#5b21b6" },
   Resolved: { bg: "var(--bg-hover)", color: "var(--primary)" },
   Reported: { bg: "var(--bg-hover)", color: "var(--primary)" },
-  "Not Received": { bg: "var(--text)", color: "var(--text)" },
-  Received: { bg: "var(--text)", color: "var(--text)" },
+  "Not Received": { bg: "#f3f4f6", color: "#6b7280" },
+  Received: { bg: "#dcfce7", color: "#166534" },
   "Under Review": { bg: "var(--bg-hover)", color: "var(--primary)" },
   Adjusted: { bg: "#fce7f3", color: "#9d174d" },
   Final: { bg: "var(--bg-hover)", color: "var(--primary)" },
   Prepared: { bg: "var(--bg-hover)", color: "var(--primary)" },
-  Reviewed: { bg: "var(--text)", color: "var(--text)" },
+  Reviewed: { bg: "#dcfce7", color: "#166534" },
 };
 
 export type TabKey =

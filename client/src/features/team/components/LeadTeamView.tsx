@@ -88,7 +88,7 @@ const LeadTeamView: React.FC<Props> = ({
         <div>
           <h1 className={s.pageTitle}>Build Your Team</h1>
           <p className={s.pageSubtitle}>
-            {myLga?.name} — Invite auditors from the available pool to your
+            {myLga?.name}: Invite auditors from the available pool to your
             engagement team
           </p>
         </div>

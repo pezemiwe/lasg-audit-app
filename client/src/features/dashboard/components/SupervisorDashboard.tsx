@@ -78,7 +78,7 @@ const SupervisorDashboard: React.FC<SupervisorDashboardProps> = ({
                 .length
             }{" "}
             LGAs, {myLGAs.filter((l) => l.councilType === "LCDA").length} LCDAs)
-            — audit oversight and team allocation
+            ) for audit oversight and team allocation
           </p>
         </div>
         <span className={s.pageBadge}>

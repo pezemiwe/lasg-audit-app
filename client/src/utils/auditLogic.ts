@@ -54,7 +54,7 @@ export const getSuggestedProcedures = (area: string): string[] => {
       "Confirm all revenue streams are properly classified per chart of accounts (Presentation & Disclosure).",
     ],
     "Payroll Administration": [
-      "Vouch a sample of 20 employees to ensure they physically exist — headcount verification (Existence/Occurrence).",
+      "Vouch a sample of 20 employees to ensure they physically exist: headcount verification (Existence/Occurrence).",
       "Reconcile payroll summary to GL control account and verify net pay to bank statements (Accuracy/Valuation).",
       "Verify approval for all overtime payments and bonuses against approved establishment (Rights & Obligations).",
     ],

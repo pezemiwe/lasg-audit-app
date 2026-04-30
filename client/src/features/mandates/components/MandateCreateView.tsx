@@ -119,7 +119,7 @@ const MandateCreateView: React.FC<{ onDone: () => void }> = ({ onDone }) => {
                 className={s.formInput}
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="e.g., Annual Audit of Local Government Accounts — FY 2026"
+                placeholder="e.g., Annual Audit of Local Government Accounts, FY 2026"
               />
             </div>
             <div className={s.formGroup}>

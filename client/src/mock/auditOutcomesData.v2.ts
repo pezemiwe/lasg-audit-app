@@ -86,7 +86,7 @@ const SIG_SUPERVISOR: SignatureBlock = {
 /** Auditor-General signature block — deliberately unsigned (this is the demo moment). */
 const SIG_AG_EMPTY: SignatureBlock = {
   role: "AUDITOR_GENERAL",
-  name: "",
+  name: "Hon. Adebayo Oluwaseun",
   title: "Auditor-General for Local Governments",
 };
 

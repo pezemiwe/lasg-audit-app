@@ -211,7 +211,7 @@ const StateAGDashboard: React.FC<StateAGDashboardProps> = ({
                   marginBottom: 4,
                 }}
               >
-                {outcome.title} — Ready for your sign-off
+                {outcome.title}: Ready for your sign-off
               </div>
               <div style={{ fontSize: "0.85rem", opacity: 0.9 }}>
                 Audit Lead and Audit Supervisor have completed review and

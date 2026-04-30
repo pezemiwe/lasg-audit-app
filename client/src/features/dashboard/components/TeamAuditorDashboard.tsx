@@ -19,7 +19,7 @@ const TeamAuditorDashboard: React.FC<TeamAuditorDashboardProps> = ({
           <h1 className={s.pageTitle}>My Assignments</h1>
           <p className={s.pageSubtitle}>
             Council: <strong>{myLGA?.name || "Not assigned"}</strong>
-            {myLGA?.councilType === "LCDA" ? " (LCDA)" : " (LGA)"} — assigned
+            {myLGA?.councilType === "LCDA" ? " (LCDA)" : " (LGA)"}, assigned
             audit tasks and deliverables
           </p>
         </div>
@@ -66,25 +66,25 @@ const TeamAuditorDashboard: React.FC<TeamAuditorDashboardProps> = ({
         <div className={s.cardBody}>
           {[
             {
-              title: "Revenue Verification — Cash Collections",
+              title: "Revenue Verification: Cash Collections",
               desc: "Verify cash collection records for Jan-Feb 2026 across all revenue points in Mushin LGA. Cross-reference with bank deposits.",
               status: "progress" as const,
               due: "Mar 5, 2026",
             },
             {
-              title: "Document Review — Procurement Files",
+              title: "Document Review: Procurement Files",
               desc: "Review procurement documentation for capital projects exceeding ₦50M. Verify compliance with Public Procurement Act.",
               status: "progress" as const,
               due: "Mar 12, 2026",
             },
             {
-              title: "Bank Reconciliation — Q4 2025",
+              title: "Bank Reconciliation: Q4 2025",
               desc: "Reconcile cashbook entries with bank statements for October-December 2025.",
               status: "complete" as const,
               due: "Feb 10, 2026",
             },
             {
-              title: "Asset Verification — Vehicle Fleet",
+              title: "Asset Verification: Vehicle Fleet",
               desc: "Physical verification of all registered vehicles. Document condition, location and usage logs.",
               status: "pending" as const,
               due: "Mar 20, 2026",

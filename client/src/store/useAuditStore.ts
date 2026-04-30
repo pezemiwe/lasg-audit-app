@@ -391,6 +391,7 @@ export interface AuditStore {
   updateAuditComment: (id: string, updates: Partial<AuditComment>) => void;
   getAuditComments: (auditId: string) => AuditComment[];
 
+  initFinancialStatements: (auditId: string) => void;
   updateFinancialStatement: (
     id: string,
     updates: Partial<FinancialStatementItem>,
@@ -635,6 +636,22 @@ export const useAuditStore = create(
       setAuditDocSource: (auditId, source) =>
         set((s) => ({
           auditDocSources: { ...s.auditDocSources, [auditId]: source },
+        })),
+
+      addUser: (user) =>
+        set((s) => ({
+          users: [
+            ...s.users,
+            {
+              ...user,
+              id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            },
+          ],
+        })),
+
+      updateUser: (id, updates) =>
+        set((s) => ({
+          users: s.users.map((u) => (u.id === id ? { ...u, ...updates } : u)),
         })),
 
       toasts: [],

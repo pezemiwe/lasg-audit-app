@@ -821,7 +821,11 @@ export const MaterialityAssessment: React.FC = () => {
               <Layers size={28} style={{ color: "var(--primary)" }} />
             </div>
             <div
-              style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-2)" }}
+              style={{
+                fontWeight: 700,
+                fontSize: "1rem",
+                color: "var(--text-2)",
+              }}
             >
               Select a Base Document to Compute Materiality
             </div>
@@ -899,7 +903,7 @@ export const MaterialityAssessment: React.FC = () => {
                 marginTop: "0.1rem",
               }}
             >
-              ISA 320 &mdash; Based on{" "}
+              ISA 320: Based on{" "}
               {selectedDoc === "fs" ? "Financial Statements" : "Trial Balance"}{" "}
               &middot; PBT: {fmt(PBT)}
             </p>
@@ -927,7 +931,11 @@ export const MaterialityAssessment: React.FC = () => {
         >
           <Info
             size={16}
-            style={{ color: "var(--primary)", flexShrink: 0, marginTop: "0.1rem" }}
+            style={{
+              color: "var(--primary)",
+              flexShrink: 0,
+              marginTop: "0.1rem",
+            }}
           />
           <p
             style={{
@@ -976,7 +984,11 @@ export const MaterialityAssessment: React.FC = () => {
               Base Figure (PBT)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 800,
+                color: "var(--text-2)",
+              }}
             >
               {fmt(PBT)}
             </div>
@@ -1013,7 +1025,11 @@ export const MaterialityAssessment: React.FC = () => {
               Overall Materiality (5%)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 800,
+                color: "var(--text-2)",
+              }}
             >
               {fmt(OVERALL_MAT)}
             </div>
@@ -1049,7 +1065,11 @@ export const MaterialityAssessment: React.FC = () => {
               Performance Mat. (70%)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 800,
+                color: "var(--text-2)",
+              }}
             >
               {fmt(PERF_MAT)}
             </div>
@@ -1085,7 +1105,11 @@ export const MaterialityAssessment: React.FC = () => {
               Trivial / De-minimis (5%)
             </div>
             <div
-              style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-2)" }}
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 800,
+                color: "var(--text-2)",
+              }}
             >
               {fmt(TRIVIAL_MAT)}
             </div>
@@ -1298,7 +1322,9 @@ export const MaterialityAssessment: React.FC = () => {
                               style={{
                                 padding: "0.75rem 1rem",
                                 fontWeight: row.bold ? 700 : 500,
-                                color: row.bold ? "var(--text-2)" : "var(--text)",
+                                color: row.bold
+                                  ? "var(--text-2)"
+                                  : "var(--text)",
                                 paddingLeft: row.bold ? "1rem" : "1.75rem",
                               }}
                             >
@@ -1335,7 +1361,9 @@ export const MaterialityAssessment: React.FC = () => {
                                 fontSize: "0.82rem",
                                 fontWeight: 600,
                                 color:
-                                  row.variance >= 0 ? "var(--primary)" : "var(--text-3)",
+                                  row.variance >= 0
+                                    ? "var(--primary)"
+                                    : "var(--text-3)",
                               }}
                             >
                               {row.variance >= 0 ? "+" : ""}

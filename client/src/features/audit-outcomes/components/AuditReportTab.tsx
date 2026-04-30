@@ -83,6 +83,17 @@ const AuditReportTab: React.FC<{ outcome: AuditOutcome; canEdit: boolean }> = ({
 
   const lgas = store.lgas ?? [];
 
+  const agUser = (store.users ?? []).find(
+    (u) => u.role === "STATE_AUDITOR_GENERAL",
+  );
+
+  const agSignatureValue = activeReport?.auditorGeneralSignature
+    ? {
+        ...activeReport.auditorGeneralSignature,
+        name: activeReport.auditorGeneralSignature.name || agUser?.name || "",
+      }
+    : undefined;
+
   return (
     <Card
       title="Auditor-General's Report"
@@ -230,7 +241,7 @@ const AuditReportTab: React.FC<{ outcome: AuditOutcome; canEdit: boolean }> = ({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3,1fr)",
+                gridTemplateColumns: "repeat(2,1fr)",
                 gap: 12,
               }}
             >
@@ -264,24 +275,26 @@ const AuditReportTab: React.FC<{ outcome: AuditOutcome; canEdit: boolean }> = ({
                   })
                 }
               />
-              <SignaturePad
-                label="3. Auditor-General"
-                role="AUDITOR_GENERAL"
-                defaultTitle="Auditor-General for Local Governments"
-                value={activeReport.auditorGeneralSignature}
-                disabled={
-                  !canEdit || !activeReport.auditSupervisorSignature?.signedAt
-                }
-                onChange={(sig) =>
-                  store.saveAuditReportDocument({
-                    ...activeReport,
-                    auditorGeneralSignature: sig,
-                    status: "Approved",
-                    approvedAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  })
-                }
-              />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <SignaturePad
+                  label="3. Auditor-General"
+                  role="AUDITOR_GENERAL"
+                  defaultTitle="Auditor-General for Local Governments"
+                  value={agSignatureValue}
+                  disabled={
+                    !canEdit || !activeReport.auditSupervisorSignature?.signedAt
+                  }
+                  onChange={(sig) =>
+                    store.saveAuditReportDocument({
+                      ...activeReport,
+                      auditorGeneralSignature: sig,
+                      status: "Approved",
+                      approvedAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                    })
+                  }
+                />
+              </div>
             </div>
             <div
               style={{
@@ -290,7 +303,7 @@ const AuditReportTab: React.FC<{ outcome: AuditOutcome; canEdit: boolean }> = ({
                 marginTop: 8,
               }}
             >
-              Signatures are sequential — each level unlocks the next.
+              Signatures are sequential; each level unlocks the next.
             </div>
           </div>
         </>

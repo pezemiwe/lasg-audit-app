@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useCallback } from "react";
+﻿import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -84,6 +84,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const completionChecklist = useAuditStore((st) => st.completionChecklist);
   const auditWorkpapers = useAuditStore((st) => st.auditWorkpapers);
   const toggleCompletionItem = useAuditStore((st) => st.toggleCompletionItem);
+  const initFinancialStatements = useAuditStore(
+    (st) => st.initFinancialStatements,
+  );
   const reports = useAuditStore((st) => st.reports);
   /* interactive tab store hooks */
   const setAuditMateriality = useAuditStore((st) => st.setAuditMateriality);
@@ -119,7 +122,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const selectedAuditId = auditId ?? localAuditId;
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const [localTab, setLocalTab] = useState<TabKey>("overview");
+  const [localTab, setLocalTab] = useState<TabKey>(
+    embedded ? "procedures" : "overview",
+  );
   const activeTab: TabKey = embedded
     ? localTab
     : (searchParams.get("tab") as TabKey) || "overview";
@@ -139,6 +144,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     },
     [embedded, setSearchParams],
   );
+
+  useEffect(() => {
+    if (selectedAuditId && activeTab === "statements") {
+      initFinancialStatements(selectedAuditId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAuditId, activeTab]);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -1238,9 +1250,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           fontWeight: 600,
                           padding: "0.15rem 0.5rem",
                           borderRadius: "3px",
-                          background: "var(--text-3)",
-                          color: "var(--text-3)",
-                          border: "1px solid var(--text-3)",
+                          background: "var(--bg-hover)",
+                          color: "var(--primary)",
+                          border: "1px solid var(--primary)",
                         }}
                       >
                         {area}
@@ -2287,7 +2299,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       .replace(/[^A-Z]/gi, "")
                       .slice(0, 4)
                       .toUpperCase()}{" "}
-                    — {area}
+                    : {area}
                   </h3>
                 </div>
                 <div className={s.cardBody}>
@@ -2780,7 +2792,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           variant={
                             exc.classification === "Proceed to Audit Query"
                               ? "error"
-                              : exc.classification === "Resolved — No Query"
+                              : exc.classification === "Resolved: No Query"
                                 ? "success"
                                 : exc.classification === "Limitation"
                                   ? "warning"
@@ -2818,7 +2830,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                             addToast({
                               type: "error",
                               title: "Escalated to HLG",
-                              message: `${exc.ref} escalated — Critical finding alert sent`,
+                              message: `${exc.ref} escalated: Critical finding alert sent`,
                             });
                           }}
                           style={{ fontSize: "0.72rem" }}
@@ -2853,7 +2865,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     {(
                       [
                         "Proceed to Audit Query",
-                        "Resolved — No Query",
+                        "Resolved: No Query",
                         "Limitation",
                         "Below Materiality",
                       ] as ExceptionClassification[]
@@ -3265,7 +3277,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             </div>
           </div>
 
-          {/* {isLead && (
+          {isLead && (
             <div
               style={{
                 display: "flex",
@@ -3281,7 +3293,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 <PenTool size={14} /> Record Journal Entry
               </button>
             </div>
-          )} */}
+          )}
 
           {filteredJournals.map((journal) => {
             const sc = statusColor[journal.status] || {
@@ -4340,7 +4352,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       marginTop: "0.2rem",
                     }}
                   >
-                    ISA 320 — Materiality in Planning and Performance
+                    ISA 320: Materiality in Planning and Performance
                   </p>
                 </div>
               </div>
@@ -4600,8 +4612,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontStyle: "italic",
                 }}
               >
-                Ref: ISA 320 — Audit materiality must be documented in the
-                planning file
+                ISA 320: Audit materiality must be documented in the planning
+                file
               </span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <button
@@ -4637,44 +4649,45 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             inset: 0,
             zIndex: 9990,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
           }}
         >
+          {/* Backdrop — click to close */}
           <div
             style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(15,23,42,0.72)",
-              backdropFilter: "blur(6px)",
+              flex: 1,
+              background: "rgba(15,23,42,0.45)",
+              backdropFilter: "blur(2px)",
             }}
             onClick={() => setShowAddJournal(false)}
           />
+          {/* Drawer panel — slides in from right */}
           <div
             style={{
               position: "relative",
               zIndex: 1,
-              background: "var(--bg-card,var(--bg-card))",
-              borderRadius: "16px",
-              width: "min(720px,96vw)",
-              maxHeight: "92vh",
+              background: "var(--bg-card)",
+              width: "min(580px,100vw)",
+              height: "100%",
               overflowY: "auto",
-              boxShadow: "0 32px 72px rgba(0,0,0,0.28)",
+              boxShadow: "-8px 0 40px rgba(0,0,0,0.18)",
               display: "flex",
               flexDirection: "column",
+              borderLeft: "1px solid var(--border)",
             }}
           >
             {/* Header */}
             <div
               style={{
-                background: "var(--bg-card) 100%)",
+                background: "var(--bg-card)",
                 padding: "1.5rem 1.75rem",
-                borderRadius: "16px 16px 0 0",
+                borderBottom: "1px solid var(--border)",
                 display: "flex",
                 alignItems: "flex-start",
                 justifyContent: "space-between",
                 gap: "1rem",
+                position: "sticky",
+                top: 0,
+                zIndex: 2,
               }}
             >
               <div
@@ -4686,19 +4699,19 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               >
                 <div
                   style={{
-                    background: "var(--bg-card)",
+                    background: "var(--primary-alpha, #e8f5e9)",
                     borderRadius: "10px",
                     padding: "0.5rem",
                     display: "flex",
                   }}
                 >
-                  <PenTool size={22} style={{ color: "var(--bg-card)" }} />
+                  <PenTool size={22} style={{ color: "var(--primary)" }} />
                 </div>
                 <div>
                   <h2
                     style={{
                       margin: 0,
-                      color: "var(--bg-card)",
+                      color: "var(--text-1)",
                       fontSize: "1.1rem",
                       fontWeight: 700,
                     }}
@@ -4708,24 +4721,24 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   <p
                     style={{
                       margin: 0,
-                      color: "var(--bg-card)",
+                      color: "var(--text-3)",
                       fontSize: "0.75rem",
                       marginTop: "0.2rem",
                     }}
                   >
-                    ISA 330 — Document audit adjustments and reclassifications
+                    ISA 330: Document audit adjustments and reclassifications
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAddJournal(false)}
                 style={{
-                  background: "var(--bg-card)",
-                  border: "none",
+                  background: "var(--surface-2, #f1f5f9)",
+                  border: "1px solid var(--border)",
                   borderRadius: "8px",
                   padding: "0.4rem",
                   cursor: "pointer",
-                  color: "var(--bg-card)",
+                  color: "var(--text-2)",
                   display: "flex",
                 }}
               >
@@ -4756,25 +4769,25 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     [
                       {
                         val: "Adjusting",
-                        label: "AJE — Audit Journal Entry",
+                        label: "AJE: Audit Journal Entry",
                         color: "var(--text-3)",
                         bg: "var(--text-3)",
                       },
                       {
                         val: "Reclassifying",
-                        label: "RJE — Reclassification Entry",
+                        label: "RJE: Reclassification Entry",
                         color: "var(--text-3)",
                         bg: "var(--text-3)",
                       },
                       {
                         val: "Passed",
-                        label: "PJE — Passed Difference",
+                        label: "PJE: Passed Difference",
                         color: "#7c3aed",
                         bg: "#f5f3ff",
                       },
                       {
                         val: "Proposed",
-                        label: "EJE — Unadjusted Entry",
+                        label: "EJE: Unadjusted Entry",
                         color: "var(--text-2)",
                         bg: "var(--border)",
                       },
@@ -4807,7 +4820,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         transition: "all 0.15s",
                       }}
                     >
-                      {t.val} — {t.label}
+                      {t.val}: {t.label}
                     </button>
                   ))}
                 </div>
@@ -5067,8 +5080,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "var(--surface-2,var(--border))",
-                borderRadius: "0 0 16px 16px",
+                background: "var(--bg-card)",
+                position: "sticky",
+                bottom: 0,
+                zIndex: 2,
               }}
             >
               <span
@@ -5078,7 +5093,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontStyle: "italic",
                 }}
               >
-                Ref: ISA 330 — Audit adjustments must be approved by Audit Lead
+                ISA 330: Audit adjustments must be approved by Audit Lead
               </span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <button
@@ -5193,7 +5208,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       marginTop: "0.2rem",
                     }}
                   >
-                    ISA 265 — Communicate deficiencies in internal control using
+                    ISA 265: Communicate deficiencies in internal control using
                     CCEE framework
                   </p>
                 </div>
@@ -5284,7 +5299,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 <label className={s.label}>Finding Title</label>
                 <input
                   className={s.input}
-                  placeholder="e.g. Unreconciled bank statements — Ministry of Finance"
+                  placeholder="e.g. Unreconciled bank statements, Ministry of Finance"
                   value={commentForm.title}
                   onChange={(e) =>
                     setCommentForm((f) => ({ ...f, title: e.target.value }))
@@ -5464,7 +5479,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontStyle: "italic",
                 }}
               >
-                Ref: ISA 265 — All material deficiencies must be communicated in
+                ISA 265: All material deficiencies must be communicated in
                 writing to management
               </span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -5826,8 +5841,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       fontStyle: "italic",
                     }}
                   >
-                    Ref: ISA 700 — Financial statements must be reviewed and
-                    finalised before signing
+                    ISA 700: Financial statements must be reviewed and finalised
+                    before signing
                   </span>
                   <div style={{ display: "flex", gap: "0.5rem" }}>
                     <button

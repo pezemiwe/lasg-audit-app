@@ -60,7 +60,6 @@ const FONT = {
   sans: "helvetica",
 };
 
-
 const fmtN = (n: number | null | undefined): string => {
   if (n == null || !Number.isFinite(n)) return "—";
   if (n === 0) return "-";
@@ -270,7 +269,6 @@ const drawSignatureBlock = (
   return y + 10;
 };
 
-
 const drawLetterhead = (ctx: PdfContext, opts: { lgaName?: string } = {}) => {
   const { doc } = ctx;
   // Seal (left)
@@ -310,7 +308,6 @@ const drawLetterhead = (ctx: PdfContext, opts: { lgaName?: string } = {}) => {
   doc.setDrawColor(...COLOR.rule);
   doc.line(PAGE.marginX, 103, PAGE.width - PAGE.marginX, 103);
 };
-
 
 const buildCoverPage = (
   ctx: PdfContext,
@@ -504,7 +501,7 @@ const buildAuditCertificate = (
   );
   y += 10;
 
-  y = drawParagraph(ctx, `OPINION — ${report.opinion.toUpperCase()}`, y, {
+  y = drawParagraph(ctx, `OPINION: ${report.opinion.toUpperCase()}`, y, {
     size: 11,
     bold: true,
   });
@@ -560,7 +557,7 @@ const buildReport = (ctx: PdfContext, report: AuditReportDocument) => {
   });
   y += 20;
 
-  ctx.runningHeader = "REPORT OF THE AUDITOR-GENERAL — LAGOS STATE";
+  ctx.runningHeader = "REPORT OF THE AUDITOR-GENERAL, LAGOS STATE";
 
   for (const section of [...report.sections].sort(
     (a, b) => a.order - b.order,
@@ -911,7 +908,6 @@ const buildLgaSectionOpener = (
   );
 };
 
-
 export interface GeneratePdfArgs {
   outcome: AuditOutcome;
   consolidated: {
@@ -1034,14 +1030,14 @@ export async function generateAuditOutcomePdf(
 
     if (pkg.report) {
       ctx.toc.push({
-        title: `— Audit Certificate`,
+        title: `• Audit Certificate`,
         page: ctx.pageNumber + 1,
         level: 1,
       });
       buildAuditCertificate(ctx, pkg.report, { lgaName: lga.name });
 
       ctx.toc.push({
-        title: `— Audit Report`,
+        title: `• Audit Report`,
         page: ctx.pageNumber + 1,
         level: 1,
       });
@@ -1049,7 +1045,7 @@ export async function generateAuditOutcomePdf(
     }
     if (pkg.sofp) {
       ctx.toc.push({
-        title: `— Statement of Financial Position`,
+        title: `• Statement of Financial Position`,
         page: ctx.pageNumber + 1,
         level: 1,
       });
@@ -1057,7 +1053,7 @@ export async function generateAuditOutcomePdf(
     }
     if (pkg.sofp_performance) {
       ctx.toc.push({
-        title: `— Statement of Financial Performance`,
+        title: `• Statement of Financial Performance`,
         page: ctx.pageNumber + 1,
         level: 1,
       });
@@ -1065,7 +1061,7 @@ export async function generateAuditOutcomePdf(
     }
     if (pkg.cashFlow) {
       ctx.toc.push({
-        title: `— Cash Flow Statement`,
+        title: `• Cash Flow Statement`,
         page: ctx.pageNumber + 1,
         level: 1,
       });
@@ -1073,7 +1069,7 @@ export async function generateAuditOutcomePdf(
     }
     if (pkg.notes) {
       ctx.toc.push({
-        title: `— Notes to the Accounts`,
+        title: `• Notes to the Accounts`,
         page: ctx.pageNumber + 1,
         level: 1,
       });

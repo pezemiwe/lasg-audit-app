@@ -63,7 +63,7 @@ const PoliciesTab: React.FC<{ outcome: AuditOutcome; canEdit: boolean }> = ({
 
   return (
     <Card
-      title="Accounting Policies — IPSAS Accrual"
+      title="Accounting Policies: IPSAS Accrual"
       subtitle="The Audit Supervisor drafts, reviews and signs off the accounting policies applied in preparing the consolidated financial statements."
       actions={
         canEdit && (

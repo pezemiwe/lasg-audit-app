@@ -93,7 +93,7 @@ const ZoneManagementPage: React.FC = () => {
           <h1 className={s.pageTitle}>Zone Management</h1>
           <p className={s.pageSubtitle}>
             Assign audit supervisors to the 5 administrative zones of Lagos
-            State — covering {lgas.length} Councils (
+            State, covering {lgas.length} Councils (
             {
               lgas.filter((l) => !l.councilType || l.councilType === "LGA")
                 .length

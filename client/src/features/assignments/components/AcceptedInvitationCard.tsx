@@ -50,7 +50,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
       icon: <ShieldCheck size={16} />,
       note: hasCOI
         ? "All four Independence declarations confirmed"
-        : "Pending declaration — must be submitted to supervisor",
+        : "Pending declaration: must be submitted to supervisor",
     },
     {
       id: "letter",
@@ -58,7 +58,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
       done: hasCOI,
       icon: <FileText size={16} />,
       note: hasCOI
-        ? "Ref: EL-2024-LGA — Reviewed and on file"
+        ? "Ref: EL-2024-LGA, Reviewed and on file"
         : "Available after COI declaration",
     },
     {
@@ -73,7 +73,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
       label: "Pre-Audit Team Briefing Attended",
       done: false,
       icon: <ClipboardList size={16} />,
-      note: "Scheduled by the Audit Lead — check Pre-Audit page",
+      note: "Scheduled by the Audit Lead. Check Pre-Audit page",
     },
   ];
   const completedCount = prepSteps.filter((p) => p.done).length;
@@ -111,7 +111,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
                 color: "var(--text, #0f172a)",
               }}
             >
-              {getRoleName(inv.role)} —{" "}
+              {getRoleName(inv.role)}:{" "}
               {inv.lgaId
                 ? getLgaName(inv.lgaId)
                 : inv.zoneId
