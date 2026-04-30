@@ -174,14 +174,14 @@ export async function parseTrialBalanceFile(
 
   if (cols.name === -1) {
     warnings.push(
-      "No 'Account Name' column detected — using first text column as fallback",
+      "No 'Account Name' column detected: using first text column as fallback",
     );
   }
   if (cols.current === -1) {
-    warnings.push("No 'Current Year' column detected — results incomplete");
+    warnings.push("No 'Current Year' column detected: results incomplete");
   }
   if (cols.prior === -1) {
-    warnings.push("No 'Prior Year' column detected — no variance will compute");
+    warnings.push("No 'Prior Year' column detected: no variance will compute");
   }
 
   const lines: TrialBalanceLine[] = [];

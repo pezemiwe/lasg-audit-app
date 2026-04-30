@@ -223,7 +223,7 @@ export const SEED_AUDIT_REPORT_STATE: AuditReportDocument = {
       header: "Revenue",
       description: `During the year ended 31st December, 2025, the Local Government Councils of Lagos State realised revenue of approximately ₦89.54bn. Of this amount, ₦85.70bn was received as statutory allocations from the Federation Account, representing approximately 96% of total revenue, while the balance of ₦3.84bn (approx. 4%) was from Internally Generated Revenue (IGR).`,
       recommendation:
-        "There remains significant over-dependence on Federation Account allocations. Councils are advised to develop and implement IGR strategies — property tenement enumeration, daily market charges automation, digital tax receipts — to diversify revenue and strengthen fiscal autonomy.",
+        "There remains significant over-dependence on Federation Account allocations. Councils are advised to develop and implement IGR strategies (property tenement enumeration, daily market charges automation, digital tax receipts) to diversify revenue and strengthen fiscal autonomy.",
     },
     {
       id: "sec-2",
@@ -1099,7 +1099,7 @@ export const SEED_CONSOL_NOTES: FinancialStatement = {
     {
       noteNumber: 5,
       title: "Capital Expenditure",
-      body: "Analysis of capital additions during the year — Land & Building, Infrastructure, Furniture & Fittings, and Intangible Assets.",
+      body: "Analysis of capital additions during the year: Land & Building, Infrastructure, Furniture & Fittings, and Intangible Assets.",
     },
     {
       noteNumber: 6,
@@ -1136,7 +1136,7 @@ export const SEED_AUDIT_OUTCOMES: AuditOutcome[] = [
     mandateId: "mandate-1",
     auditId: "audit-1",
     auditYear: 2025,
-    title: "Lagos State Local Governments — Audited Financial Statements 2025",
+    title: "Lagos State Local Governments: Audited Financial Statements 2025",
     status: "In Progress",
     createdBy: "user-lead-1",
     createdAt: NOW,

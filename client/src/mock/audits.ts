@@ -344,7 +344,7 @@ const CURATED_AUDITS: Audit[] = [
     progress: 40,
     entryMeetingDate: "2026-03-10",
     entryMeetingNotes:
-      "Entry meeting held with Lagos Mainland council management. Scope confirmed — revenue, payroll and procurement for FY 2025.",
+      "Entry meeting held with Lagos Mainland council management. Scope confirmed: revenue, payroll and procurement for FY 2025.",
   },
 ];
 

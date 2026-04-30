@@ -638,22 +638,6 @@ export const useAuditStore = create(
           auditDocSources: { ...s.auditDocSources, [auditId]: source },
         })),
 
-      addUser: (user) =>
-        set((s) => ({
-          users: [
-            ...s.users,
-            {
-              ...user,
-              id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            },
-          ],
-        })),
-
-      updateUser: (id, updates) =>
-        set((s) => ({
-          users: s.users.map((u) => (u.id === id ? { ...u, ...updates } : u)),
-        })),
-
       toasts: [],
       modal: { isOpen: false, title: "", message: "" },
 

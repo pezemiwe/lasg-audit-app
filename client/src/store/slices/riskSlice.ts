@@ -1,16 +1,12 @@
 import { uid, now } from "../storeUtils";
 import type { AuditStore } from "../useAuditStore.types";
-import type { RiskMatrix, FraudFlag } from "../../types";
+import type { RiskMatrix } from "../../types";
 
 type SetFn = (updater: (state: AuditStore) => Partial<AuditStore>) => void;
 
 export type RiskActions = Pick<
   AuditStore,
-  | "addRiskMatrix"
-  | "updateRiskMatrix"
-  | "clearAllMitigations"
-  | "addFraudFlag"
-  | "resolveFraudFlag"
+  "addRiskMatrix" | "updateRiskMatrix" | "clearAllMitigations"
 >;
 
 export function createRiskActions(set: SetFn): RiskActions {
@@ -36,26 +32,6 @@ export function createRiskActions(set: SetFn): RiskActions {
       set((s) => ({
         riskMatrices: s.riskMatrices.map((rm) =>
           rm.auditId === auditId ? { ...rm, mitigationPlan: "" } : rm,
-        ),
-      }));
-    },
-
-    addFraudFlag: (ff) => {
-      const record: FraudFlag = { ...ff, id: `ff-${uid()}`, raisedAt: now() };
-      set((s) => ({ fraudFlags: [...s.fraudFlags, record] }));
-    },
-
-    resolveFraudFlag: (id, resolution) => {
-      set((s) => ({
-        fraudFlags: s.fraudFlags.map((f) =>
-          f.id === id
-            ? {
-                ...f,
-                status: "Resolved" as const,
-                resolution,
-                resolvedAt: now(),
-              }
-            : f,
         ),
       }));
     },

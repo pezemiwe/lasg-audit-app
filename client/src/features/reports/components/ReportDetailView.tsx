@@ -137,7 +137,7 @@ const ReportDetailView: React.FC<Props> = ({
         logActivity({
           userId: user.id,
           action: "FINALIZE_REPORT",
-          details: "Audit report finalized — audit marked Complete",
+          details: "Audit report finalized; audit marked Complete",
           entityType: "report",
           entityId: reportId,
         });
@@ -364,7 +364,7 @@ const ReportDetailView: React.FC<Props> = ({
         >
           <Clock size={18} />
           <div>
-            <strong>Awaiting Management Response</strong> — The Head of Local
+            <strong>Awaiting Management Response</strong>: The Head of Local
             Government Administration has been notified to respond to each
             finding. The report cannot be finalized until all responses are
             received.
@@ -389,9 +389,9 @@ const ReportDetailView: React.FC<Props> = ({
         >
           <MessageSquare size={18} />
           <div>
-            <strong>Your Response Required</strong> — Please provide a
-            management response to each audit finding below. Your responses will
-            be included in the final audit report.
+            <strong>Your Response Required</strong>: Please provide a management
+            response to each audit finding below. Your responses will be
+            included in the final audit report.
           </div>
         </div>
       )}

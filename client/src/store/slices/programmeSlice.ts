@@ -305,7 +305,12 @@ export function createProgrammeActions(
       set((s) => ({
         fraudFlags: s.fraudFlags.map((f) =>
           f.id === id
-            ? { ...f, resolved: true, resolution, resolvedAt: now() }
+            ? {
+                ...f,
+                status: "Resolved" as const,
+                resolution,
+                resolvedAt: now(),
+              }
             : f,
         ),
       })),

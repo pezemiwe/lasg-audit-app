@@ -15,7 +15,7 @@ const TrialBalanceTab: React.FC<{ outcome: AuditOutcome; userId: string }> = ({
 
   return (
     <Card
-      title="Trial Balance — Current & Prior Year"
+      title="Trial Balance: Current & Prior Year"
       subtitle={`Upload unaudited trial balance for Year ${outcome.auditYear} with ${outcome.auditYear - 1} comparatives. The engine parses NCOA-coded account lines, classifies them, and derives PBT for materiality.`}
     >
       <TrialBalanceUpload

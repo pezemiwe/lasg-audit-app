@@ -29,7 +29,28 @@ export const queryKeys = {
   },
   reports: {
     all: ["reports"] as const,
-    list: () => [...queryKeys.reports.all, "list"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.reports.all, "list", filters ?? {}] as const,
     detail: (id: string) => [...queryKeys.reports.all, "detail", id] as const,
+  },
+  workpapers: {
+    all: ["workpapers"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.workpapers.all, "list", filters ?? {}] as const,
+    detail: (id: string) =>
+      [...queryKeys.workpapers.all, "detail", id] as const,
+  },
+  documents: {
+    all: ["documents"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.documents.all, "list", filters ?? {}] as const,
+    detail: (id: string) => [...queryKeys.documents.all, "detail", id] as const,
+  },
+  assignments: {
+    all: ["assignments"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.assignments.all, "list", filters ?? {}] as const,
+    detail: (id: string) =>
+      [...queryKeys.assignments.all, "detail", id] as const,
   },
 } as const;

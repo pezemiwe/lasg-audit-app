@@ -3,7 +3,7 @@ import type { User, Role } from "../types";
 
 export interface AuthContextType {
   user: User | null;
-  login: (email: string) => void;
+  login: (email: string, password?: string) => void;
   logout: () => void;
   canAccess: (allowedRoles: Role[]) => boolean;
 }

@@ -389,7 +389,7 @@ export const SEED_SUBSTANTIVE_TESTS: SubstantiveTest[] = [
     exceptionCount: 7,
     exceptionAmount: 2340000,
     conclusion:
-      "Revenue is materially stated. Exceptions relate to timing differences in lodgements. N2.34M in unreconciled differences noted — below materiality threshold.",
+      "Revenue is materially stated. Exceptions relate to timing differences in lodgements. N2.34M in unreconciled differences noted; below materiality threshold.",
     performedBy: "user-auditor-1",
     performedAt: "2026-03-22T16:00:00Z",
     evidenceFiles: [
@@ -417,7 +417,7 @@ export const SEED_SUBSTANTIVE_TESTS: SubstantiveTest[] = [
     auditId: "audit-1",
     area: "Payroll",
     procedure:
-      "Analytical review and verification of payroll — ghost worker analysis using biometric data cross-reference",
+      "Analytical review and verification of payroll: ghost worker analysis using biometric data cross-reference",
     populationSize: 4200,
     sampleSize: 210,
     exceptionCount: 3,
@@ -465,7 +465,7 @@ export const SEED_SUBSTANTIVE_TESTS: SubstantiveTest[] = [
     exceptionCount: 2,
     exceptionAmount: 12500000,
     conclusion:
-      "Unreconciled differences of N12.5M identified across 2 accounts. Bank confirmations received — balances agree with bank records but cashbook variances require explanation.",
+      "Unreconciled differences of N12.5M identified across 2 accounts. Bank confirmations received; balances agree with bank records but cashbook variances require explanation.",
     performedBy: "user-auditor-2",
     performedAt: "2026-03-30T09:00:00Z",
     status: "Completed",

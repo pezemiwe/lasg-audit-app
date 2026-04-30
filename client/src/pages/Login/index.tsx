@@ -64,7 +64,7 @@ const Login: React.FC = () => {
     }
     setLoading(true);
     setTimeout(() => {
-      login(email);
+      login(email, password);
       navigate("/dashboard");
     }, 1800);
   };

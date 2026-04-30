@@ -102,7 +102,7 @@ const ReportCreateView: React.FC<Props> = ({ onBack, getLgaForAudit }) => {
                 className={s.formInput}
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="e.g., Financial Audit Report — Ikeja FY 2025"
+                placeholder="e.g., Financial Audit Report: Ikeja FY 2025"
               />
             </div>
             <div className={s.formGroup}>
@@ -138,7 +138,7 @@ const ReportCreateView: React.FC<Props> = ({ onBack, getLgaForAudit }) => {
                 <option value="">Select audit...</option>
                 {audits.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {getLgaForAudit(a.id)} — {a.type} ({a.year})
+                    {getLgaForAudit(a.id)}: {a.type} ({a.year})
                   </option>
                 ))}
               </select>

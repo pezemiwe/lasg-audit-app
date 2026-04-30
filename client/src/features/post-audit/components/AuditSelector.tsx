@@ -36,7 +36,7 @@ const AuditSelector: React.FC<Props> = ({
                   const lga = lgas.find((l) => l.id === a.lgaId);
                   return (
                     <option key={a.id} value={a.id}>
-                      {lga?.name || a.lgaId} — {a.type} Audit {a.year} (
+                      {lga?.name || a.lgaId}: {a.type} Audit {a.year} (
                       {a.status})
                     </option>
                   );

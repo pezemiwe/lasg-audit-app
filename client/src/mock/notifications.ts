@@ -1,6 +1,4 @@
-import type {
-  Notification,
-} from "../types";
+import type { Notification } from "../types";
 
 export const SEED_NOTIFICATIONS: Notification[] = [
   {
@@ -21,7 +19,7 @@ export const SEED_NOTIFICATIONS: Notification[] = [
     userId: "user-ag",
     title: "New Mandate Published",
     message:
-      "The Annual Audit of Local Government Accounts — FY 2025 is now active.",
+      "The Annual Audit of Local Government Accounts: FY 2025 is now active.",
     type: "info",
     isRead: true,
     timestamp: "2026-01-20T14:05:00Z",

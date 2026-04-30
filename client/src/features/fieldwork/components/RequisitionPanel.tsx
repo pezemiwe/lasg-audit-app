@@ -79,7 +79,7 @@ const RequisitionPanel: React.FC<RequisitionPanelProps> = ({
     store.logActivity({
       userId: "",
       action: "ISSUE_REQUISITION",
-      details: `Requisition issued to ${lgaName} — ${requisitions.length} documents`,
+      details: `Requisition issued to ${lgaName}: ${requisitions.length} documents`,
       entityType: "fieldwork",
       entityId: auditId,
     });
@@ -106,7 +106,7 @@ const RequisitionPanel: React.FC<RequisitionPanelProps> = ({
 
   return (
     <Card
-      title={`Document Requisition — ${lgaName}`}
+      title={`Document Requisition: ${lgaName}`}
       borderColor="#2563eb"
       action={
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -170,10 +170,10 @@ const RequisitionPanel: React.FC<RequisitionPanelProps> = ({
                     >
                       {getOverdueDays(r)} day
                       {getOverdueDays(r) !== 1 ? "s" : ""} overdue
-                      {getOverdueDays(r) >= 7 && " — Non-Cooperation Risk"}
+                      {getOverdueDays(r) >= 7 && " (Non-Cooperation Risk)"}
                       {getOverdueDays(r) >= 3 &&
                         getOverdueDays(r) < 7 &&
-                        " — Send Reminder"}
+                        " (Send Reminder)"}
                     </span>
                   )}
                 </td>

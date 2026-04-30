@@ -11,7 +11,7 @@ export const regulationsData: Regulation[] = [
   {
     cat: "fa",
     title:
-      "Constitution of the Federal Republic of Nigeria, 1999 — Section 125(2)",
+      "Constitution of the Federal Republic of Nigeria, 1999: Section 125(2)",
     date: "May 29, 1999",
     jurisdiction: "federal",
     desc: "Establishes the mandate for State Auditor-Generals to audit all LGA accounts and report findings to the House of Assembly.",
@@ -43,7 +43,7 @@ export const regulationsData: Regulation[] = [
   },
   {
     cat: "pa",
-    title: "Public Procurement Act 2007 — Sections 16-24",
+    title: "Public Procurement Act 2007: Sections 16-24",
     date: "Jun 04, 2007",
     jurisdiction: "federal",
     desc: "Establishes standards for evaluating value-for-money, programme efficiency, and effectiveness.",

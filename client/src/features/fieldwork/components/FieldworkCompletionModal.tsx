@@ -132,7 +132,7 @@ const FieldworkCompletionModal: React.FC<FieldworkCompletionModalProps> = ({
     store.logActivity({
       userId,
       action: "SUBMIT_FIELDWORK",
-      details: `Fieldwork completion memo submitted — ${stats.total} procedures, ${excStats.total} exceptions`,
+      details: `Fieldwork completion memo submitted: ${stats.total} procedures, ${excStats.total} exceptions`,
       entityType: "fieldwork",
       entityId: auditId,
     });
@@ -190,7 +190,7 @@ const FieldworkCompletionModal: React.FC<FieldworkCompletionModalProps> = ({
           <div
             style={{ fontSize: "1rem", fontWeight: 700, marginTop: "0.25rem" }}
           >
-            {lgaName} — FY2024
+            {lgaName}: FY2024
           </div>
         </div>
         <div
@@ -265,7 +265,7 @@ const FieldworkCompletionModal: React.FC<FieldworkCompletionModalProps> = ({
                 marginBottom: "0.4rem",
               }}
             >
-              Section 2 — Scope Coverage by Audit Area
+              Section 2: Scope Coverage by Audit Area
             </div>
             <table
               style={{
@@ -392,7 +392,7 @@ const FieldworkCompletionModal: React.FC<FieldworkCompletionModalProps> = ({
 
           <div className={s.formGroup}>
             <label className={s.formLabel}>
-              Section 7 — Preliminary Opinion
+              Section 7: Preliminary Opinion
               <span
                 style={{
                   marginLeft: "0.5rem",

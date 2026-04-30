@@ -91,7 +91,7 @@ const LeadDashboard: React.FC<LeadDashboardProps> = ({
             {myAudit && (
               <>
                 {" "}
-                —{" "}
+                ·{" "}
                 <span
                   style={{
                     padding: "0.15rem 0.5rem",
@@ -479,7 +479,7 @@ const LeadDashboard: React.FC<LeadDashboardProps> = ({
                               {a.startDate
                                 ? new Date(a.startDate).toLocaleDateString()
                                 : ""}{" "}
-                              —{" "}
+                              to{" "}
                               {a.endDate
                                 ? new Date(a.endDate).toLocaleDateString()
                                 : ""}

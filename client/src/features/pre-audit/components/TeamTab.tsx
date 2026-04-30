@@ -430,7 +430,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
                           threats: e.target.value,
                         })
                       }
-                      placeholder="e.g. Familiarity — previously audited same entity"
+                      placeholder="e.g. Familiarity (previously audited same entity)"
                       style={{
                         width: "100%",
                         padding: "0.6rem 0.75rem",
@@ -717,7 +717,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
       {/* ── Pre-Audit Team Briefing Record (moved to Meetings tab) ── */}
       <PreAuditCard
         title="Pre-Audit Team Briefing Record"
-        subtitle="Briefing held by the Audit Lead before fieldwork commencement — view full records in the Meetings tab"
+        subtitle="Briefing held by the Audit Lead before fieldwork commencement. View full records in the Meetings tab."
       >
         <div
           style={{
@@ -755,7 +755,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
                   },
                   {
                     label: "Chaired By",
-                    value: "Audit Lead — Engr. J. Okafor",
+                    value: "Audit Lead: Engr. J. Okafor",
                   },
                   { label: "Duration", value: "2 hours 30 minutes" },
                   { label: "Minutes Ref", value: "BRIEF-2024-IKJ-001" },
@@ -1023,7 +1023,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
               icon: <Building2 size={18} style={{ color: "#d97706" }} />,
               item: "Office Space at LGA",
               status: "Pending",
-              responsible: "LGA — HOD Admin",
+              responsible: "LGA (HOD Admin)",
               note: "Awaiting confirmation from Council Clerk",
             },
             {
@@ -1044,7 +1044,7 @@ const TeamTab: React.FC<TeamTabProps> = ({
               icon: <Banknote size={18} style={{ color: "#059669" }} />,
               item: "Per Diem & Team Allowances",
               status: "Pending",
-              responsible: "Finance — LASG AG",
+              responsible: "Finance (LASG AG)",
               note: "Requisition submitted; approval pending",
             },
             {

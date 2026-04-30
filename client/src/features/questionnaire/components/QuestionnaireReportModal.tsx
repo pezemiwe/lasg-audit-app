@@ -77,7 +77,7 @@ const QuestionnaireReportModal: React.FC<Props> = ({
                 fontSize: "0.85rem",
               }}
             >
-              Comprehensive responses — all {totalQuestions} questions answered
+              Comprehensive responses: all {totalQuestions} questions answered
             </p>
           </div>
           <button

@@ -165,7 +165,7 @@ const MeetingsTab: React.FC<MeetingsTabProps> = ({
                 >
                   <div>
                     <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>
-                      Team Briefing — {new Date(b.date).toLocaleDateString()}
+                      Team Briefing · {new Date(b.date).toLocaleDateString()}
                     </div>
                     {b.venue && (
                       <div
@@ -323,7 +323,7 @@ const MeetingsTab: React.FC<MeetingsTabProps> = ({
                   >
                     <div>
                       <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>
-                        Entry Meeting — {getLGAName(a.lgaId)} LGA
+                        Entry Meeting · {getLGAName(a.lgaId)} LGA
                       </div>
                       <div
                         style={{

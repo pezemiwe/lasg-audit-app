@@ -8,3 +8,5 @@ export { notificationsApi } from "./endpoints/notifications.api";
 export { documentsApi } from "./endpoints/documents.api";
 export { reportsApi } from "./endpoints/reports.api";
 export { workpapersApi } from "./endpoints/workpapers.api";
+export { mandatesApi } from "./endpoints/mandates.api";
+export { zonesApi } from "./endpoints/zones.api";

@@ -52,7 +52,7 @@ export const auditProceduresData: AuditProcedure[] = [
     objectives: [
       "Confirm all FAAC inflows received during the period are accurately recorded.",
       "Verify deductions, derivations and equalisation amounts agree to FAAC schedules.",
-      "Ensure proper cut-off â€” only allocations relating to the period are recognised.",
+      "Ensure proper cut-off: only allocations relating to the period are recognised.",
     ],
     procedures: [
       "Obtain the 12 monthly FAAC distribution gazettes/communiquÃ©s from the Office of the Accountant-General of the Federation.",
@@ -69,8 +69,8 @@ export const auditProceduresData: AuditProcedure[] = [
       "FAAC reconciliation prepared by the Treasurer",
     ],
     references: [
-      "ISA 500 â€” Audit Evidence",
-      "ISA 540 â€” Accounting Estimates",
+      "ISA 500: Audit Evidence",
+      "ISA 540: Accounting Estimates",
       "Section 162, 1999 Constitution",
       "Allocation of Revenue (Federation Account, etc.) Act",
     ],
@@ -117,7 +117,7 @@ export const auditProceduresData: AuditProcedure[] = [
     procedures: [
       "Inspect FAAC minutes authorising augmentation distributions.",
       "Trace receipts to bank statements and confirm amounts agree to gazettes.",
-      "Review classification â€” ensure not netted off against deductions.",
+      "Review classification: ensure not netted off against deductions.",
       "Compare to prior year and budget; document the rationale for movements.",
     ],
     evidence: [
@@ -129,7 +129,7 @@ export const auditProceduresData: AuditProcedure[] = [
   },
   {
     code: "MU-120201",
-    account: "Licences (General) â€” IGR",
+    account: "Licences (General): IGR",
     category: "revenue",
     ncoaPrefix: "1202",
     assertions: ["Occurrence", "Completeness", "Accuracy", "Classification"],
@@ -145,9 +145,9 @@ export const auditProceduresData: AuditProcedure[] = [
     procedures: [
       "Obtain the schedule of all licence categories and approved tariff rates.",
       "Select a sample of issued receipts (using systematic sampling) and trace to the cashbook and bank statement.",
-      "Test the receipt-book register for completeness â€” account for every serial number issued, used, voided or unissued.",
+      "Test the receipt-book register for completeness: account for every serial number issued, used, voided or unissued.",
       "Reconcile daily collections to daily bank lodgements; investigate gaps > 24 hours.",
-      "Recompute amounts based on tariff Ã— volume of licences issued and compare to recorded revenue.",
+      "Recompute amounts based on tariff × volume of licences issued and compare to recorded revenue.",
       "Inquire about and inspect controls over Point of Sale and online channels (Lagos State Revenue Service portals).",
     ],
     evidence: [
@@ -158,7 +158,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Tariff schedule / approved fees gazette",
     ],
     references: [
-      "ISA 530 â€” Audit Sampling",
+      "ISA 530: Audit Sampling",
       "Lagos State Revenue Administration Law 2018",
       "Treasury Circular on IGR Collection",
     ],
@@ -233,7 +233,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Auction/bid records",
       "Bank statements",
     ],
-    references: ["Public Procurement Act 2007 â€” disposals", "ISA 500"],
+    references: ["Public Procurement Act 2007: disposals", "ISA 500"],
   },
   {
     code: "MU-120207",
@@ -281,7 +281,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Tenant confirmations",
       "Receipts and lodgement records",
     ],
-    references: ["ISA 505 â€” External Confirmations", "ISA 500"],
+    references: ["ISA 505: External Confirmations", "ISA 500"],
   },
   {
     code: "MU-120214",
@@ -296,7 +296,7 @@ export const auditProceduresData: AuditProcedure[] = [
     objectives: ["Verify all investment returns are properly recognised."],
     procedures: [
       "Obtain a schedule of all investments, principal, rates and tenor.",
-      "Recompute interest using rate Ã— principal Ã— time and trace to credits in bank.",
+      "Recompute interest using rate × principal × time and trace to credits in bank.",
       "Obtain bank/registrar confirmations for outstanding balances and accrued income.",
       "Review dividend warrants and confirm receipt.",
     ],
@@ -305,7 +305,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Bank/registrar confirmations",
       "Dividend warrants",
     ],
-    references: ["ISA 505", "IPSAS 41 â€” Financial Instruments"],
+    references: ["ISA 505", "IPSAS 41: Financial Instruments"],
   },
 
   /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ RECURRENT EXPENDITURE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -351,8 +351,8 @@ export const auditProceduresData: AuditProcedure[] = [
       "Pension remittance schedules & PFA confirmations",
     ],
     references: [
-      "ISA 330 â€” Auditor's Responses to Risks",
-      "ISA 530 â€” Audit Sampling",
+      "ISA 330: Auditor's Responses to Risks",
+      "ISA 530: Audit Sampling",
       "Pension Reform Act 2014",
       "Personal Income Tax Act (PITA)",
       "Public Service Rules",
@@ -421,7 +421,7 @@ export const auditProceduresData: AuditProcedure[] = [
     references: [
       "UBE Act 2004",
       "Lagos State Local Government Law",
-      "ISA 505 â€” External Confirmations",
+      "ISA 505: External Confirmations",
     ],
   },
   {
@@ -452,7 +452,7 @@ export const auditProceduresData: AuditProcedure[] = [
     references: [
       "Personal Income Tax Act",
       "Pension Reform Act 2014, S.4 & S.11",
-      "ISA 250 â€” Laws and Regulations",
+      "ISA 250: Laws and Regulations",
     ],
   },
 
@@ -483,10 +483,10 @@ export const auditProceduresData: AuditProcedure[] = [
     procedures: [
       "Obtain the fixed-asset register and movement schedule (additions, disposals, transfers).",
       "Vouch each material addition to: BOQ, signed contract, due-process certificate, interim/final payment certificates, evidence of payment.",
-      "Inspect physically a sample of new buildings/land â€” agree to register description and confirm completion status.",
+      "Inspect physically a sample of new buildings/land: agree to register description and confirm completion status.",
       "Inspect Certificates of Occupancy / Deeds of Assignment / Gazettes evidencing LGA ownership.",
       "Re-perform depreciation calculations using approved rates (e.g., 2% straight-line for buildings).",
-      "Test boundary cut-off â€” confirm only assets in use as at year-end are recognised.",
+      "Test boundary cut-off: confirm only assets in use as at year-end are recognised.",
     ],
     evidence: [
       "Fixed-asset register",
@@ -496,7 +496,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Engineer's completion certificate",
     ],
     references: [
-      "IPSAS 17 â€” Property, Plant and Equipment",
+      "IPSAS 17: Property, Plant and Equipment",
       "Public Procurement Act 2007",
       "Land Use Act, 1978",
       "ISA 500, ISA 540",
@@ -537,9 +537,9 @@ export const auditProceduresData: AuditProcedure[] = [
       "Variation approval letters",
     ],
     references: [
-      "Public Procurement Act 2007 â€” Sections 16-24",
-      "IPSAS 17 â€” PPE",
-      "ISA 620 â€” Auditor's Expert",
+      "Public Procurement Act 2007: Sections 16-24",
+      "IPSAS 17: PPE",
+      "ISA 620: Auditor's Expert",
     ],
   },
   {
@@ -622,8 +622,8 @@ export const auditProceduresData: AuditProcedure[] = [
       "Cash count sheets",
     ],
     references: [
-      "ISA 505 â€” External Confirmations",
-      "IPSAS 2 â€” Cash Flow Statements",
+      "ISA 505: External Confirmations",
+      "IPSAS 2: Cash Flow Statements",
       "Financial Regulations on Bank Accounts",
     ],
   },
@@ -691,7 +691,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Supplier invoices",
       "Auditor's count notes",
     ],
-    references: ["ISA 501", "IPSAS 12 â€” Inventories"],
+    references: ["ISA 501", "IPSAS 12: Inventories"],
   },
 
   /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ NON-CURRENT ASSETS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -733,9 +733,9 @@ export const auditProceduresData: AuditProcedure[] = [
       "Council disposal resolutions",
     ],
     references: [
-      "IPSAS 17 â€” PPE",
-      "IPSAS 21 â€” Impairment of Non-Cash-Generating Assets",
-      "IPSAS 45 â€” Property, Plant, and Equipment (when effective)",
+      "IPSAS 17: PPE",
+      "IPSAS 21: Impairment of Non-Cash-Generating Assets",
+      "IPSAS 45: Property, Plant, and Equipment (when effective)",
       "ISA 501",
     ],
   },
@@ -760,7 +760,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Registrar / CSCS confirmations",
       "Year-end market prices",
     ],
-    references: ["IPSAS 41", "IPSAS 36 â€” Investments in Associates", "ISA 505"],
+    references: ["IPSAS 41", "IPSAS 36: Investments in Associates", "ISA 505"],
   },
   {
     code: "MU-311001",
@@ -939,7 +939,7 @@ export const auditProceduresData: AuditProcedure[] = [
       "Prior-year audited financials",
       "Council resolutions on appropriations",
     ],
-    references: ["IPSAS 1", "IPSAS 3", "ISA 510 â€” Initial Engagements"],
+    references: ["IPSAS 1", "IPSAS 3", "ISA 510: Initial Engagements"],
   },
 ];
 
@@ -968,7 +968,7 @@ export const CATEGORY_META: Record<
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ—ï¸",
+    icon: "🗏️",
   },
   "current-asset": {
     label: "Current Assets",

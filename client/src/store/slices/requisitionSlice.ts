@@ -15,8 +15,8 @@ export type RequisitionActions = Pick<
 
 const REQ_DOCS: Record<string, string[]> = {
   "Payroll & Personnel Costs": [
-    "Nominal roll — Current FY",
-    "Payroll schedules — all months",
+    "Nominal roll: Current FY",
+    "Payroll schedules: all months",
     "Biometric register extract",
     "PAYE deduction schedules",
     "LIRS payment receipts",
@@ -24,18 +24,18 @@ const REQ_DOCS: Record<string, string[]> = {
     "PFA remittance confirmations",
   ],
   "Revenue & Receipts": [
-    "FAAC remittance advice — all months",
+    "FAAC remittance advice: all months",
     "IGR collection schedule by revenue head",
     "Revenue cashbook / ledger",
   ],
   "Bank & Cash Management": [
-    "Bank statements — all accounts FY",
+    "Bank statements: all accounts FY",
     "Entity account listing (declared)",
-    "Cashbook — all accounts",
+    "Cashbook: all accounts",
   ],
   "Procurement & Contracts": [
     "Contract register FY",
-    "Payment vouchers — full year",
+    "Payment vouchers: full year",
     "Tender board minutes",
   ],
   "Fixed Assets & Capital Projects": [

@@ -23,7 +23,7 @@ const RegulationsHero: React.FC<Props> = ({ aiHref, onAiClick }) => {
             </h1>
             <p className={s.hero_desc}>
               A complete, searchable repository of Federal and Lagos State audit
-              law — covering Financial, Performance, and Compliance frameworks.
+              law, covering Financial, Performance, and Compliance frameworks.
               All regulations cited, categorized, and available for download.
             </p>
           </div>
@@ -62,7 +62,7 @@ const RegulationsHero: React.FC<Props> = ({ aiHref, onAiClick }) => {
           <div className={s.ai_cta_text}>
             <h3>Need instant answers? Try the AI Regulation Assistant</h3>
             <p>
-              Ask any question about Nigerian audit law in natural language —
+              Ask any question about Nigerian audit law in natural language and
               get cited, accurate answers in seconds.
             </p>
           </div>

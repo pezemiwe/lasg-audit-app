@@ -364,7 +364,7 @@ const EntryMeetingModal: React.FC<EntryMeetingModalProps> = ({
                         fontSize: "0.82rem",
                       }}
                     >
-                      <option value="">— Select member —</option>
+                      <option value="">Select member...</option>
                       {meetingTeamMembers.map((m) => (
                         <option key={m.id} value={m.name}>
                           {m.name}

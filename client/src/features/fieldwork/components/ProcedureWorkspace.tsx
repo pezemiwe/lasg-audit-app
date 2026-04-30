@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   AlertTriangle,
   Upload,
@@ -308,9 +308,9 @@ const ProcedureWorkspace: React.FC<{
           daysOut > 365
             ? "> 1 year"
             : daysOut > 180
-              ? "6â€“12 months"
+              ? "6–12 months"
               : daysOut > 90
-                ? "3â€“6 months"
+                ? "3–6 months"
                 : "< 3 months";
         const endOfYear = dateIssued.getMonth() >= 9;
         return {
@@ -769,10 +769,10 @@ const ProcedureWorkspace: React.FC<{
           `Matched: ${matched}\n` +
           `On payroll, NOT on ${label}: ${onPayrollNotNominal} (FLAGGED: potential ghost workers)\n` +
           `On ${label}, NOT on payroll: ${onNominalNotPayroll}\n\n` +
-          `Monthly salary exposure (unmatched): â‚¦${(onPayrollNotNominal * monthlySalary).toLocaleString()}\n` +
-          `Annual exposure: â‚¦${annualExposure.toLocaleString()}\n\n` +
+          `Monthly salary exposure (unmatched): ₦${(onPayrollNotNominal * monthlySalary).toLocaleString()}\n` +
+          `Annual exposure: ₦${annualExposure.toLocaleString()}\n\n` +
           (onPayrollNotNominal > 0
-            ? `âš  ${onPayrollNotNominal} staff on payroll could not be matched. Conclusion auto-set to Exception Raised.`
+            ? `⚠ ${onPayrollNotNominal} staff on payroll could not be matched. Conclusion auto-set to Exception Raised.`
             : "All staff matched. No exceptions."),
       );
       if (onPayrollNotNominal > 0) {
@@ -798,7 +798,7 @@ const ProcedureWorkspace: React.FC<{
             exceptionType: "Ghost Worker",
             assertionAffected: "Existence/Occurrence",
             severity: "Critical",
-            finding: `Dual-flag escalation: both PAY-001 (nominal roll) and PAY-002 (biometric register) independently identified ${onPayrollNotNominal} unmatched staff. Annual financial exposure: â‚¦${annualExposure.toLocaleString()}.`,
+            finding: `Dual-flag escalation: both PAY-001 (nominal roll) and PAY-002 (biometric register) independently identified ${onPayrollNotNominal} unmatched staff. Annual financial exposure: ₦${annualExposure.toLocaleString()}.`,
             evidenceCodes: exec.evidence.map((e) => e.code),
             financialImpact: annualExposure,
             qualitativeImpact:
@@ -833,7 +833,7 @@ const ProcedureWorkspace: React.FC<{
         flagType: "Potential Splitting",
         vendorName: "Eko Builders Ltd",
         contractCount: 3,
-        period: "Janâ€“Feb 2024",
+        period: "Jan–Feb 2024",
         totalValue: 29400000,
         individualValues: [9800000, 9800000, 9800000],
         risk: "High",
@@ -857,7 +857,7 @@ const ProcedureWorkspace: React.FC<{
         flagType: "Just Below Threshold",
         vendorName: "Metro Construction",
         contractCount: 2,
-        period: "Aprâ€“May 2024",
+        period: "Apr–May 2024",
         totalValue: 19200000,
         individualValues: [9600000, 9600000],
         risk: "High",
@@ -869,12 +869,12 @@ const ProcedureWorkspace: React.FC<{
     setWorkPerformed(
       "CONTRACT SPLITTING DETECTION: Automated Analysis\n\n" +
         `Contracts analysed from register. Fuzzy vendor matching applied.\n` +
-        `Threshold: â‚¦10,000,000 (BPP Act)\n\n` +
+        `Threshold: ₦10,000,000 (BPP Act)\n\n` +
         `FLAGGED VENDORS:\n` +
         flags
           .map(
             (f) =>
-              `â€¢ ${f.vendorName}: ${f.flagType} | ${f.contractCount} contract(s) | â‚¦${f.totalValue.toLocaleString()} total | Risk: ${f.risk}`,
+              `• ${f.vendorName}: ${f.flagType} | ${f.contractCount} contract(s) | ₦${f.totalValue.toLocaleString()} total | Risk: ${f.risk}`,
           )
           .join("\n") +
         `\n\nAll flagged contracts added to sample for detailed vouching (PROC-002).`,
@@ -888,8 +888,8 @@ const ProcedureWorkspace: React.FC<{
 
   const runAdvanceAgeing = () => {
     const critical = advanceItems.filter((a) => a.ageBand === "> 1 year");
-    const high = advanceItems.filter((a) => a.ageBand === "6â€“12 months");
-    const medium = advanceItems.filter((a) => a.ageBand === "3â€“6 months");
+    const high = advanceItems.filter((a) => a.ageBand === "6–12 months");
+    const medium = advanceItems.filter((a) => a.ageBand === "3–6 months");
     const endOfYear = advanceItems.filter(
       (a) => a.endOfYearAdvance && !a.retired,
     );
@@ -899,11 +899,11 @@ const ProcedureWorkspace: React.FC<{
     setWorkPerformed(
       "ADVANCES AGEING ANALYSIS: FAR 2009\n\n" +
         `Regulation: Retirement within 48 hours for cash advances.\n\n` +
-        `Outstanding > 1 year (Critical): ${critical.length}, â‚¦${critical.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n` +
-        `Outstanding 6â€“12 months (High): ${high.length}, â‚¦${high.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n` +
-        `Outstanding 3â€“6 months (Medium): ${medium.length}, â‚¦${medium.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n\n` +
-        `Year-end advances (Octâ€“Dec, unretired): ${endOfYear.length}\n` +
-        `Total outstanding: â‚¦${totalOutstanding.toLocaleString()}\n\n` +
+        `Outstanding > 1 year (Critical): ${critical.length}, ₦${critical.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n` +
+        `Outstanding 6–12 months (High): ${high.length}, ₦${high.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n` +
+        `Outstanding 3–6 months (Medium): ${medium.length}, ₦${medium.reduce((s, a) => s + a.amount, 0).toLocaleString()}\n\n` +
+        `Year-end advances (Oct–Dec, unretired): ${endOfYear.length}\n` +
+        `Total outstanding: ₦${totalOutstanding.toLocaleString()}\n\n` +
         `All ${advanceItems.filter((a) => !a.retired && a.daysOutstanding > 2).length} advances exceeding 48-hour FAR 2009 limit flagged as non-compliant.`,
     );
     if (totalOutstanding > 0) {
@@ -1018,9 +1018,9 @@ const ProcedureWorkspace: React.FC<{
                 marginTop: "0.2rem",
               }}
             >
-              {currentExec.auditArea} Â· Assertions:{" "}
-              {currentExec.assertions.join(", ")} Â· Assigned:{" "}
-              {userNameById(currentExec.assignedTo, store.users)} Â· Due:{" "}
+              {currentExec.auditArea} · Assertions:{" "}
+              {currentExec.assertions.join(", ")} · Assigned:{" "}
+              {userNameById(currentExec.assignedTo, store.users)} · Due:{" "}
               {new Date(currentExec.dueDate).toLocaleDateString("en-GB", {
                 day: "numeric",
                 month: "short",
@@ -1274,7 +1274,7 @@ const ProcedureWorkspace: React.FC<{
                     }
                     disabled={!isWriter}
                   >
-                    <option value="">Select outcomeâ€¦</option>
+                    <option value="">Select outcome…</option>
                     <option value="No Exception">No Exception</option>
                     <option value="Exception Raised">Exception Raised</option>
                     <option value="Inconclusive">Inconclusive</option>
@@ -1361,7 +1361,7 @@ const ProcedureWorkspace: React.FC<{
             </div>
           </div>
 
-          {/* â”€â”€â”€ BIG FOUR PROCEDURE AUTOMATION PANEL â”€â”€â”€ */}
+          {/* ─── BIG FOUR PROCEDURE AUTOMATION PANEL ─── */}
           {procedureNature &&
             isWriter &&
             currentExec.status !== "Cleared" &&
@@ -1392,16 +1392,16 @@ const ProcedureWorkspace: React.FC<{
                 >
                   <span style={{ fontSize: "1.25rem" }}>
                     {procedureNature === "Control"
-                      ? "ðŸ›¡ï¸"
+                      ? "🛡️"
                       : procedureNature === "Substantive"
-                        ? "ðŸ”¬"
+                        ? "🔬"
                         : procedureNature === "Analytical"
-                          ? "ðŸ“Š"
+                          ? "📊"
                           : procedureNature === "Inquiry"
-                            ? "ðŸ’¬"
+                            ? "💬"
                             : procedureNature === "Observation"
-                              ? "ðŸ‘ï¸"
-                              : "ðŸ“‹"}
+                              ? "👁️"
+                              : "📋"}
                   </span>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>
@@ -1497,7 +1497,7 @@ const ProcedureWorkspace: React.FC<{
                             }
                             style={{ width: "100%", marginTop: "0.2rem" }}
                           >
-                            <option value="">Selectâ€¦</option>
+                            <option value="">Select…</option>
                             <option>Reperformance</option>
                             <option>Inspection of evidence</option>
                             <option>Observation</option>
@@ -1522,7 +1522,7 @@ const ProcedureWorkspace: React.FC<{
                             }
                             style={{ width: "100%", marginTop: "0.2rem" }}
                           >
-                            <option value="">Selectâ€¦</option>
+                            <option value="">Select…</option>
                             <option>Operating Effectively</option>
                             <option>Operating with Minor Deficiency</option>
                             <option>
@@ -1591,9 +1591,9 @@ const ProcedureWorkspace: React.FC<{
                               `Test Method: ${method}\n` +
                               `Sample reviewed per ISA 330 requirements.\n\n` +
                               `FINDINGS:\n` +
-                              `â€¢ Deviations: ${dev}\n` +
-                              `â€¢ Control Assessment: ${eff}\n` +
-                              `â€¢ Control Weakness: ${weak}\n\n` +
+                              `• Deviations: ${dev}\n` +
+                              `• Control Assessment: ${eff}\n` +
+                              `• Control Weakness: ${weak}\n\n` +
                               `CONCLUSION:\n` +
                               `Based on the test results, the control is assessed as "${eff}". ` +
                               (eff.includes("Not Operating") ||
@@ -1658,7 +1658,7 @@ const ProcedureWorkspace: React.FC<{
                               color: "#374151",
                             }}
                           >
-                            Expected Amount (â‚¦)
+                            Expected Amount (₦)
                           </label>
                           <input
                             className={s.formInput}
@@ -1679,7 +1679,7 @@ const ProcedureWorkspace: React.FC<{
                               color: "#374151",
                             }}
                           >
-                            Actual Amount (â‚¦)
+                            Actual Amount (₦)
                           </label>
                           <input
                             className={s.formInput}
@@ -1751,9 +1751,9 @@ const ProcedureWorkspace: React.FC<{
                           setWorkPerformed(
                             `ANALYTICAL PROCEDURE: ${subject}\n\n` +
                               `Basis of Expectation: ${basis}\n` +
-                              `Expected Amount: â‚¦${expected.toLocaleString()}\n` +
-                              `Actual Amount: â‚¦${actual.toLocaleString()}\n` +
-                              `Variance: â‚¦${variance.toLocaleString()} (${variancePct.toFixed(1)}%)\n\n` +
+                              `Expected Amount: ₦${expected.toLocaleString()}\n` +
+                              `Actual Amount: ₦${actual.toLocaleString()}\n` +
+                              `Variance: ₦${variance.toLocaleString()} (${variancePct.toFixed(1)}%)\n\n` +
                               `ANALYSIS:\n` +
                               (variancePct > 10
                                 ? `The variance of ${variancePct.toFixed(1)}% exceeds our materiality threshold of 10% and requires further investigation.\n`
@@ -2014,7 +2014,7 @@ const ProcedureWorkspace: React.FC<{
                             }
                             style={{ width: "100%", marginTop: "0.2rem" }}
                           >
-                            <option value="">Selectâ€¦</option>
+                            <option value="">Select…</option>
                             <option>
                               No deviation: procedure performed as expected
                             </option>
@@ -2236,7 +2236,7 @@ const ProcedureWorkspace: React.FC<{
                             onChange={(e) =>
                               setBfi("sub_population", e.target.value)
                             }
-                            placeholder="e.g. All payroll payments Janâ€“Dec 2024"
+                            placeholder="e.g. All payroll payments Jan–Dec 2024"
                             style={{ width: "100%", marginTop: "0.2rem" }}
                           />
                         </div>
@@ -2279,7 +2279,7 @@ const ProcedureWorkspace: React.FC<{
                             }
                             style={{ width: "100%", marginTop: "0.2rem" }}
                           >
-                            <option value="">Selectâ€¦</option>
+                            <option value="">Select…</option>
                             <option>Monetary Unit Sampling (MUS)</option>
                             <option>Random Sampling</option>
                             <option>Stratified Sampling</option>
@@ -2295,7 +2295,7 @@ const ProcedureWorkspace: React.FC<{
                               color: "#374151",
                             }}
                           >
-                            Errors Found (â‚¦)
+                            Errors Found (₦)
                           </label>
                           <input
                             className={s.formInput}
@@ -2316,7 +2316,7 @@ const ProcedureWorkspace: React.FC<{
                               color: "#374151",
                             }}
                           >
-                            Projected Misstatement (â‚¦)
+                            Projected Misstatement (₦)
                           </label>
                           <input
                             className={s.formInput}
@@ -2346,11 +2346,11 @@ const ProcedureWorkspace: React.FC<{
                             `SUBSTANTIVE TESTING (ISA 330)\n\n` +
                               `Population: ${population}\nSample Size: ${sample}\nSampling Method: ${method}\n\n` +
                               `TESTING RESULTS:\n` +
-                              `â€¢ Errors in Sample: â‚¦${errors.toLocaleString()}\n` +
-                              `â€¢ Projected Misstatement: â‚¦${projected.toLocaleString()}\n\n` +
+                              `• Errors in Sample: ₦${errors.toLocaleString()}\n` +
+                              `• Projected Misstatement: ₦${projected.toLocaleString()}\n\n` +
                               `CONCLUSION:\n` +
                               (projected > 0
-                                ? `A projected misstatement of â‚¦${projected.toLocaleString()} was identified. This exceeds/approaches performance materiality and has been reported as an audit exception. Management has been requested to investigate and provide adjustments.`
+                                ? `A projected misstatement of ₦${projected.toLocaleString()} was identified. This exceeds/approaches performance materiality and has been reported as an audit exception. Management has been requested to investigate and provide adjustments.`
                                 : `No material misstatements were identified in the sample tested. Based on our sampling methodology, we conclude that the ${population} is not materially misstated.`),
                           );
                           if (projected > 0) setConclusion("Exception Raised");
@@ -2465,7 +2465,7 @@ const ProcedureWorkspace: React.FC<{
                                   )
                                 }
                               >
-                                <option value="">â€”</option>
+                                <option value="">—</option>
                                 <option value="Yes">Yes</option>
                                 <option value="No">No</option>
                               </select>
@@ -2489,7 +2489,7 @@ const ProcedureWorkspace: React.FC<{
                                     )
                                   }
                                 >
-                                  <option value="">â€”</option>
+                                  <option value="">—</option>
                                   <option value="ID Card">ID Card</option>
                                   <option value="Payslip">Payslip</option>
                                   <option value="Supervisor Identification">
@@ -2518,7 +2518,7 @@ const ProcedureWorkspace: React.FC<{
                                     )
                                   }
                                 >
-                                  <option value="">â€”</option>
+                                  <option value="">—</option>
                                   <option value="On Leave with Documentation">
                                     On Leave with Documentation
                                   </option>
@@ -2576,11 +2576,11 @@ const ProcedureWorkspace: React.FC<{
                       <thead>
                         <tr>
                           <th>Month</th>
-                          <th>PAYE Deducted (â‚¦)</th>
-                          <th>PAYE Remitted (â‚¦)</th>
+                          <th>PAYE Deducted (₦)</th>
+                          <th>PAYE Remitted (₦)</th>
                           <th>Difference</th>
-                          <th>Pension Deducted (â‚¦)</th>
-                          <th>Pension Remitted (â‚¦)</th>
+                          <th>Pension Deducted (₦)</th>
+                          <th>Pension Remitted (₦)</th>
                           <th>Difference</th>
                         </tr>
                       </thead>
@@ -2659,7 +2659,7 @@ const ProcedureWorkspace: React.FC<{
                                   fontSize: "0.78rem",
                                 }}
                               >
-                                {pd > 0 ? `â‚¦${pd.toLocaleString()}` : "âœ…"}
+                                {pd > 0 ? `₦${pd.toLocaleString()}` : "✅"}
                               </td>
                               <td>
                                 <input
@@ -2718,7 +2718,7 @@ const ProcedureWorkspace: React.FC<{
                                   fontSize: "0.78rem",
                                 }}
                               >
-                                {pnd > 0 ? `â‚¦${pnd.toLocaleString()}` : "âœ…"}
+                                {pnd > 0 ? `₦${pnd.toLocaleString()}` : "✅"}
                               </td>
                             </tr>
                           );
@@ -2782,10 +2782,10 @@ const ProcedureWorkspace: React.FC<{
                           flags
                             .map(
                               (f) =>
-                                `â€¢ ${f.name}: retired ${f.retirementDate}, ${f.monthsOverdue} months overdue, â‚¦${(f.salary * f.monthsOverdue).toLocaleString()} unauthorised salary`,
+                                `• ${f.name}: retired ${f.retirementDate}, ${f.monthsOverdue} months overdue, ₦${(f.salary * f.monthsOverdue).toLocaleString()} unauthorised salary`,
                             )
                             .join("\n") +
-                          `\n\nTotal unauthorised payment exposure: â‚¦${totalExposure.toLocaleString()}\n\n` +
+                          `\n\nTotal unauthorised payment exposure: ₦${totalExposure.toLocaleString()}\n\n` +
                           `All flagged officers added to exception register. Conclusion auto-set to Exception Raised.`,
                       );
                       flags.forEach((f) => {
@@ -2797,7 +2797,7 @@ const ProcedureWorkspace: React.FC<{
                           exceptionType: "Unauthorised Payment",
                           assertionAffected: "Existence/Occurrence",
                           severity: "Critical",
-                          finding: `${f.name} retired on ${f.retirementDate} but remained on payroll for ${f.monthsOverdue} months. Unauthorised salary paid: â‚¦${(f.salary * f.monthsOverdue).toLocaleString()}.`,
+                          finding: `${f.name} retired on ${f.retirementDate} but remained on payroll for ${f.monthsOverdue} months. Unauthorised salary paid: ₦${(f.salary * f.monthsOverdue).toLocaleString()}.`,
                           evidenceCodes: exec.evidence.map((e) => e.code),
                           financialImpact: f.salary * f.monthsOverdue,
                           qualitativeImpact:
@@ -2814,7 +2814,7 @@ const ProcedureWorkspace: React.FC<{
                       store.addToast({
                         type: "error",
                         title: "Post-Retirement Flags",
-                        message: `${flags.length} officers flagged: â‚¦${totalExposure.toLocaleString()} exposure, Critical exceptions raised`,
+                        message: `${flags.length} officers flagged: ₦${totalExposure.toLocaleString()} exposure, Critical exceptions raised`,
                       });
                     }}
                   >
@@ -2829,7 +2829,7 @@ const ProcedureWorkspace: React.FC<{
             reconRows.length > 0 && (
               <div style={{ marginTop: "1.25rem" }}>
                 <Card
-                  title="3-Way FAAC Reconciliation (OAGF â†’ Cashbook â†’ Bank)"
+                  title="3-Way FAAC Reconciliation (OAGF → Cashbook → Bank)"
                   borderColor="#2563eb"
                 >
                   <div className={s.tableWrap}>
@@ -2837,9 +2837,9 @@ const ProcedureWorkspace: React.FC<{
                       <thead>
                         <tr>
                           <th>Month</th>
-                          <th>OAGF Remittance (â‚¦)</th>
-                          <th>Cashbook Receipt (â‚¦)</th>
-                          <th>Bank Credit (â‚¦)</th>
+                          <th>OAGF Remittance (₦)</th>
+                          <th>Cashbook Receipt (₦)</th>
+                          <th>Bank Credit (₦)</th>
                           <th>OAGF vs Cashbook</th>
                           <th>OAGF vs Bank</th>
                           <th>Explanation</th>
@@ -2945,9 +2945,9 @@ const ProcedureWorkspace: React.FC<{
                               >
                                 {row.sourceA > 0
                                   ? diffAB === 0
-                                    ? "âœ…"
-                                    : `âš ï¸ â‚¦${Math.abs(diffAB).toLocaleString()}`
-                                  : "â€”"}
+                                    ? "✅"
+                                    : `⚠️ ₦${Math.abs(diffAB).toLocaleString()}`
+                                  : "—"}
                               </td>
                               <td
                                 style={{
@@ -2961,9 +2961,9 @@ const ProcedureWorkspace: React.FC<{
                               >
                                 {row.sourceA > 0
                                   ? diffAC === 0
-                                    ? "âœ…"
-                                    : `âš ï¸ â‚¦${Math.abs(diffAC).toLocaleString()}`
-                                  : "â€”"}
+                                    ? "✅"
+                                    : `⚠️ ₦${Math.abs(diffAC).toLocaleString()}`
+                                  : "—"}
                               </td>
                               <td>
                                 <input
@@ -3012,8 +3012,8 @@ const ProcedureWorkspace: React.FC<{
                       marginBottom: "0.5rem",
                     }}
                   >
-                    Trace each sampled item: Assessment Notice â†’ Revenue Receipt
-                    â†’ Daily Summary â†’ Bank Pay-in Slip â†’ Bank Credit
+                    Trace each sampled item: Assessment Notice → Revenue Receipt
+                    → Daily Summary → Bank Pay-in Slip → Bank Credit
                   </div>
                   <div className={s.tableWrap}>
                     <table className={s.table}>
@@ -3021,7 +3021,7 @@ const ProcedureWorkspace: React.FC<{
                         <tr>
                           <th>Ref</th>
                           <th>Revenue Head</th>
-                          <th>Amount (â‚¦)</th>
+                          <th>Amount (₦)</th>
                           <th>Assessment</th>
                           <th>Receipt</th>
                           <th>Daily Summary</th>
@@ -3112,7 +3112,7 @@ const ProcedureWorkspace: React.FC<{
                                   >
                                     {opts.map((o) => (
                                       <option key={o} value={o}>
-                                        {o || "â€”"}
+                                        {o || "—"}
                                       </option>
                                     ))}
                                   </select>
@@ -3161,8 +3161,8 @@ const ProcedureWorkspace: React.FC<{
                           <th>Bank</th>
                           <th>Account</th>
                           <th>Declared</th>
-                          <th>Cashbook Balance (â‚¦)</th>
-                          <th>Confirmed Balance (â‚¦)</th>
+                          <th>Cashbook Balance (₦)</th>
+                          <th>Confirmed Balance (₦)</th>
                           <th>Status</th>
                           <th>Discrepancy</th>
                         </tr>
@@ -3188,16 +3188,16 @@ const ProcedureWorkspace: React.FC<{
                                 fontSize: "0.78rem",
                               }}
                             >
-                              Â·Â·Â·{ba.accountNumber.slice(-4)}
+                              ···{ba.accountNumber.slice(-4)}
                             </td>
-                            <td>{ba.declaredByEntity ? "âœ…" : "âŒ"}</td>
+                            <td>{ba.declaredByEntity ? "✅" : "❌"}</td>
                             <td style={{ fontSize: "0.78rem" }}>
-                              â‚¦{ba.cashbookBalance.toLocaleString()}
+                              ₦{ba.cashbookBalance.toLocaleString()}
                             </td>
                             <td style={{ fontSize: "0.78rem" }}>
                               {ba.confirmedBalance !== undefined
-                                ? `â‚¦${ba.confirmedBalance.toLocaleString()}`
-                                : "â€”"}
+                                ? `₦${ba.confirmedBalance.toLocaleString()}`
+                                : "—"}
                             </td>
                             <td>
                               <StatusBadge
@@ -3223,9 +3223,9 @@ const ProcedureWorkspace: React.FC<{
                             >
                               {ba.confirmedBalance !== undefined
                                 ? (ba.discrepancy || 0) === 0
-                                  ? "âœ…"
-                                  : `â‚¦${Math.abs(ba.discrepancy || 0).toLocaleString()}`
-                                : "â€”"}
+                                  ? "✅"
+                                  : `₦${Math.abs(ba.discrepancy || 0).toLocaleString()}`
+                                : "—"}
                             </td>
                           </tr>
                         ))}
@@ -3259,7 +3259,7 @@ const ProcedureWorkspace: React.FC<{
                               exceptionType: "Bank Discrepancy",
                               assertionAffected: "Completeness",
                               severity: "Critical",
-                              finding: `Undisclosed bank account detected: ${ba.bankName} (Â·Â·Â·${ba.accountNumber.slice(-4)}). Confirmed by bank but NOT declared by the entity. Cashbook balance: â‚¦${ba.cashbookBalance.toLocaleString()}.`,
+                              finding: `Undisclosed bank account detected: ${ba.bankName} (···${ba.accountNumber.slice(-4)}). Confirmed by bank but NOT declared by the entity. Cashbook balance: ₦${ba.cashbookBalance.toLocaleString()}.`,
                               evidenceCodes: exec.evidence.map((e) => e.code),
                               financialImpact: ba.cashbookBalance,
                               qualitativeImpact:
@@ -3326,16 +3326,16 @@ const ProcedureWorkspace: React.FC<{
                       const materialityThreshold = 1423500;
                       setWorkPerformed(
                         `INDEPENDENT BANK RECONCILIATION: Engine Output\n\n` +
-                          `Cashbook closing balance:         â‚¦${cashbookBal.toLocaleString()}\n` +
-                          `Bank statement closing balance:   â‚¦${bankStatBal.toLocaleString()}\n\n` +
+                          `Cashbook closing balance:         ₦${cashbookBal.toLocaleString()}\n` +
+                          `Bank statement closing balance:   ₦${bankStatBal.toLocaleString()}\n\n` +
                           `Reconciling items identified:\n` +
-                          `  Outstanding cheques:            â‚¦${outstanding.toLocaleString()}\n` +
-                          `  Unrecorded bank credits:        â‚¦${unrecorded.toLocaleString()}\n\n` +
-                          `Reconciled balance:               â‚¦${(bankStatBal + outstanding - unrecorded).toLocaleString()}\n` +
-                          `Unexplained variance:             â‚¦${Math.abs(unexplained).toLocaleString()}\n\n` +
+                          `  Outstanding cheques:            ₦${outstanding.toLocaleString()}\n` +
+                          `  Unrecorded bank credits:        ₦${unrecorded.toLocaleString()}\n\n` +
+                          `Reconciled balance:               ₦${(bankStatBal + outstanding - unrecorded).toLocaleString()}\n` +
+                          `Unexplained variance:             ₦${Math.abs(unexplained).toLocaleString()}\n\n` +
                           (Math.abs(unexplained) > materialityThreshold
-                            ? `âš  Unexplained variance exceeds materiality threshold (â‚¦${materialityThreshold.toLocaleString()}). Exception auto-raised.`
-                            : `âœ… All variances explained. Cashbook agrees with bank statement after reconciling items.`),
+                            ? `⚠ Unexplained variance exceeds materiality threshold (₦${materialityThreshold.toLocaleString()}). Exception auto-raised.`
+                            : `✅ All variances explained. Cashbook agrees with bank statement after reconciling items.`),
                       );
                       if (Math.abs(unexplained) > materialityThreshold) {
                         store.addFieldworkException({
@@ -3349,7 +3349,7 @@ const ProcedureWorkspace: React.FC<{
                             Math.abs(unexplained) > 28470000
                               ? "Critical"
                               : "High",
-                          finding: `Independent bank reconciliation identified an unexplained variance of â‚¦${Math.abs(unexplained).toLocaleString()} between the cashbook closing balance (â‚¦${cashbookBal.toLocaleString()}) and the reconciled bank position (â‚¦${(bankStatBal + outstanding - unrecorded).toLocaleString()}).`,
+                          finding: `Independent bank reconciliation identified an unexplained variance of ₦${Math.abs(unexplained).toLocaleString()} between the cashbook closing balance (₦${cashbookBal.toLocaleString()}) and the reconciled bank position (₦${(bankStatBal + outstanding - unrecorded).toLocaleString()}).`,
                           evidenceCodes: exec.evidence.map((e) => e.code),
                           financialImpact: Math.abs(unexplained),
                           qualitativeImpact:
@@ -3365,7 +3365,7 @@ const ProcedureWorkspace: React.FC<{
                         store.addToast({
                           type: "error",
                           title: "Reconciliation Variance",
-                          message: `Unexplained variance of â‚¦${Math.abs(unexplained).toLocaleString()}: exception raised`,
+                          message: `Unexplained variance of ₦${Math.abs(unexplained).toLocaleString()}: exception raised`,
                         });
                       } else {
                         setConclusion("No Exception");
@@ -3401,7 +3401,7 @@ const ProcedureWorkspace: React.FC<{
                   >
                     Upload the contract register in the Evidence Panel. The
                     engine performs fuzzy vendor matching, 30-day window
-                    analysis, and BPP threshold checks (â‚¦10M).
+                    analysis, and BPP threshold checks (₦10M).
                   </div>
                   <button
                     className={s.btnPrimary}
@@ -3422,7 +3422,7 @@ const ProcedureWorkspace: React.FC<{
                             <th>Vendor</th>
                             <th>Contracts</th>
                             <th>Period</th>
-                            <th>Total Value (â‚¦)</th>
+                            <th>Total Value (₦)</th>
                             <th>Risk</th>
                           </tr>
                         </thead>
@@ -3457,7 +3457,7 @@ const ProcedureWorkspace: React.FC<{
                                 {cf.period}
                               </td>
                               <td style={{ fontWeight: 600 }}>
-                                â‚¦{cf.totalValue.toLocaleString()}
+                                ₦{cf.totalValue.toLocaleString()}
                               </td>
                               <td>
                                 <StatusBadge
@@ -3509,7 +3509,7 @@ const ProcedureWorkspace: React.FC<{
                     />
                   </div>
                   <div className={s.formGroup}>
-                    <label className={s.formLabel}>Contract Value (â‚¦)</label>
+                    <label className={s.formLabel}>Contract Value (₦)</label>
                     <input
                       type="number"
                       className={s.formInput}
@@ -3559,10 +3559,10 @@ const ProcedureWorkspace: React.FC<{
                         >
                           <td style={{ fontSize: "0.82rem" }}>
                             {item.status === "Found"
-                              ? "â˜‘"
+                              ? "☑"
                               : item.status === "Not Found"
-                                ? "â˜’"
-                                : "â˜"}{" "}
+                                ? "☒"
+                                : "☐"}{" "}
                             {item.documentName}
                             {item.required && (
                               <span
@@ -3597,7 +3597,7 @@ const ProcedureWorkspace: React.FC<{
                                 })
                               }
                             >
-                              <option value="">â€”</option>
+                              <option value="">—</option>
                               <option value="Found">Found</option>
                               <option value="Not Found">Not Found</option>
                               <option value="N/A">N/A</option>
@@ -3628,7 +3628,7 @@ const ProcedureWorkspace: React.FC<{
                         )
                       }
                     >
-                      <option value="">â€”</option>
+                      <option value="">—</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                       <option value="Partial">Partial</option>
@@ -3651,7 +3651,7 @@ const ProcedureWorkspace: React.FC<{
                         )
                       }
                     >
-                      <option value="">â€”</option>
+                      <option value="">—</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
@@ -3675,7 +3675,7 @@ const ProcedureWorkspace: React.FC<{
                         )
                       }
                     >
-                      <option value="">â€”</option>
+                      <option value="">—</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
@@ -3721,7 +3721,7 @@ const ProcedureWorkspace: React.FC<{
                     />
                   </div>
                   <div className={s.formGroup}>
-                    <label className={s.formLabel}>Contract Value (â‚¦)</label>
+                    <label className={s.formLabel}>Contract Value (₦)</label>
                     <input
                       type="number"
                       className={s.formInput}
@@ -3736,7 +3736,7 @@ const ProcedureWorkspace: React.FC<{
                     />
                   </div>
                   <div className={s.formGroup}>
-                    <label className={s.formLabel}>Amount Paid (â‚¦)</label>
+                    <label className={s.formLabel}>Amount Paid (₦)</label>
                     <input
                       type="number"
                       className={s.formInput}
@@ -3824,7 +3824,7 @@ const ProcedureWorkspace: React.FC<{
                         )
                       }
                     >
-                      <option value="">Select statusâ€¦</option>
+                      <option value="">Select status…</option>
                       <option value="Excellent">Excellent</option>
                       <option value="Good">Good</option>
                       <option value="Fair">Fair</option>
@@ -3884,11 +3884,11 @@ const ProcedureWorkspace: React.FC<{
                         Completion Discrepancy Detected
                       </div>
                       <div style={{ fontSize: "0.82rem", color: "#7f1d1d" }}>
-                        Claimed: {siteVerification.claimedCompletion}% (â‚¦
+                        Claimed: {siteVerification.claimedCompletion}% (₦
                         {siteVerification.amountPaid.toLocaleString()} paid)
                         <br />
                         Auditor Assessment: {siteVerification.auditorCompletion}
-                        % (â‚¦
+                        % (₦
                         {Math.round(
                           (siteVerification.contractValue *
                             siteVerification.auditorCompletion) /
@@ -3897,7 +3897,7 @@ const ProcedureWorkspace: React.FC<{
                         warranted)
                         <br />
                         <strong>
-                          Potential Overpayment: â‚¦
+                          Potential Overpayment: ₦
                           {Math.round(
                             siteVerification.amountPaid -
                               (siteVerification.contractValue *
@@ -3925,7 +3925,7 @@ const ProcedureWorkspace: React.FC<{
                         <th>Ref</th>
                         <th>Officer</th>
                         <th>Purpose</th>
-                        <th>Amount (â‚¦)</th>
+                        <th>Amount (₦)</th>
                         <th>Date Issued</th>
                         <th>Days Out</th>
                         <th>Age Band</th>
@@ -3940,7 +3940,7 @@ const ProcedureWorkspace: React.FC<{
                             background:
                               adv.ageBand === "> 1 year"
                                 ? "#fef2f2"
-                                : adv.ageBand === "6â€“12 months"
+                                : adv.ageBand === "6–12 months"
                                   ? "#fffbeb"
                                   : undefined,
                           }}
@@ -3959,7 +3959,7 @@ const ProcedureWorkspace: React.FC<{
                           </td>
                           <td style={{ fontSize: "0.78rem" }}>{adv.purpose}</td>
                           <td style={{ fontWeight: 600 }}>
-                            â‚¦{adv.amount.toLocaleString()}
+                            ₦{adv.amount.toLocaleString()}
                           </td>
                           <td style={{ fontSize: "0.78rem" }}>
                             {new Date(adv.dateIssued).toLocaleDateString(
@@ -3985,13 +3985,13 @@ const ProcedureWorkspace: React.FC<{
                               variant={
                                 adv.ageBand === "> 1 year"
                                   ? "error"
-                                  : adv.ageBand === "6â€“12 months"
+                                  : adv.ageBand === "6–12 months"
                                     ? "warning"
                                     : "default"
                               }
                             />
                           </td>
-                          <td>{adv.endOfYearAdvance ? "âš ï¸ Yes" : "â€”"}</td>
+                          <td>{adv.endOfYearAdvance ? "⚠️ Yes" : "—"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -4081,7 +4081,7 @@ const ProcedureWorkspace: React.FC<{
                                   diff && diff !== 0 ? "#dc2626" : "#15803d",
                               }}
                             >
-                              {diff !== undefined ? diff : "â€”"}
+                              {diff !== undefined ? diff : "—"}
                             </td>
                             <td>
                               <input
@@ -4134,7 +4134,7 @@ const ProcedureWorkspace: React.FC<{
                     <thead>
                       <tr>
                         <th>Description</th>
-                        <th>Amount (â‚¦)</th>
+                        <th>Amount (₦)</th>
                         <th>Eligibility</th>
                         <th>Notes</th>
                       </tr>
@@ -4153,7 +4153,7 @@ const ProcedureWorkspace: React.FC<{
                             {ge.description}
                           </td>
                           <td style={{ fontWeight: 600 }}>
-                            â‚¦{ge.amount.toLocaleString()}
+                            ₦{ge.amount.toLocaleString()}
                           </td>
                           <td>
                             <select
@@ -4181,7 +4181,7 @@ const ProcedureWorkspace: React.FC<{
                                       : undefined,
                               }}
                             >
-                              <option value="">â€”</option>
+                              <option value="">—</option>
                               <option value="Eligible">Eligible</option>
                               <option value="Ineligible">Ineligible</option>
                               <option value="Unclear">Unclear</option>
@@ -4341,7 +4341,7 @@ const ProcedureWorkspace: React.FC<{
         </div>
       </div>
 
-      {/* â”€â”€â”€ JOURNAL ENTRY DIALOG (floats above the drawer) â”€â”€â”€ */}
+      {/* ─── JOURNAL ENTRY DIALOG (floats above the drawer) ─── */}
       {showJournalPrompt && (
         <div
           style={{
@@ -4488,10 +4488,10 @@ const ProcedureWorkspace: React.FC<{
                       <th>Code</th>
                       <th>Description</th>
                       <th>Class</th>
-                      <th style={{ textAlign: "right" }}>Amount (â‚¦)</th>
-                      <th style={{ width: "130px" }}>Adj. Debit (â‚¦)</th>
-                      <th style={{ width: "130px" }}>Adj. Credit (â‚¦)</th>
-                      <th style={{ textAlign: "right" }}>Adj. Amount (â‚¦)</th>
+                      <th style={{ textAlign: "right" }}>Amount (₦)</th>
+                      <th style={{ width: "130px" }}>Adj. Debit (₦)</th>
+                      <th style={{ width: "130px" }}>Adj. Credit (₦)</th>
+                      <th style={{ textAlign: "right" }}>Adj. Amount (₦)</th>
                     </tr>
                   </thead>
                   <tbody>

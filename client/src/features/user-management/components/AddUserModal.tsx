@@ -230,7 +230,7 @@ const AddUserModal: React.FC<Props> = ({ onClose }) => {
                   value={zoneId}
                   onChange={(e) => setZoneId(e.target.value)}
                 >
-                  <option value="">— Select Zone —</option>
+                  <option value="">Select Zone...</option>
                   {zones.map((z) => (
                     <option key={z.id} value={z.id}>
                       {z.name}
@@ -249,7 +249,7 @@ const AddUserModal: React.FC<Props> = ({ onClose }) => {
                   value={lgaId}
                   onChange={(e) => setLgaId(e.target.value)}
                 >
-                  <option value="">— Select Council —</option>
+                  <option value="">Select Council...</option>
                   {lgas.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}

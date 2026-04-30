@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { User, Role } from "../types";
 import { MOCK_USERS } from "../mock/data";
+import { authApi } from "../api";
 import { AuthContext } from "./AuthContextData";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -17,7 +18,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   });
 
-  const login = (email: string) => {
+  const login = (email: string, password?: string) => {
+    // Real API mode: set VITE_USE_REAL_AUTH=true in .env to activate
+    if (import.meta.env.VITE_USE_REAL_AUTH === "true" && password) {
+      authApi
+        .login({ email, password })
+        .then(({ token, user: apiUser }) => {
+          localStorage.setItem("auth_token", token);
+          const mapped: User = {
+            id: apiUser.id,
+            name: apiUser.name,
+            email: apiUser.email,
+            role: apiUser.role as Role,
+            lgaId: "",
+            zoneId: "",
+          };
+          setUser(mapped);
+          sessionStorage.setItem("audit_user", JSON.stringify(mapped));
+        })
+        .catch(() => {
+          console.error("Login failed");
+        });
+      return;
+    }
+
+    // Demo / mock mode
     const foundUser = MOCK_USERS.find((u) => u.email === email);
     if (foundUser) {
       setUser(foundUser);
@@ -30,6 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     setUser(null);
     sessionStorage.removeItem("audit_user");
+    localStorage.removeItem("auth_token");
+    if (import.meta.env.VITE_USE_REAL_AUTH === "true") {
+      authApi.logout().catch(() => {});
+    }
   };
 
   const canAccess = (allowedRoles: Role[]) => {

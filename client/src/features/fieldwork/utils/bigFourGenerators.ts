@@ -65,7 +65,7 @@ export const generateControlWP = (i: ControlInputs): GeneratedResult => {
     eff.includes("Not Operating") || eff.includes("Significant");
   return {
     workPerformed:
-      `TEST OF CONTROLS — ${activity}\n\n` +
+      `TEST OF CONTROLS: ${activity}\n\n` +
       `Test Method: ${method}\n` +
       `Sample reviewed per ISA 330 requirements.\n\n` +
       `FINDINGS:\n` +
@@ -91,7 +91,7 @@ export const generateAnalyticalWP = (i: AnalyticalInputs): GeneratedResult => {
   const raisesException = variancePct > 10;
   return {
     workPerformed:
-      `ANALYTICAL PROCEDURE — ${subject}\n\n` +
+      `ANALYTICAL PROCEDURE: ${subject}\n\n` +
       `Basis of Expectation: ${basis}\n` +
       `Expected Amount: ₦${i.expected.toLocaleString()}\n` +
       `Actual Amount: ₦${i.actual.toLocaleString()}\n` +

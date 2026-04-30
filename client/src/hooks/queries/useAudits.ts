@@ -1,26 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchClient } from "../../utils/apiClient";
+import { auditsApi } from "../../api";
 import { queryKeys } from "./queryKeys";
-
-export interface AuditSummary {
-  id: string;
-  title: string;
-  status: string;
-  zoneId?: string;
-  lgaId?: string;
-}
+import type { Audit } from "../../types";
 
 export function useAudits(filters?: Record<string, string | number>) {
   return useQuery({
     queryKey: queryKeys.audits.list(filters),
-    queryFn: () => fetchClient<AuditSummary[]>("/audits", { params: filters }),
+    queryFn: () => auditsApi.getAll(filters) as Promise<Audit[]>,
   });
 }
 
 export function useAudit(id: string | undefined) {
   return useQuery({
     queryKey: queryKeys.audits.detail(id ?? ""),
-    queryFn: () => fetchClient<AuditSummary>(`/audits/${id}`),
+    queryFn: () => auditsApi.getById(id!) as Promise<Audit>,
     enabled: !!id,
   });
 }
@@ -28,13 +21,34 @@ export function useAudit(id: string | undefined) {
 export function useCreateAudit() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Partial<AuditSummary>) =>
-      fetchClient<AuditSummary>("/audits", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
+    mutationFn: (payload: Omit<Audit, "id">) =>
+      auditsApi.create(payload) as Promise<Audit>,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.audits.all });
+    },
+  });
+}
+
+export function useUpdateAudit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<Audit> }) =>
+      auditsApi.update(id, payload) as Promise<Audit>,
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.audits.all });
+      qc.invalidateQueries({ queryKey: queryKeys.audits.detail(id) });
+    },
+  });
+}
+
+export function useUpdateAuditStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      auditsApi.updateStatus(id, status) as Promise<Audit>,
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.audits.all });
+      qc.invalidateQueries({ queryKey: queryKeys.audits.detail(id) });
     },
   });
 }

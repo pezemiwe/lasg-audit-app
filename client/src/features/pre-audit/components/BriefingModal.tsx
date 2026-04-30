@@ -401,7 +401,7 @@ const BriefingModal: React.FC<BriefingModalProps> = ({
                         fontSize: "0.82rem",
                       }}
                     >
-                      <option value="">— Select member —</option>
+                      <option value="">Select member...</option>
                       {briefingTeamMembers.map((m) => (
                         <option key={m.id} value={m.name}>
                           {m.name}
