@@ -1,0 +1,78 @@
+import type { Notification } from "../types";
+
+export const SEED_NOTIFICATIONS: Notification[] = [
+  {
+    id: "notif-1",
+    userId: "user-ag",
+    title: "Document Approved",
+    message:
+      "Financial Statements for Mushin LGA have been approved by the Supervisor.",
+    type: "success",
+    isRead: false,
+    timestamp: "2026-03-10T09:00:00Z",
+    link: "/audit/audit-1",
+    relatedEntityId: "doc-1",
+    relatedEntityType: "document",
+  },
+  {
+    id: "notif-2",
+    userId: "user-ag",
+    title: "New Mandate Published",
+    message:
+      "The Annual Audit of Local Government Accounts: FY 2025 is now active.",
+    type: "info",
+    isRead: true,
+    timestamp: "2026-01-20T14:05:00Z",
+    link: "/mandates",
+    relatedEntityId: "mandate-1",
+    relatedEntityType: "mandate",
+  },
+  {
+    id: "notif-3",
+    userId: "user-sup-mushin",
+    title: "Pending Approval",
+    message: "Pre-Audit stage approval requested for Agege LGA Audit.",
+    type: "warning",
+    isRead: false,
+    timestamp: "2026-03-01T11:05:00Z",
+    link: "/audit/audit-2",
+    relatedEntityId: "audit-2",
+    relatedEntityType: "audit",
+  },
+  {
+    id: "notif-4",
+    userId: "user-lead-1",
+    title: "Audit Assigned",
+    message:
+      "You have been assigned as Lead Auditor for Mushin LGA Financial Audit.",
+    type: "info",
+    isRead: false,
+    timestamp: "2026-02-15T10:00:00Z",
+    link: "/audit/audit-1",
+    relatedEntityId: "audit-1",
+    relatedEntityType: "audit",
+  },
+  {
+    id: "notif-5",
+    userId: "user-ag",
+    title: "Report Submitted",
+    message:
+      "Final Audit Report for Badagry LGA has been submitted for review.",
+    type: "warning",
+    isRead: false,
+    timestamp: "2026-03-15T16:30:00Z",
+    link: "/audit/audit-4",
+    relatedEntityId: "audit-4",
+    relatedEntityType: "report",
+  },
+  {
+    id: "notif-6",
+    userId: "user-ag",
+    title: "System Update",
+    message: "The platform will undergo maintenance on Saturday at 2 AM.",
+    type: "info",
+    isRead: false,
+    timestamp: "2026-03-18T08:00:00Z",
+    relatedEntityType: "system",
+  },
+];
