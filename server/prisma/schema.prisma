@@ -45,11 +45,27 @@ model User {
   council        Council?   @relation("UserCouncil", fields: [councilId], references: [id], onDelete: SetNull)
   supervisedZone Zone?      @relation("ZoneSupervisor")
   auditLogs      AuditLog[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([role])
   @@index([status])
   @@index([zoneId])
   @@index([councilId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
 }
 
 model Zone {

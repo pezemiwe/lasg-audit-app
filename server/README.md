@@ -81,3 +81,11 @@ npm run typecheck
 npm run build
 npx prisma validate
 ```
+
+## Current Migration Notes
+
+After pulling changes that add password reset token tracking, create/apply a migration:
+
+```txt
+npm run prisma:migrate -- --name add_password_reset_tokens
+```

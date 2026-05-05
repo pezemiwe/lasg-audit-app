@@ -1,4 +1,5 @@
 import { Router } from "express";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { body } from "express-validator";
 import { prisma } from "../config/prisma";
@@ -7,6 +8,8 @@ import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
 import { HttpError } from "../utils/httpError";
 import {
+  getJwtExpirationDate,
+  hashToken,
   signAccessToken,
   signPasswordResetToken,
   verifyPasswordResetToken,
@@ -80,7 +83,21 @@ router.post(
       return sendSuccess(res, null, 200, "If the email exists, a reset token has been issued");
     }
 
-    const resetToken = signPasswordResetToken(user.id);
+    const tokenRecord = await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: `pending:${crypto.randomUUID()}`,
+        expiresAt: new Date(),
+      },
+    });
+    const resetToken = signPasswordResetToken(user.id, tokenRecord.id);
+    await prisma.passwordResetToken.update({
+      where: { id: tokenRecord.id },
+      data: {
+        tokenHash: hashToken(resetToken),
+        expiresAt: getJwtExpirationDate(resetToken),
+      },
+    });
     await writeAuditLog({
       req,
       action: "AUTH_PASSWORD_RESET_REQUEST",
@@ -106,9 +123,32 @@ router.post(
     }
 
     const passwordHash = await bcrypt.hash(req.body.password, 12);
-    const user = await prisma.user.update({
-      where: { id: payload.sub },
-      data: { passwordHash },
+    const tokenHash = hashToken(req.body.token);
+
+    const user = await prisma.$transaction(async (tx) => {
+      const resetToken = await tx.passwordResetToken.findUnique({
+        where: { tokenHash },
+      });
+
+      if (
+        !resetToken ||
+        resetToken.userId !== payload.sub ||
+        resetToken.id !== payload.jti ||
+        resetToken.usedAt ||
+        resetToken.expiresAt <= new Date()
+      ) {
+        throw new HttpError(400, "Invalid or expired reset token");
+      }
+
+      await tx.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      });
+
+      return tx.user.update({
+        where: { id: payload.sub },
+        data: { passwordHash },
+      });
     });
 
     req.user = { id: user.id, email: user.email, role: user.role };
