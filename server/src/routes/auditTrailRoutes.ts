@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { authenticate, requireRoles } from "../middleware/authMiddleware";
 import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
+import { sendSuccess } from "../utils/apiResponse";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get(
       take: 100,
     });
 
-    res.json(logs);
+    sendSuccess(res, logs);
   }),
 );
 
@@ -51,7 +52,7 @@ router.get(
       },
     });
 
-    res.json(log);
+    sendSuccess(res, log);
   }),
 );
 

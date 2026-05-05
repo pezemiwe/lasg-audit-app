@@ -13,6 +13,7 @@ import {
 } from "../utils/auth";
 import { serializeUser } from "../serializers/userSerializer";
 import { writeAuditLog } from "../services/auditLogService";
+import { sendSuccess } from "../utils/apiResponse";
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.post(
       entityId: user.id,
     });
 
-    res.json({ token, user: serializeUser(user) });
+    sendSuccess(res, { token, user: serializeUser(user) });
   }),
 );
 
@@ -63,7 +64,7 @@ router.get(
       where: { id: req.user!.id },
     });
 
-    res.json(serializeUser(user));
+    sendSuccess(res, serializeUser(user));
   }),
 );
 
@@ -76,7 +77,7 @@ router.post(
     });
 
     if (!user || user.status !== "ACTIVE") {
-      return res.json({ message: "If the email exists, a reset token has been issued" });
+      return sendSuccess(res, null, 200, "If the email exists, a reset token has been issued");
     }
 
     const resetToken = signPasswordResetToken(user.id);
@@ -87,10 +88,7 @@ router.post(
       entityId: user.id,
     });
 
-    res.json({
-      message: "Password reset token issued",
-      resetToken,
-    });
+    sendSuccess(res, { resetToken }, 200, "Password reset token issued");
   }),
 );
 
@@ -121,7 +119,7 @@ router.post(
       entityId: user.id,
     });
 
-    res.json({ message: "Password updated successfully" });
+    sendSuccess(res, null, 200, "Password updated successfully");
   }),
 );
 

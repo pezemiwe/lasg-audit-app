@@ -30,6 +30,18 @@ npm run prisma:seed
 npm run dev
 ```
 
+Swagger UI is available at:
+
+```txt
+http://localhost:5000/docs
+```
+
+The raw OpenAPI document is available at:
+
+```txt
+http://localhost:5000/docs.json
+```
+
 Prisma 7 notes:
 
 - The database URL is configured for Prisma CLI/Migrate in `prisma.config.ts`.

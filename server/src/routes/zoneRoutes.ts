@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { authenticate, requireRoles } from "../middleware/authMiddleware";
 import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
+import { sendSuccess } from "../utils/apiResponse";
 import { writeAuditLog } from "../services/auditLogService";
 
 const router = Router();
@@ -23,7 +24,7 @@ router.get(
       orderBy: { name: "asc" },
     });
 
-    res.json(zones);
+    sendSuccess(res, zones);
   }),
 );
 
@@ -42,7 +43,7 @@ router.get(
       },
     });
 
-    res.json(zone);
+    sendSuccess(res, zone);
   }),
 );
 
@@ -56,7 +57,7 @@ router.get(
       orderBy: [{ type: "asc" }, { name: "asc" }],
     });
 
-    res.json(councils);
+    sendSuccess(res, councils);
   }),
 );
 
@@ -88,7 +89,7 @@ router.patch(
       details: { supervisorId: zone.supervisorId },
     });
 
-    res.json(zone);
+    sendSuccess(res, zone);
   }),
 );
 

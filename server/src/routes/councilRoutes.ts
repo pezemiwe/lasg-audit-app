@@ -5,6 +5,7 @@ import { prisma } from "../config/prisma";
 import { authenticate, requireRoles } from "../middleware/authMiddleware";
 import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
+import { sendSuccess } from "../utils/apiResponse";
 import { writeAuditLog } from "../services/auditLogService";
 
 const router = Router();
@@ -28,7 +29,7 @@ router.get(
       orderBy: [{ type: "asc" }, { name: "asc" }],
     });
 
-    res.json(councils);
+    sendSuccess(res, councils);
   }),
 );
 
@@ -46,7 +47,7 @@ router.get(
       },
     });
 
-    res.json(council);
+    sendSuccess(res, council);
   }),
 );
 
@@ -78,7 +79,7 @@ router.put(
       entityId: council.id,
     });
 
-    res.json(council);
+    sendSuccess(res, council);
   }),
 );
 

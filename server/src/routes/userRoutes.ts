@@ -6,6 +6,7 @@ import { prisma } from "../config/prisma";
 import { authenticate, requireRoles } from "../middleware/authMiddleware";
 import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
+import { sendSuccess } from "../utils/apiResponse";
 import { serializeUser } from "../serializers/userSerializer";
 import { writeAuditLog } from "../services/auditLogService";
 
@@ -37,7 +38,7 @@ router.get(
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(users.map(serializeUser));
+    sendSuccess(res, users.map(serializeUser));
   }),
 );
 
@@ -78,7 +79,7 @@ router.post(
       details: { role: user.role, email: user.email },
     });
 
-    res.status(201).json(serializeUser(user));
+    sendSuccess(res, serializeUser(user), 201);
   }),
 );
 
@@ -86,7 +87,7 @@ router.get(
   "/roles",
   requireRoles("SYSTEM_ADMIN", "STATE_AUDITOR_GENERAL"),
   (_req, res) => {
-    res.json(roleValues);
+    sendSuccess(res, roleValues);
   },
 );
 
@@ -100,7 +101,7 @@ router.get(
       where: { id },
     });
 
-    res.json(serializeUser(user));
+    sendSuccess(res, serializeUser(user));
   }),
 );
 
@@ -140,7 +141,7 @@ router.put(
       entityId: user.id,
     });
 
-    res.json(serializeUser(user));
+    sendSuccess(res, serializeUser(user));
   }),
 );
 
@@ -163,7 +164,7 @@ router.patch(
       details: { status: user.status },
     });
 
-    res.json(serializeUser(user));
+    sendSuccess(res, serializeUser(user));
   }),
 );
 
@@ -186,7 +187,7 @@ router.patch(
       entityId: user.id,
     });
 
-    res.json({ message: "Password updated successfully" });
+    sendSuccess(res, null, 200, "Password updated successfully");
   }),
 );
 
@@ -208,7 +209,7 @@ router.delete(
       entityId: user.id,
     });
 
-    res.status(204).send();
+    sendSuccess(res, null, 200, "User deactivated successfully");
   }),
 );
 
