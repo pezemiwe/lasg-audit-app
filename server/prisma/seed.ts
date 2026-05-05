@@ -6,7 +6,7 @@ import { env } from "../src/config/env";
 const adapter = new PrismaPg({ connectionString: env.databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
-const password = "Password123!";
+const password = "password123";
 
 const zones = [
   {
@@ -64,6 +64,7 @@ async function upsertUser(data: {
   phone?: string;
   zoneId?: string;
   councilId?: string;
+  specialisations?: string[];
 }) {
   const passwordHash = await bcrypt.hash(password, 12);
   return prisma.user.upsert({
@@ -74,6 +75,7 @@ async function upsertUser(data: {
       phone: data.phone,
       zoneId: data.zoneId,
       councilId: data.councilId,
+      specialisations: data.specialisations ?? [],
       status: "ACTIVE",
     },
     create: {
@@ -114,28 +116,32 @@ async function main() {
 
   const ikejaZoneId = zoneRecords.get("Ikeja");
   const lagosIslandZoneId = zoneRecords.get("Lagos Island");
-  const ikejaCouncil = await prisma.council.findUniqueOrThrow({ where: { name: "Ikeja" } });
+  const mushinCouncil = await prisma.council.findUniqueOrThrow({ where: { name: "Mushin" } });
+  const lagosIslandCouncil = await prisma.council.findUniqueOrThrow({
+    where: { name: "Lagos Island" },
+  });
 
   await upsertUser({
     name: "Engr. Babatunde Fashola",
-    email: "admin@lasg.com",
+    email: "sysadmin@lasg.gov.ng",
     role: "SYSTEM_ADMIN",
-    phone: "+2348000000001",
+    phone: "+234 802 000 0001",
   });
 
   await upsertUser({
-    name: "State Auditor-General",
-    email: "ag@lasg.com",
+    name: "Hon. Adebayo Oluwaseun",
+    email: "ag@lasg.gov.ng",
     role: "STATE_AUDITOR_GENERAL",
-    phone: "+2348000000002",
+    phone: "+234 802 300 0001",
   });
 
   const supervisor = await upsertUser({
-    name: "Ikeja Zone Supervisor",
-    email: "supervisor.ikeja@lasg-audit.local",
+    name: "Mrs. Folashade Adekunle",
+    email: "sup.mushin@lasg.gov.ng",
     role: "AUDIT_SUPERVISOR",
-    phone: "+2348000000003",
+    phone: "+234 803 400 0001",
     zoneId: ikejaZoneId,
+    specialisations: ["Financial", "Compliance"],
   });
 
   if (ikejaZoneId) {
@@ -146,27 +152,31 @@ async function main() {
   }
 
   await upsertUser({
-    name: "Audit Lead One",
-    email: "lead@lasg-audit.local",
+    name: "Alh. Jide Johnson",
+    email: "jide.johnson@lasg.gov.ng",
     role: "AUDIT_LEAD",
-    phone: "+2348000000004",
-    zoneId: ikejaZoneId,
-  });
-
-  await upsertUser({
-    name: "Team Auditor One",
-    email: "auditor@lasg-audit.local",
-    role: "TEAM_AUDITOR",
-    phone: "+2348000000005",
+    phone: "+234 803 123 4567",
     zoneId: lagosIslandZoneId,
+    councilId: lagosIslandCouncil.id,
+    specialisations: ["Financial", "Compliance"],
   });
 
   await upsertUser({
-    name: "Ikeja HoLG",
-    email: "holg.ikeja@lasg-audit.local",
+    name: "Miss Oluwadamilola Ige (Mushin)",
+    email: "auditor.ige@lasg.gov.ng",
+    role: "TEAM_AUDITOR",
+    phone: "+234 807 800 0001",
+    zoneId: ikejaZoneId,
+    councilId: mushinCouncil.id,
+    specialisations: ["Financial"],
+  });
+
+  await upsertUser({
+    name: "Mrs. Folake Akinwunmi (HLGA Mushin)",
+    email: "hlga.mushin@lasg.gov.ng",
     role: "HEAD_OF_LOCAL_GOVERNMENT",
-    phone: "+2348000000006",
-    councilId: ikejaCouncil.id,
+    phone: "+234 809 999 0001",
+    councilId: mushinCouncil.id,
   });
 
   console.log("Seed complete");

@@ -50,16 +50,16 @@ JWT_RESET_SECRET="replace-with-a-long-random-reset-secret"
 All seeded users use this development password:
 
 ```txt
-Password123!
+password123
 ```
 
 ```txt
-admin@lasg-audit.local
-ag@lasg-audit.local
-supervisor.ikeja@lasg-audit.local
-lead@lasg-audit.local
-auditor@lasg-audit.local
-holg.ikeja@lasg-audit.local
+sysadmin@lasg.gov.ng
+ag@lasg.gov.ng
+sup.mushin@lasg.gov.ng
+jide.johnson@lasg.gov.ng
+auditor.ige@lasg.gov.ng
+hlga.mushin@lasg.gov.ng
 ```
 
 ## Validation
