@@ -117,15 +117,15 @@ async function main() {
   const ikejaCouncil = await prisma.council.findUniqueOrThrow({ where: { name: "Ikeja" } });
 
   await upsertUser({
-    name: "System Administrator",
-    email: "admin@lasg-audit.local",
+    name: "Engr. Babatunde Fashola",
+    email: "admin@lasg.com",
     role: "SYSTEM_ADMIN",
     phone: "+2348000000001",
   });
 
   await upsertUser({
     name: "State Auditor-General",
-    email: "ag@lasg-audit.local",
+    email: "ag@lasg.com",
     role: "STATE_AUDITOR_GENERAL",
     phone: "+2348000000002",
   });
