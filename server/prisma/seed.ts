@@ -1,0 +1,183 @@
+import bcrypt from "bcryptjs";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient, Role } from "../src/generated/prisma/client";
+import { env } from "../src/config/env";
+
+const adapter = new PrismaPg({ connectionString: env.databaseUrl });
+const prisma = new PrismaClient({ adapter });
+
+const password = "Password123!";
+
+const zones = [
+  {
+    name: "Ikeja",
+    capital: "Ikeja",
+    lgas: ["Agege", "Alimosho", "Ifako-Ijaiye", "Ikeja", "Kosofe", "Mushin", "Oshodi-Isolo", "Somolu"],
+    lcdas: [
+      "Agbado/Oke-Odo",
+      "Ayobo-Ipaja",
+      "Bariga",
+      "Egbe-Idimu",
+      "Ejigbo",
+      "Igando-Ikotun",
+      "Ikosi-Isheri",
+      "Isolo",
+      "Ojodu",
+      "Ojokoro",
+      "Onigbongbo",
+      "Odi-Olowo/Ojuwoye",
+      "Orile-Agege",
+      "Agboyi-Ketu",
+      "Mosan-Okunola",
+    ],
+  },
+  {
+    name: "Lagos Island",
+    capital: "Lagos",
+    lgas: ["Apapa", "Eti-Osa", "Lagos Island", "Lagos Mainland", "Surulere"],
+    lcdas: ["Coker-Aguda", "Iru-Victoria Island", "Itire-Ikate", "Lagos Island East", "Yaba", "Ikoyi-Obalende", "Apapa-Iganmu"],
+  },
+  {
+    name: "Ikorodu",
+    capital: "Ikorodu",
+    lgas: ["Ikorodu"],
+    lcdas: ["Igbogbo-Baiyeku", "Ijede", "Ikorodu North", "Ikorodu West", "Imota"],
+  },
+  {
+    name: "Badagry",
+    capital: "Badagry",
+    lgas: ["Ajeromi-Ifelodun", "Amuwo-Odofin", "Badagry", "Ojo"],
+    lcdas: ["Badagry West", "Ifelodun", "Olorunda", "Oriade", "Oto-Awori", "Iba"],
+  },
+  {
+    name: "Epe",
+    capital: "Epe",
+    lgas: ["Epe", "Ibeju-Lekki"],
+    lcdas: ["Eredo", "Ikosi-Ejinrin", "Lekki", "Ibeju"],
+  },
+];
+
+async function upsertUser(data: {
+  name: string;
+  email: string;
+  role: Role;
+  phone?: string;
+  zoneId?: string;
+  councilId?: string;
+}) {
+  const passwordHash = await bcrypt.hash(password, 12);
+  return prisma.user.upsert({
+    where: { email: data.email },
+    update: {
+      name: data.name,
+      role: data.role,
+      phone: data.phone,
+      zoneId: data.zoneId,
+      councilId: data.councilId,
+      status: "ACTIVE",
+    },
+    create: {
+      ...data,
+      passwordHash,
+    },
+  });
+}
+
+async function main() {
+  const zoneRecords = new Map<string, string>();
+
+  for (const zone of zones) {
+    const zoneRecord = await prisma.zone.upsert({
+      where: { name: zone.name },
+      update: { capital: zone.capital },
+      create: { name: zone.name, capital: zone.capital },
+    });
+
+    zoneRecords.set(zone.name, zoneRecord.id);
+
+    for (const name of zone.lgas) {
+      await prisma.council.upsert({
+        where: { name },
+        update: { type: "LGA", zoneId: zoneRecord.id },
+        create: { name, type: "LGA", zoneId: zoneRecord.id },
+      });
+    }
+
+    for (const name of zone.lcdas) {
+      await prisma.council.upsert({
+        where: { name },
+        update: { type: "LCDA", zoneId: zoneRecord.id },
+        create: { name, type: "LCDA", zoneId: zoneRecord.id },
+      });
+    }
+  }
+
+  const ikejaZoneId = zoneRecords.get("Ikeja");
+  const lagosIslandZoneId = zoneRecords.get("Lagos Island");
+  const ikejaCouncil = await prisma.council.findUniqueOrThrow({ where: { name: "Ikeja" } });
+
+  await upsertUser({
+    name: "System Administrator",
+    email: "admin@lasg-audit.local",
+    role: "SYSTEM_ADMIN",
+    phone: "+2348000000001",
+  });
+
+  await upsertUser({
+    name: "State Auditor-General",
+    email: "ag@lasg-audit.local",
+    role: "STATE_AUDITOR_GENERAL",
+    phone: "+2348000000002",
+  });
+
+  const supervisor = await upsertUser({
+    name: "Ikeja Zone Supervisor",
+    email: "supervisor.ikeja@lasg-audit.local",
+    role: "AUDIT_SUPERVISOR",
+    phone: "+2348000000003",
+    zoneId: ikejaZoneId,
+  });
+
+  if (ikejaZoneId) {
+    await prisma.zone.update({
+      where: { id: ikejaZoneId },
+      data: { supervisorId: supervisor.id },
+    });
+  }
+
+  await upsertUser({
+    name: "Audit Lead One",
+    email: "lead@lasg-audit.local",
+    role: "AUDIT_LEAD",
+    phone: "+2348000000004",
+    zoneId: ikejaZoneId,
+  });
+
+  await upsertUser({
+    name: "Team Auditor One",
+    email: "auditor@lasg-audit.local",
+    role: "TEAM_AUDITOR",
+    phone: "+2348000000005",
+    zoneId: lagosIslandZoneId,
+  });
+
+  await upsertUser({
+    name: "Ikeja HoLG",
+    email: "holg.ikeja@lasg-audit.local",
+    role: "HEAD_OF_LOCAL_GOVERNMENT",
+    phone: "+2348000000006",
+    councilId: ikejaCouncil.id,
+  });
+
+  console.log("Seed complete");
+  console.log(`Default password for seeded users: ${password}`);
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SYSTEM_ADMIN
+  STATE_AUDITOR_GENERAL
+  AUDIT_SUPERVISOR
+  AUDIT_LEAD
+  TEAM_AUDITOR
+  HEAD_OF_LOCAL_GOVERNMENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum CouncilType {
+  LGA
+  LCDA
+}
+
+model User {
+  id             String     @id @default(cuid())
+  name           String
+  email          String     @unique
+  phone          String?
+  role           Role
+  status         UserStatus @default(ACTIVE)
+  passwordHash   String
+  zoneId         String?
+  councilId      String?
+  specialisations String[]  @default([])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  zone           Zone?      @relation("UserZone", fields: [zoneId], references: [id], onDelete: SetNull)
+  council        Council?   @relation("UserCouncil", fields: [councilId], references: [id], onDelete: SetNull)
+  supervisedZone Zone?      @relation("ZoneSupervisor")
+  auditLogs      AuditLog[]
+
+  @@index([role])
+  @@index([status])
+  @@index([zoneId])
+  @@index([councilId])
+}
+
+model Zone {
+  id           String    @id @default(cuid())
+  name         String    @unique
+  capital      String
+  supervisorId String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  supervisor   User?     @relation("ZoneSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  councils     Council[]
+  users        User[]    @relation("UserZone")
+}
+
+model Council {
+  id           String      @id @default(cuid())
+  name         String      @unique
+  type         CouncilType
+  zoneId       String
+  parentLgaId  String?
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  zone         Zone        @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  parentLga    Council?    @relation("CouncilParent", fields: [parentLgaId], references: [id], onDelete: SetNull)
+  lcdas        Council[]   @relation("CouncilParent")
+  users        User[]      @relation("UserCouncil")
+
+  @@index([zoneId])
+  @@index([type])
+  @@index([parentLgaId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}
