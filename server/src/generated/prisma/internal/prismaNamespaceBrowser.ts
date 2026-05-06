@@ -55,6 +55,8 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Zone: 'Zone',
   Council: 'Council',
+  Mandate: 'Mandate',
+  MandateCouncil: 'MandateCouncil',
   ActivityLog: 'ActivityLog'
 } as const
 
@@ -130,6 +132,44 @@ export const CouncilScalarFieldEnum = {
 } as const
 
 export type CouncilScalarFieldEnum = (typeof CouncilScalarFieldEnum)[keyof typeof CouncilScalarFieldEnum]
+
+
+export const MandateScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  year: 'year',
+  description: 'description',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  scope: 'scope',
+  objectives: 'objectives',
+  auditTypes: 'auditTypes',
+  signatureUrl: 'signatureUrl',
+  targetMode: 'targetMode',
+  status: 'status',
+  createdById: 'createdById',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MandateScalarFieldEnum = (typeof MandateScalarFieldEnum)[keyof typeof MandateScalarFieldEnum]
+
+
+export const MandateCouncilScalarFieldEnum = {
+  id: 'id',
+  mandateId: 'mandateId',
+  councilId: 'councilId',
+  status: 'status',
+  acceptedById: 'acceptedById',
+  acceptedAt: 'acceptedAt',
+  documentPortalUnlockedAt: 'documentPortalUnlockedAt',
+  questionnaireUnlockedAt: 'questionnaireUnlockedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MandateCouncilScalarFieldEnum = (typeof MandateCouncilScalarFieldEnum)[keyof typeof MandateCouncilScalarFieldEnum]
 
 
 export const ActivityLogScalarFieldEnum = {

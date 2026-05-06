@@ -4,7 +4,7 @@ export const openApiDocument = {
     title: "LASG Audit Automation Platform API",
     version: "0.1.0",
     description:
-      "Phase 1 backend API for authentication, users, roles, zones, councils, and activity.",
+      "Backend API for authentication, users, roles, zones, councils, mandates, and activity.",
   },
   servers: [
     {
@@ -18,6 +18,7 @@ export const openApiDocument = {
     { name: "Roles" },
     { name: "Zones" },
     { name: "Councils" },
+    { name: "Mandates" },
     { name: "Activity" },
     { name: "Health" },
   ],
@@ -48,6 +49,18 @@ export const openApiDocument = {
       CouncilType: {
         type: "string",
         enum: ["LGA", "LCDA"],
+      },
+      AuditType: {
+        type: "string",
+        enum: ["FINANCIAL", "PERFORMANCE", "COMPLIANCE", "COMBINED"],
+      },
+      MandateStatus: {
+        type: "string",
+        enum: ["DRAFT", "PUBLISHED", "CLOSED"],
+      },
+      MandateTargetMode: {
+        type: "string",
+        enum: ["ALL_COUNCILS", "SELECTED_COUNCILS"],
       },
       User: {
         type: "object",
@@ -106,6 +119,27 @@ export const openApiDocument = {
           ipAddress: { type: "string", nullable: true },
           userAgent: { type: "string", nullable: true },
           createdAt: { type: "string", format: "date-time" },
+        },
+      },
+      Mandate: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          title: { type: "string" },
+          year: { type: "number" },
+          description: { type: "string" },
+          startDate: { type: "string", format: "date-time" },
+          endDate: { type: "string", format: "date-time" },
+          scope: { type: "string" },
+          objectives: { type: "array", items: { type: "string" } },
+          auditTypes: { type: "array", items: { $ref: "#/components/schemas/AuditType" } },
+          signatureUrl: { type: "string" },
+          targetMode: { $ref: "#/components/schemas/MandateTargetMode" },
+          status: { $ref: "#/components/schemas/MandateStatus" },
+          createdById: { type: "string" },
+          publishedAt: { type: "string", format: "date-time", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
         },
       },
       SuccessResponse: {
@@ -540,6 +574,160 @@ export const openApiDocument = {
         responses: {
           "200": { description: "Updated council" },
           "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/mandates": {
+      get: {
+        tags: ["Mandates"],
+        summary: "List mandates visible to the authenticated user",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": {
+            description: "Mandates",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/Mandate" },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["Mandates"],
+        summary: "Create draft mandate",
+        description:
+          "State Auditor-General only. targetMode is derived by the server: selected council IDs produce SELECTED_COUNCILS, otherwise ALL_COUNCILS.",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: [
+                  "title",
+                  "year",
+                  "description",
+                  "startDate",
+                  "endDate",
+                  "scope",
+                  "objectives",
+                  "auditTypes",
+                  "signature",
+                ],
+                properties: {
+                  title: { type: "string" },
+                  year: { type: "integer", example: 2026 },
+                  description: { type: "string" },
+                  startDate: { type: "string", format: "date" },
+                  endDate: { type: "string", format: "date" },
+                  scope: { type: "string" },
+                  objectives: {
+                    type: "string",
+                    description: "JSON array string or comma-separated values",
+                    example: "[\"Review IPSAS compliance\",\"Assess internal controls\"]",
+                  },
+                  auditTypes: {
+                    type: "string",
+                    description: "JSON array string or comma-separated values",
+                    example: "[\"FINANCIAL\",\"COMPLIANCE\"]",
+                  },
+                  targetCouncilIds: {
+                    type: "string",
+                    description: "Optional JSON array string or comma-separated council IDs",
+                  },
+                  signature: { type: "string", format: "binary" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Created mandate" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/mandates/{id}": {
+      get: {
+        tags: ["Mandates"],
+        summary: "Get mandate by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Mandate" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      put: {
+        tags: ["Mandates"],
+        summary: "Update draft mandate",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Updated mandate" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+      delete: {
+        tags: ["Mandates"],
+        summary: "Delete draft mandate",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Deleted mandate" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/mandates/{id}/publish": {
+      patch: {
+        tags: ["Mandates"],
+        summary: "Publish draft mandate",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Published mandate" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/mandates/{id}/accept": {
+      patch: {
+        tags: ["Mandates"],
+        summary: "Accept mandate for HoLG council",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Accepted mandate" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/mandates/{id}/councils": {
+      get: {
+        tags: ["Mandates"],
+        summary: "List councils targeted by a mandate",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Mandate councils" },
+        },
+      },
+    },
+    "/mandates/{id}/compliance": {
+      get: {
+        tags: ["Mandates"],
+        summary: "Get mandate acceptance compliance",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Mandate compliance summary" },
         },
       },
     },

@@ -36,3 +36,38 @@ export const CouncilType = {
 } as const
 
 export type CouncilType = (typeof CouncilType)[keyof typeof CouncilType]
+
+
+export const AuditType = {
+  FINANCIAL: 'FINANCIAL',
+  PERFORMANCE: 'PERFORMANCE',
+  COMPLIANCE: 'COMPLIANCE',
+  COMBINED: 'COMBINED'
+} as const
+
+export type AuditType = (typeof AuditType)[keyof typeof AuditType]
+
+
+export const MandateStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type MandateStatus = (typeof MandateStatus)[keyof typeof MandateStatus]
+
+
+export const MandateTargetMode = {
+  ALL_COUNCILS: 'ALL_COUNCILS',
+  SELECTED_COUNCILS: 'SELECTED_COUNCILS'
+} as const
+
+export type MandateTargetMode = (typeof MandateTargetMode)[keyof typeof MandateTargetMode]
+
+
+export const MandateCouncilStatus = {
+  PENDING_ACCEPTANCE: 'PENDING_ACCEPTANCE',
+  ACCEPTED: 'ACCEPTED'
+} as const
+
+export type MandateCouncilStatus = (typeof MandateCouncilStatus)[keyof typeof MandateCouncilStatus]

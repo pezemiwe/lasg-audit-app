@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import multer from "multer";
 import { Prisma } from "../../generated/prisma/client";
 import { env } from "../../config/env";
 import { HttpError } from "../errors/httpError";
@@ -26,6 +27,14 @@ export function errorHandler(
     if (error.code === "P2025") {
       return sendError(res, 404, "Record not found");
     }
+  }
+
+  if (error instanceof multer.MulterError) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return sendError(res, 400, "Signature file must not exceed 2MB");
+    }
+
+    return sendError(res, 400, error.message);
   }
 
   const message = env.nodeEnv === "production" ? "Internal server error" : String(error);
