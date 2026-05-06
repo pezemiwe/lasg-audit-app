@@ -388,6 +388,8 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Zone: 'Zone',
   Council: 'Council',
+  Mandate: 'Mandate',
+  MandateCouncil: 'MandateCouncil',
   ActivityLog: 'ActivityLog'
 } as const
 
@@ -404,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "activityLog"
+    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -704,6 +706,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Mandate: {
+      payload: Prisma.$MandatePayload<ExtArgs>
+      fields: Prisma.MandateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MandateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MandateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>
+        }
+        findFirst: {
+          args: Prisma.MandateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MandateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>
+        }
+        findMany: {
+          args: Prisma.MandateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>[]
+        }
+        create: {
+          args: Prisma.MandateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>
+        }
+        createMany: {
+          args: Prisma.MandateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MandateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>[]
+        }
+        delete: {
+          args: Prisma.MandateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>
+        }
+        update: {
+          args: Prisma.MandateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>
+        }
+        deleteMany: {
+          args: Prisma.MandateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MandateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MandateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>[]
+        }
+        upsert: {
+          args: Prisma.MandateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandatePayload>
+        }
+        aggregate: {
+          args: Prisma.MandateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMandate>
+        }
+        groupBy: {
+          args: Prisma.MandateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MandateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MandateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MandateCountAggregateOutputType> | number
+        }
+      }
+    }
+    MandateCouncil: {
+      payload: Prisma.$MandateCouncilPayload<ExtArgs>
+      fields: Prisma.MandateCouncilFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MandateCouncilFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MandateCouncilFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>
+        }
+        findFirst: {
+          args: Prisma.MandateCouncilFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MandateCouncilFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>
+        }
+        findMany: {
+          args: Prisma.MandateCouncilFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>[]
+        }
+        create: {
+          args: Prisma.MandateCouncilCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>
+        }
+        createMany: {
+          args: Prisma.MandateCouncilCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MandateCouncilCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>[]
+        }
+        delete: {
+          args: Prisma.MandateCouncilDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>
+        }
+        update: {
+          args: Prisma.MandateCouncilUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>
+        }
+        deleteMany: {
+          args: Prisma.MandateCouncilDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MandateCouncilUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MandateCouncilUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>[]
+        }
+        upsert: {
+          args: Prisma.MandateCouncilUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MandateCouncilPayload>
+        }
+        aggregate: {
+          args: Prisma.MandateCouncilAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMandateCouncil>
+        }
+        groupBy: {
+          args: Prisma.MandateCouncilGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MandateCouncilGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MandateCouncilCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MandateCouncilCountAggregateOutputType> | number
+        }
+      }
+    }
     ActivityLog: {
       payload: Prisma.$ActivityLogPayload<ExtArgs>
       fields: Prisma.ActivityLogFieldRefs
@@ -875,6 +1025,44 @@ export const CouncilScalarFieldEnum = {
 export type CouncilScalarFieldEnum = (typeof CouncilScalarFieldEnum)[keyof typeof CouncilScalarFieldEnum]
 
 
+export const MandateScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  year: 'year',
+  description: 'description',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  scope: 'scope',
+  objectives: 'objectives',
+  auditTypes: 'auditTypes',
+  signatureUrl: 'signatureUrl',
+  targetMode: 'targetMode',
+  status: 'status',
+  createdById: 'createdById',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MandateScalarFieldEnum = (typeof MandateScalarFieldEnum)[keyof typeof MandateScalarFieldEnum]
+
+
+export const MandateCouncilScalarFieldEnum = {
+  id: 'id',
+  mandateId: 'mandateId',
+  councilId: 'councilId',
+  status: 'status',
+  acceptedById: 'acceptedById',
+  acceptedAt: 'acceptedAt',
+  documentPortalUnlockedAt: 'documentPortalUnlockedAt',
+  questionnaireUnlockedAt: 'questionnaireUnlockedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MandateCouncilScalarFieldEnum = (typeof MandateCouncilScalarFieldEnum)[keyof typeof MandateCouncilScalarFieldEnum]
+
+
 export const ActivityLogScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1008,6 +1196,76 @@ export type ListEnumCouncilTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditType[]'
+ */
+export type ListEnumAuditTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditType'
+ */
+export type EnumAuditTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditType'>
+    
+
+
+/**
+ * Reference to a field of type 'MandateTargetMode'
+ */
+export type EnumMandateTargetModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MandateTargetMode'>
+    
+
+
+/**
+ * Reference to a field of type 'MandateTargetMode[]'
+ */
+export type ListEnumMandateTargetModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MandateTargetMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MandateStatus'
+ */
+export type EnumMandateStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MandateStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'MandateStatus[]'
+ */
+export type ListEnumMandateStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MandateStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MandateCouncilStatus'
+ */
+export type EnumMandateCouncilStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MandateCouncilStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'MandateCouncilStatus[]'
+ */
+export type ListEnumMandateCouncilStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MandateCouncilStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1022,16 +1280,16 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'Float'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 
 /**
- * Reference to a field of type 'Int[]'
+ * Reference to a field of type 'Float[]'
  */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1148,6 +1406,8 @@ export type GlobalOmitConfig = {
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   zone?: Prisma.ZoneOmit
   council?: Prisma.CouncilOmit
+  mandate?: Prisma.MandateOmit
+  mandateCouncil?: Prisma.MandateCouncilOmit
   activityLog?: Prisma.ActivityLogOmit
 }
 
