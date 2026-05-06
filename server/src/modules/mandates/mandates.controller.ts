@@ -3,6 +3,7 @@ import { sendSuccess } from "../../common/responses/apiResponse";
 import { writeActivityLog } from "../activity/activity.service";
 import {
   acceptMandate,
+  completeMandate,
   createMandate,
   deleteMandate,
   getMandate,
@@ -110,6 +111,19 @@ export async function acceptMandateController(req: Request, res: Response) {
   });
 
   sendSuccess(res, mandateAcceptance);
+}
+
+export async function completeMandateController(req: Request, res: Response) {
+  const mandate = await completeMandate(req.params.id as string);
+
+  await writeActivityLog({
+    req,
+    action: "MANDATE_COMPLETED",
+    entityType: "Mandate",
+    entityId: mandate.id,
+  });
+
+  sendSuccess(res, mandate);
 }
 
 export async function listMandateCouncilsController(req: Request, res: Response) {

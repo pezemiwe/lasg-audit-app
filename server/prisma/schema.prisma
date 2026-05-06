@@ -37,7 +37,8 @@ enum AuditType {
 enum MandateStatus {
   DRAFT
   PUBLISHED
-  CLOSED
+  ACTIVE
+  COMPLETED
 }
 
 enum MandateTargetMode {

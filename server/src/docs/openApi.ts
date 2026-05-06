@@ -56,7 +56,7 @@ export const openApiDocument = {
       },
       MandateStatus: {
         type: "string",
-        enum: ["DRAFT", "PUBLISHED", "CLOSED"],
+        enum: ["DRAFT", "PUBLISHED", "ACTIVE", "COMPLETED"],
       },
       MandateTargetMode: {
         type: "string",
@@ -705,6 +705,18 @@ export const openApiDocument = {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
           "200": { description: "Accepted mandate" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/mandates/{id}/complete": {
+      patch: {
+        tags: ["Mandates"],
+        summary: "Complete active mandate",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Completed mandate" },
           "403": { $ref: "#/components/responses/Forbidden" },
         },
       },

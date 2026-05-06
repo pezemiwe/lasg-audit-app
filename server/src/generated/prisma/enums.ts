@@ -51,7 +51,8 @@ export type AuditType = (typeof AuditType)[keyof typeof AuditType]
 export const MandateStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',
-  CLOSED: 'CLOSED'
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED'
 } as const
 
 export type MandateStatus = (typeof MandateStatus)[keyof typeof MandateStatus]

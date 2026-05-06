@@ -143,29 +143,44 @@ export function deleteMandate(id: string) {
 export function acceptMandate(id: string, councilId: string, acceptedById: string) {
   const now = new Date();
 
-  return prisma.mandateCouncil.update({
-    where: {
-      mandateId_councilId: {
-        mandateId: id,
-        councilId,
+  return prisma.$transaction(async (tx) => {
+    const accepted = await tx.mandateCouncil.update({
+      where: {
+        mandateId_councilId: {
+          mandateId: id,
+          councilId,
+        },
       },
-    },
-    data: {
-      status: "ACCEPTED",
-      acceptedById,
-      acceptedAt: now,
-      documentPortalUnlockedAt: now,
-      questionnaireUnlockedAt: now,
-    },
-    include: {
-      mandate: {
-        include: mandateInclude,
+      data: {
+        status: "ACCEPTED",
+        acceptedById,
+        acceptedAt: now,
+        documentPortalUnlockedAt: now,
+        questionnaireUnlockedAt: now,
       },
-      council: true,
-      acceptedBy: {
-        select: { id: true, name: true, email: true, role: true },
+      include: {
+        council: true,
+        acceptedBy: {
+          select: { id: true, name: true, email: true, role: true },
+        },
       },
-    },
+    });
+
+    const mandate = await tx.mandate.update({
+      where: { id },
+      data: { status: "ACTIVE" },
+      include: mandateInclude,
+    });
+
+    return { ...accepted, mandate };
+  });
+}
+
+export function completeMandate(id: string) {
+  return prisma.mandate.update({
+    where: { id },
+    data: { status: "COMPLETED" },
+    include: mandateInclude,
   });
 }
 
