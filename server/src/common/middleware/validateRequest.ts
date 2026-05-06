@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
-import { HttpError } from "../utils/httpError";
+import { HttpError } from "../errors/httpError";
 
 export function validateRequest(req: Request, _res: Response, next: NextFunction) {
   const result = validationResult(req);

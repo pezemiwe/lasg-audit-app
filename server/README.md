@@ -19,6 +19,34 @@ Implemented foundation:
 - Audit log helper for write actions
 - Seed data for 5 zones, 57 councils, and starter users
 
+## Source Layout
+
+```txt
+src/
+  app.ts
+  server.ts
+
+  config/
+    env.ts
+    prisma.ts
+
+  common/
+    middleware/
+    utils/
+    responses/
+    errors/
+
+  modules/
+    auth/
+    users/
+    zones/
+    councils/
+    activity/
+    roles/
+```
+
+Each module owns its route, controller, service, repository, validator, and serializer files where applicable.
+
 ## Setup
 
 ```txt
@@ -52,7 +80,7 @@ Prisma 7 notes:
 ## Required Environment
 
 ```txt
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/lasg?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/lasg"
 JWT_ACCESS_SECRET="replace-with-a-long-random-access-secret"
 JWT_RESET_SECRET="replace-with-a-long-random-reset-secret"
 ```

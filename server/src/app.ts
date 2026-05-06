@@ -5,14 +5,14 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { openApiDocument } from "./docs/openApi";
-import { errorHandler, notFound } from "./middleware/errorHandler";
-import { sendSuccess } from "./utils/apiResponse";
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import zoneRoutes from "./routes/zoneRoutes";
-import councilRoutes from "./routes/councilRoutes";
-import activityRoutes from "./routes/activityRoutes";
-import roleRoutes from "./routes/roleRoutes";
+import { errorHandler, notFound } from "./common/middleware/errorHandler";
+import { sendSuccess } from "./common/responses/apiResponse";
+import authRoutes from "./modules/auth/auth.routes";
+import userRoutes from "./modules/users/users.routes";
+import zoneRoutes from "./modules/zones/zones.routes";
+import councilRoutes from "./modules/councils/councils.routes";
+import activityRoutes from "./modules/activity/activity.routes";
+import roleRoutes from "./modules/roles/roles.routes";
 
 export const app = express();
 

@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import type { Role } from "../generated/prisma/client";
-import { prisma } from "../config/prisma";
-import { HttpError } from "../utils/httpError";
-import { verifyAccessToken } from "../utils/auth";
+import type { Role } from "../../generated/prisma/client";
+import { prisma } from "../../config/prisma";
+import { HttpError } from "../errors/httpError";
+import { verifyAccessToken } from "../utils/token";
 
 export async function authenticate(req: Request, _res: Response, next: NextFunction) {
   try {

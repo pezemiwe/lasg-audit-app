@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { Prisma } from "../generated/prisma/client";
-import { env } from "../config/env";
-import { HttpError } from "../utils/httpError";
-import { sendError } from "../utils/apiResponse";
+import { Prisma } from "../../generated/prisma/client";
+import { env } from "../../config/env";
+import { HttpError } from "../errors/httpError";
+import { sendError } from "../responses/apiResponse";
 
 export function notFound(req: Request, _res: Response, next: NextFunction) {
   next(new HttpError(404, `Route not found: ${req.method} ${req.originalUrl}`));
