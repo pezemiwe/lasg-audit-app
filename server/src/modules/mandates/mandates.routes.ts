@@ -4,6 +4,7 @@ import { uploadMandateSignature } from "../../common/middleware/upload";
 import { asyncHandler } from "../../common/utils/asyncHandler";
 import {
   acceptMandateController,
+  completeMandateController,
   createMandateController,
   deleteMandateController,
   getMandateComplianceController,
@@ -79,6 +80,12 @@ router.patch(
   requireRoles("HEAD_OF_LOCAL_GOVERNMENT"),
   mandateIdValidator,
   asyncHandler(acceptMandateController),
+);
+router.patch(
+  "/:id/complete",
+  requireRoles("STATE_AUDITOR_GENERAL"),
+  mandateIdValidator,
+  asyncHandler(completeMandateController),
 );
 router.get(
   "/:id/councils",

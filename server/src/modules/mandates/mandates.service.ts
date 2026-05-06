@@ -251,7 +251,7 @@ export async function acceptMandate(id: string, user: AuthUser) {
   }
 
   const mandate = await mandatesRepository.getMandateById(id, {
-    status: "PUBLISHED",
+    status: { in: ["PUBLISHED", "ACTIVE"] },
     councils: {
       some: { councilId: scope.councilId },
     },
@@ -270,6 +270,17 @@ export async function acceptMandate(id: string, user: AuthUser) {
     documentPortalUnlockedAt: accepted.documentPortalUnlockedAt,
     questionnaireUnlockedAt: accepted.questionnaireUnlockedAt,
   };
+}
+
+export async function completeMandate(id: string) {
+  const existing = await mandatesRepository.getMandateById(id);
+
+  if (existing.status !== "ACTIVE") {
+    throw new HttpError(409, "Only active mandates can be completed");
+  }
+
+  const mandate = await mandatesRepository.completeMandate(id);
+  return serializeMandate(mandate);
 }
 
 export async function listMandateCouncils(id: string, user: AuthUser) {
