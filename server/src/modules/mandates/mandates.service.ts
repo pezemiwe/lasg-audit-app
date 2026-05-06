@@ -12,6 +12,10 @@ type AuthUser = {
   role: Role;
 };
 
+type ListMandatesFilters = {
+  status?: MandateStatus;
+};
+
 type MandateInput = {
   title: string;
   year: number;
@@ -170,6 +174,15 @@ function normalizeMandateInput(data: MandateInput) {
 export async function listMandates(user: AuthUser) {
   const scope = await mandatesRepository.getUserScope(user.id);
   const mandates = await mandatesRepository.listMandates(getVisibilityWhere(scope));
+  return mandates.map(serializeMandate);
+}
+
+export async function listMandatesWithFilters(user: AuthUser, filters: ListMandatesFilters) {
+  const scope = await mandatesRepository.getUserScope(user.id);
+  const mandates = await mandatesRepository.listMandates({
+    ...getVisibilityWhere(scope),
+    status: filters.status,
+  });
   return mandates.map(serializeMandate);
 }
 
