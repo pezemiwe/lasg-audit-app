@@ -6,7 +6,7 @@ import { authenticate, requireRoles } from "../middleware/authMiddleware";
 import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
 import { sendSuccess } from "../utils/apiResponse";
-import { writeAuditLog } from "../services/auditLogService";
+import { writeActivityLog } from "../services/activityLogService";
 
 const router = Router();
 
@@ -72,7 +72,7 @@ router.put(
       },
     });
 
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "COUNCIL_UPDATED",
       entityType: "Council",

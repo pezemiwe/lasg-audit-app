@@ -8,7 +8,7 @@ import { validateRequest } from "../middleware/validateRequest";
 import { asyncHandler } from "../utils/asyncHandler";
 import { sendSuccess } from "../utils/apiResponse";
 import { serializeUser } from "../serializers/userSerializer";
-import { writeAuditLog } from "../services/auditLogService";
+import { writeActivityLog } from "../services/activityLogService";
 
 const router = Router();
 
@@ -71,7 +71,7 @@ router.post(
       },
     });
 
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "USER_CREATED",
       entityType: "User",
@@ -134,7 +134,7 @@ router.put(
       },
     });
 
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "USER_UPDATED",
       entityType: "User",
@@ -156,7 +156,7 @@ router.patch(
       data: { status: req.body.status },
     });
 
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "USER_STATUS_UPDATED",
       entityType: "User",
@@ -180,7 +180,7 @@ router.patch(
       data: { passwordHash },
     });
 
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "USER_PASSWORD_UPDATED",
       entityType: "User",
@@ -202,7 +202,7 @@ router.delete(
       data: { status: "INACTIVE" },
     });
 
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "USER_DEACTIVATED",
       entityType: "User",

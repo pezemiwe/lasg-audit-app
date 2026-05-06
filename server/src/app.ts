@@ -11,7 +11,7 @@ import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import zoneRoutes from "./routes/zoneRoutes";
 import councilRoutes from "./routes/councilRoutes";
-import auditTrailRoutes from "./routes/auditTrailRoutes";
+import activityRoutes from "./routes/activityRoutes";
 import roleRoutes from "./routes/roleRoutes";
 
 export const app = express();
@@ -36,7 +36,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/roles", roleRoutes);
 app.use("/api/v1/zones", zoneRoutes);
 app.use("/api/v1/councils", councilRoutes);
-app.use("/api/v1/audit-trail", auditTrailRoutes);
+app.use("/api/v1/activity", activityRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

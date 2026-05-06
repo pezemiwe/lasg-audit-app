@@ -62,7 +62,7 @@ export type Zone = Prisma.ZoneModel
  */
 export type Council = Prisma.CouncilModel
 /**
- * Model AuditLog
+ * Model ActivityLog
  * 
  */
-export type AuditLog = Prisma.AuditLogModel
+export type ActivityLog = Prisma.ActivityLogModel

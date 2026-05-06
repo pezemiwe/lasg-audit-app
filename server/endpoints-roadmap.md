@@ -66,13 +66,13 @@ GET    /councils/:id
 PUT    /councils/:id
 ```
 
-### Audit Trail
+### Activity
 
 Role access: `SYSTEM_ADMIN` and `STATE_AUDITOR_GENERAL`.
 
 ```txt
-GET    /audit-trail
-GET    /audit-trail/:id
+GET    /activity
+GET    /activity/:id
 ```
 
 ## Phase 2: Mandates and Audit Lifecycle
@@ -81,7 +81,7 @@ Create the core audit workflow backbone after users, roles, zones, and councils 
 
 ### Mandates
 
-Role access: `STATE_AUDITOR_GENERAL` creates, edits, publishes, and monitors mandates. `HEAD_OF_LOCAL_GOVERNMENT` accepts mandates for own council. `AUDIT_SUPERVISOR` and `AUDIT_LEAD` can read relevant mandates. `SYSTEM_ADMIN` may read for support/audit trail context.
+Role access: `STATE_AUDITOR_GENERAL` creates, edits, publishes, and monitors mandates. `HEAD_OF_LOCAL_GOVERNMENT` accepts mandates for own council. `AUDIT_SUPERVISOR` and `AUDIT_LEAD` can read relevant mandates. `SYSTEM_ADMIN` may read for support/activity context.
 
 ```txt
 GET    /mandates
@@ -98,7 +98,7 @@ GET    /mandates/:id/compliance
 
 ### Audits
 
-Role access: `STATE_AUDITOR_GENERAL`, `AUDIT_SUPERVISOR`, and `AUDIT_LEAD` manage audits within authority. `TEAM_AUDITOR` reads assigned audits. `HEAD_OF_LOCAL_GOVERNMENT` reads own council audit status. `SYSTEM_ADMIN` reads for support/audit trail context.
+Role access: `STATE_AUDITOR_GENERAL`, `AUDIT_SUPERVISOR`, and `AUDIT_LEAD` manage audits within authority. `TEAM_AUDITOR` reads assigned audits. `HEAD_OF_LOCAL_GOVERNMENT` reads own council audit status. `SYSTEM_ADMIN` reads for support/activity context.
 
 ```txt
 GET    /audits

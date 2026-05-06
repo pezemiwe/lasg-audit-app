@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import { prisma } from "../config/prisma";
 
-interface AuditLogInput {
+interface ActivityLogInput {
   req: Request;
   action: string;
   entityType: string;
@@ -9,14 +9,14 @@ interface AuditLogInput {
   details?: unknown;
 }
 
-export async function writeAuditLog({
+export async function writeActivityLog({
   req,
   action,
   entityType,
   entityId,
   details,
-}: AuditLogInput) {
-  await prisma.auditLog.create({
+}: ActivityLogInput) {
+  await prisma.activityLog.create({
     data: {
       userId: req.user?.id,
       action,

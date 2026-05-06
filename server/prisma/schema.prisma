@@ -44,7 +44,7 @@ model User {
   zone           Zone?      @relation("UserZone", fields: [zoneId], references: [id], onDelete: SetNull)
   council        Council?   @relation("UserCouncil", fields: [councilId], references: [id], onDelete: SetNull)
   supervisedZone Zone?      @relation("ZoneSupervisor")
-  auditLogs      AuditLog[]
+  activityLogs      ActivityLog[]
   passwordResetTokens PasswordResetToken[]
 
   @@index([role])
@@ -103,7 +103,7 @@ model Council {
   @@index([parentLgaId])
 }
 
-model AuditLog {
+model ActivityLog {
   id         String   @id @default(cuid())
   userId     String?
   action     String

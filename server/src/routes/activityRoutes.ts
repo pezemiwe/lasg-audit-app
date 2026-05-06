@@ -19,7 +19,7 @@ router.get(
     validateRequest,
   ],
   asyncHandler(async (req, res) => {
-    const logs = await prisma.auditLog.findMany({
+    const logs = await prisma.activityLog.findMany({
       where: {
         userId: req.query.userId as string | undefined,
         entityType: req.query.entityType as string | undefined,
@@ -43,7 +43,7 @@ router.get(
   [param("id").isString(), validateRequest],
   asyncHandler(async (req, res) => {
     const id = req.params.id as string;
-    const log = await prisma.auditLog.findUniqueOrThrow({
+    const log = await prisma.activityLog.findUniqueOrThrow({
       where: { id },
       include: {
         user: {

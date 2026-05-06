@@ -237,7 +237,7 @@ export type UserWhereInput = {
   zone?: Prisma.XOR<Prisma.ZoneNullableScalarRelationFilter, Prisma.ZoneWhereInput> | null
   council?: Prisma.XOR<Prisma.CouncilNullableScalarRelationFilter, Prisma.CouncilWhereInput> | null
   supervisedZone?: Prisma.XOR<Prisma.ZoneNullableScalarRelationFilter, Prisma.ZoneWhereInput> | null
-  auditLogs?: Prisma.AuditLogListRelationFilter
+  activityLogs?: Prisma.ActivityLogListRelationFilter
   passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }
 
@@ -257,7 +257,7 @@ export type UserOrderByWithRelationInput = {
   zone?: Prisma.ZoneOrderByWithRelationInput
   council?: Prisma.CouncilOrderByWithRelationInput
   supervisedZone?: Prisma.ZoneOrderByWithRelationInput
-  auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
+  activityLogs?: Prisma.ActivityLogOrderByRelationAggregateInput
   passwordResetTokens?: Prisma.PasswordResetTokenOrderByRelationAggregateInput
 }
 
@@ -280,7 +280,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   zone?: Prisma.XOR<Prisma.ZoneNullableScalarRelationFilter, Prisma.ZoneWhereInput> | null
   council?: Prisma.XOR<Prisma.CouncilNullableScalarRelationFilter, Prisma.CouncilWhereInput> | null
   supervisedZone?: Prisma.XOR<Prisma.ZoneNullableScalarRelationFilter, Prisma.ZoneWhereInput> | null
-  auditLogs?: Prisma.AuditLogListRelationFilter
+  activityLogs?: Prisma.ActivityLogListRelationFilter
   passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }, "id" | "email">
 
@@ -334,7 +334,7 @@ export type UserCreateInput = {
   zone?: Prisma.ZoneCreateNestedOneWithoutUsersInput
   council?: Prisma.CouncilCreateNestedOneWithoutUsersInput
   supervisedZone?: Prisma.ZoneCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
@@ -352,7 +352,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   supervisedZone?: Prisma.ZoneUncheckedCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -370,7 +370,7 @@ export type UserUpdateInput = {
   zone?: Prisma.ZoneUpdateOneWithoutUsersNestedInput
   council?: Prisma.CouncilUpdateOneWithoutUsersNestedInput
   supervisedZone?: Prisma.ZoneUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -388,7 +388,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supervisedZone?: Prisma.ZoneUncheckedUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -649,20 +649,20 @@ export type UserUncheckedUpdateManyWithoutCouncilNestedInput = {
   deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
-export type UserCreateNestedOneWithoutAuditLogsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
+export type UserCreateNestedOneWithoutActivityLogsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutActivityLogsInput, Prisma.UserUncheckedCreateWithoutActivityLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutActivityLogsInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneWithoutAuditLogsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogsInput
-  upsert?: Prisma.UserUpsertWithoutAuditLogsInput
+export type UserUpdateOneWithoutActivityLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutActivityLogsInput, Prisma.UserUncheckedCreateWithoutActivityLogsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutActivityLogsInput
+  upsert?: Prisma.UserUpsertWithoutActivityLogsInput
   disconnect?: Prisma.UserWhereInput | boolean
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.UserUpdateWithoutAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutActivityLogsInput, Prisma.UserUpdateWithoutActivityLogsInput>, Prisma.UserUncheckedUpdateWithoutActivityLogsInput>
 }
 
 export type UserCreateWithoutPasswordResetTokensInput = {
@@ -679,7 +679,7 @@ export type UserCreateWithoutPasswordResetTokensInput = {
   zone?: Prisma.ZoneCreateNestedOneWithoutUsersInput
   council?: Prisma.CouncilCreateNestedOneWithoutUsersInput
   supervisedZone?: Prisma.ZoneCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
@@ -696,7 +696,7 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   supervisedZone?: Prisma.ZoneUncheckedCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
@@ -729,7 +729,7 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
   zone?: Prisma.ZoneUpdateOneWithoutUsersNestedInput
   council?: Prisma.CouncilUpdateOneWithoutUsersNestedInput
   supervisedZone?: Prisma.ZoneUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
@@ -746,7 +746,7 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supervisedZone?: Prisma.ZoneUncheckedUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSupervisedZoneInput = {
@@ -762,7 +762,7 @@ export type UserCreateWithoutSupervisedZoneInput = {
   updatedAt?: Date | string
   zone?: Prisma.ZoneCreateNestedOneWithoutUsersInput
   council?: Prisma.CouncilCreateNestedOneWithoutUsersInput
-  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
@@ -779,7 +779,7 @@ export type UserUncheckedCreateWithoutSupervisedZoneInput = {
   specialisations?: Prisma.UserCreatespecialisationsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
-  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -801,7 +801,7 @@ export type UserCreateWithoutZoneInput = {
   updatedAt?: Date | string
   council?: Prisma.CouncilCreateNestedOneWithoutUsersInput
   supervisedZone?: Prisma.ZoneCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
@@ -818,7 +818,7 @@ export type UserUncheckedCreateWithoutZoneInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   supervisedZone?: Prisma.ZoneUncheckedCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -856,7 +856,7 @@ export type UserUpdateWithoutSupervisedZoneInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   zone?: Prisma.ZoneUpdateOneWithoutUsersNestedInput
   council?: Prisma.CouncilUpdateOneWithoutUsersNestedInput
-  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -873,7 +873,7 @@ export type UserUncheckedUpdateWithoutSupervisedZoneInput = {
   specialisations?: Prisma.UserUpdatespecialisationsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -924,7 +924,7 @@ export type UserCreateWithoutCouncilInput = {
   updatedAt?: Date | string
   zone?: Prisma.ZoneCreateNestedOneWithoutUsersInput
   supervisedZone?: Prisma.ZoneCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
@@ -941,7 +941,7 @@ export type UserUncheckedCreateWithoutCouncilInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   supervisedZone?: Prisma.ZoneUncheckedCreateNestedOneWithoutSupervisorInput
-  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -971,7 +971,7 @@ export type UserUpdateManyWithWhereWithoutCouncilInput = {
   data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutCouncilInput>
 }
 
-export type UserCreateWithoutAuditLogsInput = {
+export type UserCreateWithoutActivityLogsInput = {
   id?: string
   name: string
   email: string
@@ -988,7 +988,7 @@ export type UserCreateWithoutAuditLogsInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutAuditLogsInput = {
+export type UserUncheckedCreateWithoutActivityLogsInput = {
   id?: string
   name: string
   email: string
@@ -1005,23 +1005,23 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
-export type UserCreateOrConnectWithoutAuditLogsInput = {
+export type UserCreateOrConnectWithoutActivityLogsInput = {
   where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutActivityLogsInput, Prisma.UserUncheckedCreateWithoutActivityLogsInput>
 }
 
-export type UserUpsertWithoutAuditLogsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogsInput, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogsInput, Prisma.UserUncheckedCreateWithoutAuditLogsInput>
+export type UserUpsertWithoutActivityLogsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutActivityLogsInput, Prisma.UserUncheckedUpdateWithoutActivityLogsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutActivityLogsInput, Prisma.UserUncheckedCreateWithoutActivityLogsInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutAuditLogsInput = {
+export type UserUpdateToOneWithWhereWithoutActivityLogsInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogsInput, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutActivityLogsInput, Prisma.UserUncheckedUpdateWithoutActivityLogsInput>
 }
 
-export type UserUpdateWithoutAuditLogsInput = {
+export type UserUpdateWithoutActivityLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1038,7 +1038,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutAuditLogsInput = {
+export type UserUncheckedUpdateWithoutActivityLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1082,7 +1082,7 @@ export type UserUpdateWithoutZoneInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   council?: Prisma.CouncilUpdateOneWithoutUsersNestedInput
   supervisedZone?: Prisma.ZoneUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -1099,7 +1099,7 @@ export type UserUncheckedUpdateWithoutZoneInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supervisedZone?: Prisma.ZoneUncheckedUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -1144,7 +1144,7 @@ export type UserUpdateWithoutCouncilInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   zone?: Prisma.ZoneUpdateOneWithoutUsersNestedInput
   supervisedZone?: Prisma.ZoneUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -1161,7 +1161,7 @@ export type UserUncheckedUpdateWithoutCouncilInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supervisedZone?: Prisma.ZoneUncheckedUpdateOneWithoutSupervisorNestedInput
-  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -1185,12 +1185,12 @@ export type UserUncheckedUpdateManyWithoutCouncilInput = {
  */
 
 export type UserCountOutputType = {
-  auditLogs: number
+  activityLogs: number
   passwordResetTokens: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
+  activityLogs?: boolean | UserCountOutputTypeCountActivityLogsArgs
   passwordResetTokens?: boolean | UserCountOutputTypeCountPasswordResetTokensArgs
 }
 
@@ -1207,8 +1207,8 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AuditLogWhereInput
+export type UserCountOutputTypeCountActivityLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ActivityLogWhereInput
 }
 
 /**
@@ -1235,7 +1235,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   zone?: boolean | Prisma.User$zoneArgs<ExtArgs>
   council?: boolean | Prisma.User$councilArgs<ExtArgs>
   supervisedZone?: boolean | Prisma.User$supervisedZoneArgs<ExtArgs>
-  auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  activityLogs?: boolean | Prisma.User$activityLogsArgs<ExtArgs>
   passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -1294,7 +1294,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   zone?: boolean | Prisma.User$zoneArgs<ExtArgs>
   council?: boolean | Prisma.User$councilArgs<ExtArgs>
   supervisedZone?: boolean | Prisma.User$supervisedZoneArgs<ExtArgs>
-  auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  activityLogs?: boolean | Prisma.User$activityLogsArgs<ExtArgs>
   passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1313,7 +1313,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     zone: Prisma.$ZonePayload<ExtArgs> | null
     council: Prisma.$CouncilPayload<ExtArgs> | null
     supervisedZone: Prisma.$ZonePayload<ExtArgs> | null
-    auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+    activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
     passwordResetTokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1726,7 +1726,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   zone<T extends Prisma.User$zoneArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$zoneArgs<ExtArgs>>): Prisma.Prisma__ZoneClient<runtime.Types.Result.GetResult<Prisma.$ZonePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   council<T extends Prisma.User$councilArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$councilArgs<ExtArgs>>): Prisma.Prisma__CouncilClient<runtime.Types.Result.GetResult<Prisma.$CouncilPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   supervisedZone<T extends Prisma.User$supervisedZoneArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supervisedZoneArgs<ExtArgs>>): Prisma.Prisma__ZoneClient<runtime.Types.Result.GetResult<Prisma.$ZonePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  activityLogs<T extends Prisma.User$activityLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwordResetTokens<T extends Prisma.User$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2227,27 +2227,27 @@ export type User$supervisedZoneArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
- * User.auditLogs
+ * User.activityLogs
  */
-export type User$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$activityLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the AuditLog
+   * Select specific fields to fetch from the ActivityLog
    */
-  select?: Prisma.AuditLogSelect<ExtArgs> | null
+  select?: Prisma.ActivityLogSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the AuditLog
+   * Omit specific fields from the ActivityLog
    */
-  omit?: Prisma.AuditLogOmit<ExtArgs> | null
+  omit?: Prisma.ActivityLogOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.AuditLogInclude<ExtArgs> | null
-  where?: Prisma.AuditLogWhereInput
-  orderBy?: Prisma.AuditLogOrderByWithRelationInput | Prisma.AuditLogOrderByWithRelationInput[]
-  cursor?: Prisma.AuditLogWhereUniqueInput
+  include?: Prisma.ActivityLogInclude<ExtArgs> | null
+  where?: Prisma.ActivityLogWhereInput
+  orderBy?: Prisma.ActivityLogOrderByWithRelationInput | Prisma.ActivityLogOrderByWithRelationInput[]
+  cursor?: Prisma.ActivityLogWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
+  distinct?: Prisma.ActivityLogScalarFieldEnum | Prisma.ActivityLogScalarFieldEnum[]
 }
 
 /**

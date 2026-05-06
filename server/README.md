@@ -12,7 +12,7 @@ Implemented foundation:
 - `@prisma/adapter-pg` direct database adapter for runtime access
 - JWT login and authenticated `/auth/me`
 - Password reset token flow
-- User, role, zone, council, and audit trail endpoints
+- User, role, zone, council, and activity endpoints
 - Role-based middleware
 - Request validation middleware
 - Central error handling

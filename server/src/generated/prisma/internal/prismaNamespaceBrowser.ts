@@ -55,7 +55,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Zone: 'Zone',
   Council: 'Council',
-  AuditLog: 'AuditLog'
+  ActivityLog: 'ActivityLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -132,7 +132,7 @@ export const CouncilScalarFieldEnum = {
 export type CouncilScalarFieldEnum = (typeof CouncilScalarFieldEnum)[keyof typeof CouncilScalarFieldEnum]
 
 
-export const AuditLogScalarFieldEnum = {
+export const ActivityLogScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   action: 'action',
@@ -144,7 +144,7 @@ export const AuditLogScalarFieldEnum = {
   createdAt: 'createdAt'
 } as const
 
-export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
 
 
 export const SortOrder = {

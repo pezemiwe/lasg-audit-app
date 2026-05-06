@@ -15,7 +15,7 @@ import {
   verifyPasswordResetToken,
 } from "../utils/auth";
 import { serializeUser } from "../serializers/userSerializer";
-import { writeAuditLog } from "../services/auditLogService";
+import { writeActivityLog } from "../services/activityLogService";
 import { sendSuccess } from "../utils/apiResponse";
 
 const router = Router();
@@ -48,7 +48,7 @@ router.post(
     });
 
     req.user = { id: user.id, email: user.email, role: user.role };
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "AUTH_LOGIN",
       entityType: "User",
@@ -98,7 +98,7 @@ router.post(
         expiresAt: getJwtExpirationDate(resetToken),
       },
     });
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "AUTH_PASSWORD_RESET_REQUEST",
       entityType: "User",
@@ -152,7 +152,7 @@ router.post(
     });
 
     req.user = { id: user.id, email: user.email, role: user.role };
-    await writeAuditLog({
+    await writeActivityLog({
       req,
       action: "AUTH_PASSWORD_RESET_COMPLETE",
       entityType: "User",
