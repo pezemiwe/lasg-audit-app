@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import jwt, { type SignOptions } from "jsonwebtoken";
-import type { Role } from "../generated/prisma/client";
-import { env } from "../config/env";
+import type { Role } from "../../generated/prisma/client";
+import { env } from "../../config/env";
 
 export interface AccessTokenPayload {
   sub: string;

@@ -4,7 +4,7 @@ export const openApiDocument = {
     title: "LASG Audit Automation Platform API",
     version: "0.1.0",
     description:
-      "Phase 1 backend API for authentication, users, roles, zones, councils, and audit trail.",
+      "Phase 1 backend API for authentication, users, roles, zones, councils, and activity.",
   },
   servers: [
     {
@@ -18,7 +18,7 @@ export const openApiDocument = {
     { name: "Roles" },
     { name: "Zones" },
     { name: "Councils" },
-    { name: "Audit Trail" },
+    { name: "Activity" },
     { name: "Health" },
   ],
   components: {
@@ -94,7 +94,7 @@ export const openApiDocument = {
           updatedAt: { type: "string", format: "date-time" },
         },
       },
-      AuditLog: {
+      ActivityLog: {
         type: "object",
         properties: {
           id: { type: "string" },
@@ -543,10 +543,10 @@ export const openApiDocument = {
         },
       },
     },
-    "/audit-trail": {
+    "/activity": {
       get: {
-        tags: ["Audit Trail"],
-        summary: "List audit trail entries",
+        tags: ["Activity"],
+        summary: "List activity entries",
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: "userId", in: "query", schema: { type: "string" } },
@@ -560,7 +560,7 @@ export const openApiDocument = {
               "application/json": {
                 schema: {
                   type: "array",
-                  items: { $ref: "#/components/schemas/AuditLog" },
+                  items: { $ref: "#/components/schemas/ActivityLog" },
                 },
               },
             },
@@ -569,10 +569,10 @@ export const openApiDocument = {
         },
       },
     },
-    "/audit-trail/{id}": {
+    "/activity/{id}": {
       get: {
-        tags: ["Audit Trail"],
-        summary: "Get audit trail entry by ID",
+        tags: ["Activity"],
+        summary: "Get activity entry by ID",
         security: [{ bearerAuth: [] }],
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
