@@ -16,6 +16,7 @@ import {
 } from "./mandates.controller";
 import {
   createMandateValidator,
+  listMandatesValidator,
   mandateIdValidator,
   updateMandateValidator,
 } from "./mandates.validators";
@@ -34,6 +35,7 @@ router.get(
     "TEAM_AUDITOR",
     "HEAD_OF_LOCAL_GOVERNMENT",
   ),
+  listMandatesValidator,
   asyncHandler(listMandatesController),
 );
 router.post(

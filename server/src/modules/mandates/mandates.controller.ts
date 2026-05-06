@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { MandateStatus } from "../../generated/prisma/client";
 import { sendSuccess } from "../../common/responses/apiResponse";
 import { writeActivityLog } from "../activity/activity.service";
 import {
@@ -9,7 +10,7 @@ import {
   getMandate,
   getMandateCompliance,
   listMandateCouncils,
-  listMandates,
+  listMandatesWithFilters,
   publishMandate,
   updateMandate,
 } from "./mandates.service";
@@ -23,7 +24,9 @@ function getSignatureUrl(file?: Express.Multer.File) {
 }
 
 export async function listMandatesController(req: Request, res: Response) {
-  const mandates = await listMandates(req.user!);
+  const mandates = await listMandatesWithFilters(req.user!, {
+    status: req.query.status as MandateStatus | undefined,
+  });
   sendSuccess(res, mandates);
 }
 

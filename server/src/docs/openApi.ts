@@ -582,6 +582,14 @@ export const openApiDocument = {
         tags: ["Mandates"],
         summary: "List mandates visible to the authenticated user",
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "status",
+            in: "query",
+            schema: { $ref: "#/components/schemas/MandateStatus" },
+            example: "PUBLISHED",
+          },
+        ],
         responses: {
           "200": {
             description: "Mandates",

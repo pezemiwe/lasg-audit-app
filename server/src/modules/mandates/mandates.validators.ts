@@ -1,6 +1,6 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 import { validateRequest } from "../../common/middleware/validateRequest";
-import { auditTypeValues } from "./mandates.service";
+import { auditTypeValues, mandateStatusValues } from "./mandates.service";
 
 function parseArray(value: unknown) {
   if (Array.isArray(value)) {
@@ -70,6 +70,14 @@ export const createMandateValidator = [
     }
     return true;
   }),
+  validateRequest,
+];
+
+export const listMandatesValidator = [
+  query("status")
+    .optional()
+    .isIn(mandateStatusValues)
+    .withMessage(`status must be one of: ${mandateStatusValues.join(", ")}`),
   validateRequest,
 ];
 
