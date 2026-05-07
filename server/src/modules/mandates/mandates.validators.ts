@@ -138,7 +138,7 @@ export const rejectMandateValidator = [
 
 export const listMandateAcceptanceValidator = [
   param("id").isString().notEmpty().withMessage("mandate id is required"),
-  query("status")
+  query("acceptanceStatus")
     .optional()
     .custom((value) => {
       const normalizedStatus = normalizeMandateCouncilStatus(String(value));

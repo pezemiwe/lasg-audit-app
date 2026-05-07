@@ -776,9 +776,10 @@ export const openApiDocument = {
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
           {
-            name: "status",
+            name: "acceptanceStatus",
             in: "query",
             schema: { $ref: "#/components/schemas/MandateCouncilStatus" },
+            description: "Defaults to ACCEPTED when omitted.",
             examples: {
               accepted: { value: "ACCEPTED" },
               pending: { value: "PENDING" },

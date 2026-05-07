@@ -151,7 +151,7 @@ export async function completeMandateController(req: Request, res: Response) {
 
 export async function listMandateCouncilsController(req: Request, res: Response) {
   const councils = await listMandateCouncils(req.params.id as string, req.user!, {
-    status: req.query.status as MandateCouncilStatus | undefined,
+    status: (req.query.acceptanceStatus as MandateCouncilStatus | undefined) ?? "ACCEPTED",
   });
   sendSuccess(res, councils);
 }
