@@ -1,5 +1,6 @@
 import type {
   AuditType,
+  MandateCouncilStatus,
   MandateStatus,
   MandateTargetMode,
   Prisma,
@@ -14,6 +15,9 @@ const mandateInclude = {
     include: {
       council: true,
       acceptedBy: {
+        select: { id: true, name: true, email: true, role: true },
+      },
+      rejectedBy: {
         select: { id: true, name: true, email: true, role: true },
       },
     },
@@ -155,12 +159,18 @@ export function acceptMandate(id: string, councilId: string, acceptedById: strin
         status: "ACCEPTED",
         acceptedById,
         acceptedAt: now,
+        rejectedById: null,
+        rejectedAt: null,
+        rejectionReason: null,
         documentPortalUnlockedAt: now,
         questionnaireUnlockedAt: now,
       },
       include: {
         council: true,
         acceptedBy: {
+          select: { id: true, name: true, email: true, role: true },
+        },
+        rejectedBy: {
           select: { id: true, name: true, email: true, role: true },
         },
       },
@@ -173,6 +183,49 @@ export function acceptMandate(id: string, councilId: string, acceptedById: strin
     });
 
     return { ...accepted, mandate };
+  });
+}
+
+export function rejectMandate(
+  id: string,
+  councilId: string,
+  rejectedById: string,
+  rejectionReason?: string,
+) {
+  const now = new Date();
+
+  return prisma.mandateCouncil.update({
+    where: {
+      mandateId_councilId: {
+        mandateId: id,
+        councilId,
+      },
+    },
+    data: {
+      status: "REJECTED",
+      rejectedById,
+      rejectedAt: now,
+      rejectionReason,
+    },
+    include: {
+      mandate: {
+        select: {
+          id: true,
+          title: true,
+          year: true,
+          status: true,
+          targetMode: true,
+          publishedAt: true,
+        },
+      },
+      council: true,
+      acceptedBy: {
+        select: { id: true, name: true, email: true, role: true },
+      },
+      rejectedBy: {
+        select: { id: true, name: true, email: true, role: true },
+      },
+    },
   });
 }
 
@@ -192,6 +245,9 @@ export function listMandateCouncils(id: string, where?: Prisma.MandateCouncilWhe
       acceptedBy: {
         select: { id: true, name: true, email: true, role: true },
       },
+      rejectedBy: {
+        select: { id: true, name: true, email: true, role: true },
+      },
     },
     orderBy: { createdAt: "asc" },
   });
@@ -208,6 +264,8 @@ export function getMandateCouncilCounts(id: string, where?: Prisma.MandateCounci
 export function countMandateCouncils(id: string, where?: Prisma.MandateCouncilWhereInput) {
   return prisma.mandateCouncil.count({ where: { mandateId: id, ...where } });
 }
+
+export type MandateCouncilStatusValue = MandateCouncilStatus;
 
 export function listCouncilIds(ids?: string[]) {
   return prisma.council.findMany({

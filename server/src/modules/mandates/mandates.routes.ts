@@ -7,17 +7,20 @@ import {
   completeMandateController,
   createMandateController,
   deleteMandateController,
-  getMandateComplianceController,
+  getMandateAcceptanceSummaryController,
   getMandateController,
   listMandateCouncilsController,
   listMandatesController,
   publishMandateController,
+  rejectMandateController,
   updateMandateController,
 } from "./mandates.controller";
 import {
   createMandateValidator,
+  listMandateAcceptanceValidator,
   listMandatesValidator,
   mandateIdValidator,
+  rejectMandateValidator,
   updateMandateValidator,
 } from "./mandates.validators";
 
@@ -84,10 +87,35 @@ router.patch(
   asyncHandler(acceptMandateController),
 );
 router.patch(
+  "/:id/reject",
+  requireRoles("HEAD_OF_LOCAL_GOVERNMENT"),
+  rejectMandateValidator,
+  asyncHandler(rejectMandateController),
+);
+router.patch(
   "/:id/complete",
   requireRoles("STATE_AUDITOR_GENERAL"),
   mandateIdValidator,
   asyncHandler(completeMandateController),
+);
+router.get(
+  "/:id/acceptance/summary",
+  requireRoles("STATE_AUDITOR_GENERAL", "AUDIT_SUPERVISOR", "AUDIT_LEAD"),
+  mandateIdValidator,
+  asyncHandler(getMandateAcceptanceSummaryController),
+);
+router.get(
+  "/:id/acceptance",
+  requireRoles(
+    "SYSTEM_ADMIN",
+    "STATE_AUDITOR_GENERAL",
+    "AUDIT_SUPERVISOR",
+    "AUDIT_LEAD",
+    "TEAM_AUDITOR",
+    "HEAD_OF_LOCAL_GOVERNMENT",
+  ),
+  listMandateAcceptanceValidator,
+  asyncHandler(listMandateCouncilsController),
 );
 router.get(
   "/:id/councils",
@@ -101,12 +129,6 @@ router.get(
   ),
   mandateIdValidator,
   asyncHandler(listMandateCouncilsController),
-);
-router.get(
-  "/:id/compliance",
-  requireRoles("STATE_AUDITOR_GENERAL", "AUDIT_SUPERVISOR", "AUDIT_LEAD"),
-  mandateIdValidator,
-  asyncHandler(getMandateComplianceController),
 );
 
 export default router;

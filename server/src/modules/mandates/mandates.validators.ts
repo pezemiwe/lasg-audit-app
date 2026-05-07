@@ -1,6 +1,11 @@
 import { body, param, query } from "express-validator";
 import { validateRequest } from "../../common/middleware/validateRequest";
-import { auditTypeValues, mandateStatusValues } from "./mandates.service";
+import {
+  auditTypeValues,
+  mandateCouncilStatusValues,
+  mandateStatusValues,
+  normalizeMandateCouncilStatus,
+} from "./mandates.service";
 
 function parseArray(value: unknown) {
   if (Array.isArray(value)) {
@@ -122,5 +127,21 @@ export const updateMandateValidator = [
 
 export const mandateIdValidator = [
   param("id").isString().notEmpty().withMessage("mandate id is required"),
+  validateRequest,
+];
+
+export const rejectMandateValidator = [
+  param("id").isString().notEmpty().withMessage("mandate id is required"),
+  body("rejectionReason").optional().isString().trim().isLength({ max: 1000 }),
+  validateRequest,
+];
+
+export const listMandateAcceptanceValidator = [
+  param("id").isString().notEmpty().withMessage("mandate id is required"),
+  query("status")
+    .optional()
+    .customSanitizer((value) => normalizeMandateCouncilStatus(String(value)))
+    .isIn(mandateCouncilStatusValues)
+    .withMessage(`status must be one of: ${mandateCouncilStatusValues.join(", ")}`),
   validateRequest,
 ];

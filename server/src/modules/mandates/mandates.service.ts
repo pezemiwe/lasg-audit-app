@@ -1,11 +1,17 @@
 import type { Role } from "../../generated/prisma/client";
-import { AuditType, MandateStatus, MandateTargetMode } from "../../generated/prisma/client";
+import {
+  AuditType,
+  MandateCouncilStatus,
+  MandateStatus,
+  MandateTargetMode,
+} from "../../generated/prisma/client";
 import { HttpError } from "../../common/errors/httpError";
 import { serializeMandate } from "./mandates.serializer";
 import * as mandatesRepository from "./mandates.repository";
 
 export const auditTypeValues = Object.values(AuditType);
 export const mandateStatusValues = Object.values(MandateStatus);
+export const mandateCouncilStatusValues = Object.values(MandateCouncilStatus);
 
 type AuthUser = {
   id: string;
@@ -14,6 +20,10 @@ type AuthUser = {
 
 type ListMandatesFilters = {
   status?: MandateStatus;
+};
+
+type ListMandateAcceptanceFilters = {
+  status?: MandateCouncilStatus;
 };
 
 type MandateInput = {
@@ -61,6 +71,22 @@ function parseDate(value: string, fieldName: string) {
   }
 
   return date;
+}
+
+export function normalizeMandateCouncilStatus(value?: string) {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.trim().toUpperCase();
+  const aliases: Record<string, MandateCouncilStatus> = {
+    PENDING: "PENDING",
+    PENDING_ACCEPTANCE: "PENDING",
+    ACCEPTED: "ACCEPTED",
+    REJECTED: "REJECTED",
+  };
+
+  return aliases[normalized];
 }
 
 function getVisibilityWhere(scope: Awaited<ReturnType<typeof mandatesRepository.getUserScope>>) {
@@ -271,17 +297,75 @@ export async function acceptMandate(id: string, user: AuthUser) {
   });
   const target = mandate.councils?.find((item) => item.councilId === scope.councilId);
 
-  if (target?.status === "ACCEPTED") {
-    throw new HttpError(409, "Mandate has already been accepted for this council");
+  if (target?.status !== "PENDING") {
+    throw new HttpError(409, "Mandate has already been responded to for this council");
   }
 
   const accepted = await mandatesRepository.acceptMandate(id, scope.councilId, user.id);
   return {
-    mandate: serializeMandate(accepted.mandate),
+    id: accepted.id,
+    mandateId: accepted.mandateId,
+    councilId: accepted.councilId,
+    status: accepted.status,
+    mandate: {
+      id: accepted.mandate.id,
+      title: accepted.mandate.title,
+      year: accepted.mandate.year,
+      status: accepted.mandate.status,
+      targetMode: accepted.mandate.targetMode,
+      publishedAt: accepted.mandate.publishedAt,
+    },
     council: accepted.council,
+    acceptedBy: accepted.acceptedBy,
+    rejectedBy: accepted.rejectedBy,
     acceptedAt: accepted.acceptedAt,
+    rejectedAt: accepted.rejectedAt,
+    rejectionReason: accepted.rejectionReason,
     documentPortalUnlockedAt: accepted.documentPortalUnlockedAt,
     questionnaireUnlockedAt: accepted.questionnaireUnlockedAt,
+  };
+}
+
+export async function rejectMandate(id: string, user: AuthUser, rejectionReason?: string) {
+  const scope = await mandatesRepository.getUserScope(user.id);
+
+  if (!scope.councilId) {
+    throw new HttpError(403, "User is not assigned to a council");
+  }
+
+  const mandate = await mandatesRepository.getMandateById(id, {
+    status: { in: ["PUBLISHED", "ACTIVE"] },
+    councils: {
+      some: { councilId: scope.councilId },
+    },
+  });
+  const target = mandate.councils?.find((item) => item.councilId === scope.councilId);
+
+  if (target?.status !== "PENDING") {
+    throw new HttpError(409, "Mandate has already been responded to for this council");
+  }
+
+  const rejected = await mandatesRepository.rejectMandate(
+    id,
+    scope.councilId,
+    user.id,
+    rejectionReason,
+  );
+
+  return {
+    id: rejected.id,
+    mandateId: rejected.mandateId,
+    councilId: rejected.councilId,
+    status: rejected.status,
+    mandate: rejected.mandate,
+    council: rejected.council,
+    acceptedBy: rejected.acceptedBy,
+    rejectedBy: rejected.rejectedBy,
+    acceptedAt: rejected.acceptedAt,
+    rejectedAt: rejected.rejectedAt,
+    rejectionReason: rejected.rejectionReason,
+    documentPortalUnlockedAt: rejected.documentPortalUnlockedAt,
+    questionnaireUnlockedAt: rejected.questionnaireUnlockedAt,
   };
 }
 
@@ -296,13 +380,20 @@ export async function completeMandate(id: string) {
   return serializeMandate(mandate);
 }
 
-export async function listMandateCouncils(id: string, user: AuthUser) {
+export async function listMandateCouncils(
+  id: string,
+  user: AuthUser,
+  filters: ListMandateAcceptanceFilters = {},
+) {
   const scope = await mandatesRepository.getUserScope(user.id);
   await mandatesRepository.getMandateById(id, getVisibilityWhere(scope));
-  return mandatesRepository.listMandateCouncils(id, getCouncilVisibilityWhere(scope));
+  return mandatesRepository.listMandateCouncils(id, {
+    ...getCouncilVisibilityWhere(scope),
+    status: filters.status,
+  });
 }
 
-export async function getMandateCompliance(id: string, user: AuthUser) {
+export async function getMandateAcceptanceSummary(id: string, user: AuthUser) {
   const scope = await mandatesRepository.getUserScope(user.id);
   await mandatesRepository.getMandateById(id, getVisibilityWhere(scope));
 
@@ -313,14 +404,20 @@ export async function getMandateCompliance(id: string, user: AuthUser) {
   ]);
   const acceptedCouncils =
     grouped.find((item) => item.status === "ACCEPTED")?._count.status ?? 0;
-  const pendingCouncils = totalCouncils - acceptedCouncils;
+  const rejectedCouncils =
+    grouped.find((item) => item.status === "REJECTED")?._count.status ?? 0;
+  const pendingCouncils =
+    grouped.find((item) => item.status === "PENDING")?._count.status ?? 0;
 
   return {
     mandateId: id,
     totalCouncils,
     acceptedCouncils,
+    rejectedCouncils,
     pendingCouncils,
     acceptanceRate:
       totalCouncils === 0 ? 0 : Number(((acceptedCouncils / totalCouncils) * 100).toFixed(2)),
+    rejectionRate:
+      totalCouncils === 0 ? 0 : Number(((rejectedCouncils / totalCouncils) * 100).toFixed(2)),
   };
 }

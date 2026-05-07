@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import type { MandateStatus } from "../../generated/prisma/client";
+import type { MandateCouncilStatus, MandateStatus } from "../../generated/prisma/client";
 import { sendSuccess } from "../../common/responses/apiResponse";
 import { writeActivityLog } from "../activity/activity.service";
 import {
@@ -8,10 +8,11 @@ import {
   createMandate,
   deleteMandate,
   getMandate,
-  getMandateCompliance,
+  getMandateAcceptanceSummary,
   listMandateCouncils,
   listMandatesWithFilters,
   publishMandate,
+  rejectMandate,
   updateMandate,
 } from "./mandates.service";
 
@@ -116,6 +117,25 @@ export async function acceptMandateController(req: Request, res: Response) {
   sendSuccess(res, mandateAcceptance);
 }
 
+export async function rejectMandateController(req: Request, res: Response) {
+  const mandateId = req.params.id as string;
+  const mandateRejection = await rejectMandate(
+    mandateId,
+    req.user!,
+    req.body.rejectionReason as string | undefined,
+  );
+
+  await writeActivityLog({
+    req,
+    action: "MANDATE_REJECTED",
+    entityType: "Mandate",
+    entityId: mandateId,
+    details: { councilId: mandateRejection.councilId },
+  });
+
+  sendSuccess(res, mandateRejection);
+}
+
 export async function completeMandateController(req: Request, res: Response) {
   const mandate = await completeMandate(req.params.id as string);
 
@@ -130,11 +150,13 @@ export async function completeMandateController(req: Request, res: Response) {
 }
 
 export async function listMandateCouncilsController(req: Request, res: Response) {
-  const councils = await listMandateCouncils(req.params.id as string, req.user!);
+  const councils = await listMandateCouncils(req.params.id as string, req.user!, {
+    status: req.query.status as MandateCouncilStatus | undefined,
+  });
   sendSuccess(res, councils);
 }
 
-export async function getMandateComplianceController(req: Request, res: Response) {
-  const compliance = await getMandateCompliance(req.params.id as string, req.user!);
-  sendSuccess(res, compliance);
+export async function getMandateAcceptanceSummaryController(req: Request, res: Response) {
+  const summary = await getMandateAcceptanceSummary(req.params.id as string, req.user!);
+  sendSuccess(res, summary);
 }

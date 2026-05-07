@@ -47,8 +47,9 @@ enum MandateTargetMode {
 }
 
 enum MandateCouncilStatus {
-  PENDING_ACCEPTANCE
+  PENDING
   ACCEPTED
+  REJECTED
 }
 
 model User {
@@ -72,6 +73,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   createdMandates    Mandate[] @relation("MandateCreatedBy")
   acceptedMandates   MandateCouncil[] @relation("MandateAcceptedBy")
+  rejectedMandates   MandateCouncil[] @relation("MandateRejectedBy")
 
   @@index([role])
   @@index([status])
@@ -161,9 +163,12 @@ model MandateCouncil {
   id                          String                @id @default(cuid())
   mandateId                   String
   councilId                   String
-  status                      MandateCouncilStatus  @default(PENDING_ACCEPTANCE)
+  status                      MandateCouncilStatus  @default(PENDING)
   acceptedById                String?
   acceptedAt                  DateTime?
+  rejectedById                String?
+  rejectedAt                  DateTime?
+  rejectionReason             String?
   documentPortalUnlockedAt    DateTime?
   questionnaireUnlockedAt     DateTime?
   createdAt                   DateTime              @default(now())
@@ -172,11 +177,13 @@ model MandateCouncil {
   mandate                    Mandate                @relation(fields: [mandateId], references: [id], onDelete: Cascade)
   council                    Council                @relation(fields: [councilId], references: [id], onDelete: Restrict)
   acceptedBy                 User?                  @relation("MandateAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+  rejectedBy                 User?                  @relation("MandateRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
 
   @@unique([mandateId, councilId])
   @@index([councilId])
   @@index([status])
   @@index([acceptedById])
+  @@index([rejectedById])
 }
 
 model ActivityLog {

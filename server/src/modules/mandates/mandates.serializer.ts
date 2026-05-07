@@ -6,6 +6,7 @@ type MandateWithRelations = Mandate & {
     MandateCouncil & {
       council?: Council;
       acceptedBy?: Pick<User, "id" | "name" | "email" | "role"> | null;
+      rejectedBy?: Pick<User, "id" | "name" | "email" | "role"> | null;
     }
   >;
 };
@@ -29,19 +30,25 @@ export function serializeMandate(mandate: MandateWithRelations) {
     publishedAt: mandate.publishedAt,
     createdAt: mandate.createdAt,
     updatedAt: mandate.updatedAt,
-    councils: mandate.councils?.map((target) => ({
-      id: target.id,
-      mandateId: target.mandateId,
-      councilId: target.councilId,
-      status: target.status,
-      acceptedById: target.acceptedById,
-      acceptedBy: target.acceptedBy,
-      acceptedAt: target.acceptedAt,
-      documentPortalUnlockedAt: target.documentPortalUnlockedAt,
-      questionnaireUnlockedAt: target.questionnaireUnlockedAt,
-      council: target.council,
-      createdAt: target.createdAt,
-      updatedAt: target.updatedAt,
-    })),
+    // Councils are intentionally omitted here. Use GET /mandates/:id/councils
+    // when the caller needs the targeted council list.
+    // councils: mandate.councils?.map((target) => ({
+    //   id: target.id,
+    //   mandateId: target.mandateId,
+    //   councilId: target.councilId,
+    //   status: target.status,
+    //   acceptedById: target.acceptedById,
+    //   acceptedBy: target.acceptedBy,
+    //   acceptedAt: target.acceptedAt,
+    //   rejectedById: target.rejectedById,
+    //   rejectedBy: target.rejectedBy,
+    //   rejectedAt: target.rejectedAt,
+    //   rejectionReason: target.rejectionReason,
+    //   documentPortalUnlockedAt: target.documentPortalUnlockedAt,
+    //   questionnaireUnlockedAt: target.questionnaireUnlockedAt,
+    //   council: target.council,
+    //   createdAt: target.createdAt,
+    //   updatedAt: target.updatedAt,
+    // })),
   };
 }

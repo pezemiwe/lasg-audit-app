@@ -67,8 +67,9 @@ export type MandateTargetMode = (typeof MandateTargetMode)[keyof typeof MandateT
 
 
 export const MandateCouncilStatus = {
-  PENDING_ACCEPTANCE: 'PENDING_ACCEPTANCE',
-  ACCEPTED: 'ACCEPTED'
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED'
 } as const
 
 export type MandateCouncilStatus = (typeof MandateCouncilStatus)[keyof typeof MandateCouncilStatus]

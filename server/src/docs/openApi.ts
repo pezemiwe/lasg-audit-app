@@ -62,6 +62,10 @@ export const openApiDocument = {
         type: "string",
         enum: ["ALL_COUNCILS", "SELECTED_COUNCILS"],
       },
+      MandateCouncilStatus: {
+        type: "string",
+        enum: ["PENDING", "ACCEPTED", "REJECTED"],
+      },
       User: {
         type: "object",
         properties: {
@@ -717,6 +721,30 @@ export const openApiDocument = {
         },
       },
     },
+    "/mandates/{id}/reject": {
+      patch: {
+        tags: ["Mandates"],
+        summary: "Reject mandate for HoLG council",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  rejectionReason: { type: "string", maxLength: 1000 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Rejected mandate" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
     "/mandates/{id}/complete": {
       patch: {
         tags: ["Mandates"],
@@ -740,14 +768,37 @@ export const openApiDocument = {
         },
       },
     },
-    "/mandates/{id}/compliance": {
+    "/mandates/{id}/acceptance": {
       get: {
         tags: ["Mandates"],
-        summary: "Get mandate acceptance compliance",
+        summary: "List mandate council acceptance records",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "status",
+            in: "query",
+            schema: { $ref: "#/components/schemas/MandateCouncilStatus" },
+            examples: {
+              accepted: { value: "ACCEPTED" },
+              pending: { value: "PENDING" },
+              rejected: { value: "REJECTED" },
+            },
+          },
+        ],
+        responses: {
+          "200": { description: "Mandate acceptance records" },
+        },
+      },
+    },
+    "/mandates/{id}/acceptance/summary": {
+      get: {
+        tags: ["Mandates"],
+        summary: "Get mandate acceptance summary",
         security: [{ bearerAuth: [] }],
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
-          "200": { description: "Mandate compliance summary" },
+          "200": { description: "Mandate acceptance summary" },
         },
       },
     },
