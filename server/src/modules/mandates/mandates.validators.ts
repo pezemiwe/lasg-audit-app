@@ -140,8 +140,20 @@ export const listMandateAcceptanceValidator = [
   param("id").isString().notEmpty().withMessage("mandate id is required"),
   query("status")
     .optional()
+    .custom((value) => {
+      const normalizedStatus = normalizeMandateCouncilStatus(String(value));
+
+      if (!normalizedStatus) {
+        throw new Error(
+          `Invalid mandate acceptance status "${value}". Use one of: ${mandateCouncilStatusValues.join(
+            ", ",
+          )}`,
+        );
+      }
+
+      return true;
+    })
     .customSanitizer((value) => normalizeMandateCouncilStatus(String(value)))
-    .isIn(mandateCouncilStatusValues)
-    .withMessage(`status must be one of: ${mandateCouncilStatusValues.join(", ")}`),
+    .isIn(mandateCouncilStatusValues),
   validateRequest,
 ];
