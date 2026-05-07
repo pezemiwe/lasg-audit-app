@@ -12,6 +12,7 @@ export const Role = {
 export const UserStatus = {
   ACTIVE: "ACTIVE",
   INACTIVE: "INACTIVE",
+  SUSPENDED: "SUSPENDED",
 } as const;
 
 export const CouncilType = {
@@ -21,18 +22,16 @@ export const CouncilType = {
 
 export const AuditType = {
   FINANCIAL: "FINANCIAL",
-  COMPLIANCE: "COMPLIANCE",
   PERFORMANCE: "PERFORMANCE",
-  IT: "IT",
-  FORENSIC: "FORENSIC",
+  COMPLIANCE: "COMPLIANCE",
+  COMBINED: "COMBINED",
 } as const;
 
 export const MandateStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
-  IN_PROGRESS: "IN_PROGRESS",
+  ACTIVE: "ACTIVE",
   COMPLETED: "COMPLETED",
-  CANCELLED: "CANCELLED",
 } as const;
 
 export const MandateTargetMode = {
