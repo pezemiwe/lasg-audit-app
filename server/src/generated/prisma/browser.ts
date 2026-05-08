@@ -38,6 +38,16 @@ export type Zone = Prisma.ZoneModel
  */
 export type Council = Prisma.CouncilModel
 /**
+ * Model Mandate
+ * 
+ */
+export type Mandate = Prisma.MandateModel
+/**
+ * Model MandateCouncil
+ * 
+ */
+export type MandateCouncil = Prisma.MandateCouncilModel
+/**
  * Model ActivityLog
  * 
  */

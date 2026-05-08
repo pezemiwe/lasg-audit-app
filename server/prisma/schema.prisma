@@ -27,6 +27,31 @@ enum CouncilType {
   LCDA
 }
 
+enum AuditType {
+  FINANCIAL
+  PERFORMANCE
+  COMPLIANCE
+  COMBINED
+}
+
+enum MandateStatus {
+  DRAFT
+  PUBLISHED
+  ACTIVE
+  COMPLETED
+}
+
+enum MandateTargetMode {
+  ALL_COUNCILS
+  SELECTED_COUNCILS
+}
+
+enum MandateCouncilStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id             String     @id @default(cuid())
   name           String
@@ -46,6 +71,9 @@ model User {
   supervisedZone Zone?      @relation("ZoneSupervisor")
   activityLogs      ActivityLog[]
   passwordResetTokens PasswordResetToken[]
+  createdMandates    Mandate[] @relation("MandateCreatedBy")
+  acceptedMandates   MandateCouncil[] @relation("MandateAcceptedBy")
+  rejectedMandates   MandateCouncil[] @relation("MandateRejectedBy")
 
   @@index([role])
   @@index([status])
@@ -97,10 +125,65 @@ model Council {
   parentLga    Council?    @relation("CouncilParent", fields: [parentLgaId], references: [id], onDelete: SetNull)
   lcdas        Council[]   @relation("CouncilParent")
   users        User[]      @relation("UserCouncil")
+  mandateTargets MandateCouncil[]
 
   @@index([zoneId])
   @@index([type])
   @@index([parentLgaId])
+}
+
+model Mandate {
+  id            String            @id @default(cuid())
+  title         String
+  year          Int
+  description   String
+  startDate     DateTime
+  endDate       DateTime
+  scope         String
+  objectives    String[]          @default([])
+  auditTypes    AuditType[]       @default([])
+  signatureUrl  String
+  targetMode    MandateTargetMode @default(ALL_COUNCILS)
+  status        MandateStatus     @default(DRAFT)
+  createdById   String
+  publishedAt   DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  createdBy     User              @relation("MandateCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  councils      MandateCouncil[]
+
+  @@index([year])
+  @@index([status])
+  @@index([targetMode])
+  @@index([createdById])
+}
+
+model MandateCouncil {
+  id                          String                @id @default(cuid())
+  mandateId                   String
+  councilId                   String
+  status                      MandateCouncilStatus  @default(PENDING)
+  acceptedById                String?
+  acceptedAt                  DateTime?
+  rejectedById                String?
+  rejectedAt                  DateTime?
+  rejectionReason             String?
+  documentPortalUnlockedAt    DateTime?
+  questionnaireUnlockedAt     DateTime?
+  createdAt                   DateTime              @default(now())
+  updatedAt                   DateTime              @updatedAt
+
+  mandate                    Mandate                @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  council                    Council                @relation(fields: [councilId], references: [id], onDelete: Restrict)
+  acceptedBy                 User?                  @relation("MandateAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+  rejectedBy                 User?                  @relation("MandateRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
+
+  @@unique([mandateId, councilId])
+  @@index([councilId])
+  @@index([status])
+  @@index([acceptedById])
+  @@index([rejectedById])
 }
 
 model ActivityLog {

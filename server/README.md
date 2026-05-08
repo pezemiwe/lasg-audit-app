@@ -12,7 +12,7 @@ Implemented foundation:
 - `@prisma/adapter-pg` direct database adapter for runtime access
 - JWT login and authenticated `/auth/me`
 - Password reset token flow
-- User, role, zone, council, and activity endpoints
+- User, role, zone, council, mandate, and activity endpoints
 - Role-based middleware
 - Request validation middleware
 - Central error handling
@@ -41,6 +41,7 @@ src/
     users/
     zones/
     councils/
+    mandates/
     activity/
     roles/
 ```
@@ -112,8 +113,8 @@ npx prisma validate
 
 ## Current Migration Notes
 
-After pulling changes that add password reset token tracking, create/apply a migration:
+After pulling changes that add mandate tracking, create/apply a migration:
 
 ```txt
-npm run prisma:migrate -- --name add_password_reset_tokens
+npm run prisma:migrate -- --name add_mandates
 ```
