@@ -15,7 +15,8 @@ export interface AuditType {
 
 export interface Zone {
   name: string;
-  lgas: string;
+  lgas: string[];
+  lcdas: string[];
   count: number;
   themeClass: string;
 }

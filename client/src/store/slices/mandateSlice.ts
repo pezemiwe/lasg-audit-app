@@ -41,24 +41,73 @@ const REQUIRED_DOCS = (
   dueDate: string,
 ): DocumentUpload[] => [
   {
-    id: `doc-${mandateId}-${lgaId}-1`,
+    id: `doc-${mandateId}-${lgaId}-16`,
     lgaId,
     mandateId,
-    documentName: "Annual Financial Statements",
+    documentName: "Financial Statements — Current Year (xlsx)",
     description:
-      "Complete audited or unaudited financial statements for the preceding 3 fiscal years",
-    requiredFormat: "PDF",
+      "Unaudited current year financial statements in Excel format (e.g. Unaudited_Financial_Statement_2026.xlsx)",
+    requiredFormat: "Excel",
     status: "Not Uploaded",
     version: 1,
     dueDate,
   },
   {
-    id: `doc-${mandateId}-${lgaId}-2`,
+    id: `doc-${mandateId}-${lgaId}-17`,
     lgaId,
     mandateId,
-    documentName: "Approved Budget",
-    description: "Current and preceding year approved budget documents",
-    requiredFormat: "PDF",
+    documentName: "Financial Statements — Prior Year (xlsx)",
+    description:
+      "Audited prior year financial statements in Excel format (e.g. Audited_Financial_Statement_2025.xlsx)",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 1,
+    dueDate,
+  },
+  {
+    id: `doc-${mandateId}-${lgaId}-18`,
+    lgaId,
+    mandateId,
+    documentName: "Trial Balance — Current Year (xlsx)",
+    description:
+      "Unaudited current year trial balance in Excel format (e.g. Unaudited_Trial_Balance_2026.xlsx)",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 1,
+    dueDate,
+  },
+  {
+    id: `doc-${mandateId}-${lgaId}-19`,
+    lgaId,
+    mandateId,
+    documentName: "Trial Balance — Prior Year (xlsx)",
+    description:
+      "Audited prior year trial balance in Excel format (e.g. Audited_Trial_Balance_2025.xlsx)",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 1,
+    dueDate,
+  },
+  {
+    id: `doc-${mandateId}-${lgaId}-20`,
+    lgaId,
+    mandateId,
+    documentName: "Approved Budget — Current Year (xlsx)",
+    description:
+      "Approved budget for the current fiscal year in Excel format (e.g. Approved_Budget_2026.xlsx)",
+    requiredFormat: "Excel",
+    status: "Not Uploaded",
+    version: 1,
+    dueDate,
+  },
+  {
+    id: `doc-${mandateId}-${lgaId}-21`,
+    lgaId,
+    mandateId,
+    documentName: "Approved Budget — Prior Year (xlsx)",
+    description:
+      "Approved budget for the prior fiscal year in Excel format (e.g. Approved_Budget_2025.xlsx)",
+    requiredFormat: "Excel",
     status: "Not Uploaded",
     version: 1,
     dueDate,
@@ -332,17 +381,20 @@ export function createMandateActions(set: SetFn, get: GetFn): MandateActions {
         const validExisting = existingDocs.filter((d) =>
           requiredNames.includes(d.documentName),
         );
-        const missing = allRequired.filter(
+        // Rebuild in REQUIRED_DOCS order so display order matches definition order
+        const orderedDocs = allRequired.map(
           (req) =>
-            !validExisting.some((ex) => ex.documentName === req.documentName),
+            validExisting.find((ex) => ex.documentName === req.documentName) ??
+            req,
         );
-        if (
-          missing.length === 0 &&
-          existingDocs.length === validExisting.length
-        )
-          return {};
+        const changed =
+          existingDocs.length !== orderedDocs.length ||
+          orderedDocs.some(
+            (d, i) => d.documentName !== existingDocs[i]?.documentName,
+          );
+        if (!changed) return {};
         return {
-          documentUploads: [...otherDocs, ...validExisting, ...missing],
+          documentUploads: [...otherDocs, ...orderedDocs],
         };
       });
     },

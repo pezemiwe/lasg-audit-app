@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
+import { saveFile } from "../../utils/fileStorage";
 import {
   FileText,
   Upload,
@@ -46,7 +47,6 @@ export default function DocumentSubmission() {
   const audits = useAuditStore((st) => st.audits);
   const updateLetterStatus = useAuditStore((st) => st.updateLetterStatus);
   const ensureDocumentsExist = useAuditStore((st) => st.ensureDocumentsExist);
-  const uploadDocument = useAuditStore((st) => st.uploadDocument);
   const signOffDocuments = useAuditStore((st) => st.signOffDocuments);
   const openModal = useAuditStore((st) => st.openModal);
   const addToast = useAuditStore((st) => st.addToast);
@@ -54,6 +54,7 @@ export default function DocumentSubmission() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [, setUploading] = useState(false);
 
   const activeAudit = useMemo(
     () =>
@@ -151,26 +152,44 @@ export default function DocumentSubmission() {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadingDocId || !user?.lgaId || !activeMandateId) return;
     setSelectedFileName(file.name);
     const existingDoc = myDocs.find((d) => d.id === uploadingDocId);
     if (!existingDoc) return;
-    uploadDocument({
-      lgaId: user.lgaId,
-      mandateId: activeMandateId,
-      documentName: existingDoc.documentName,
-      description: existingDoc.description,
-      requiredFormat: existingDoc.requiredFormat,
-      status: "Uploaded",
-      version: (existingDoc.version || 1) + 1,
-      dueDate: existingDoc.dueDate,
-      fileName: file.name,
-      uploadedAt: new Date().toISOString(),
-      uploadedBy: user.id,
-    });
-    setUploadingDocId(null);
+    setUploading(true);
+    try {
+      // Save the binary to localforage under the doc's stable ID
+      await saveFile(existingDoc.id, file);
+      // Update the existing record in-place (preserving its deterministic id)
+      useAuditStore.setState((s) => ({
+        documentUploads: s.documentUploads.map((d) =>
+          d.id === existingDoc.id
+            ? {
+                ...d,
+                status: "Uploaded" as const,
+                fileName: file.name,
+                fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+                uploadedBy: user.id,
+                uploadedAt: new Date().toISOString(),
+                version: (d.version || 1) + 1,
+                reviewedBy: undefined,
+                reviewedAt: undefined,
+                rejectionReason: undefined,
+              }
+            : d,
+        ),
+      }));
+      addToast({
+        type: "success",
+        title: "Document Uploaded",
+        message: existingDoc.documentName,
+      });
+    } finally {
+      setUploading(false);
+      setUploadingDocId(null);
+    }
     // Reset input for re-use
     if (fileInputRef.current) fileInputRef.current.value = "";
   };

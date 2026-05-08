@@ -3,32 +3,83 @@ import type { Zone } from "../../types/landing";
 
 const zones: Zone[] = [
   {
-    name: "Ikeja Division",
-    lgas: "Agege, Alimosho, Ifako-Ijaiye, Ikeja, Kosofe, Mushin, Oshodi-Isolo, Somolu + 15 LCDAs",
-    count: 23,
-    themeClass: "zd-1",
-  },
-  {
-    name: "Lagos Division",
-    lgas: "Lagos Island, Lagos Mainland, Apapa, Surulere, Eti-Osa + 7 LCDAs",
-    count: 12,
-    themeClass: "zd-2",
-  },
-  {
     name: "Ikorodu Division",
-    lgas: "Ikorodu + 5 LCDAs",
+    lgas: ["Ikorodu"],
+    lcdas: [
+      "Igbogbo-Bayeku",
+      "Ijede",
+      "Imota",
+      "Ikorodu North",
+      "Ikorodu West",
+    ],
     count: 6,
     themeClass: "zd-3",
   },
   {
     name: "Badagry Division",
-    lgas: "Ajeromi-Ifelodun, Amuwo-Odofin, Ojo, Badagry + 6 LCDAs",
+    lgas: ["Ajeromi-Ifelodun", "Amuwo-Odofin", "Ojo", "Badagry"],
+    lcdas: [
+      "Ifelodun",
+      "Oriade",
+      "Badagry West",
+      "Olorunda",
+      "Iba",
+      "Oto-Awori",
+    ],
     count: 10,
     themeClass: "zd-4",
   },
   {
+    name: "Ikeja Division",
+    lgas: [
+      "Agege",
+      "Alimosho",
+      "Ifako-Ijaiye",
+      "Ikeja",
+      "Kosofe",
+      "Mushin",
+      "Oshodi-Isolo",
+      "Somolu",
+    ],
+    lcdas: [
+      "Orile-Agege",
+      "Agbado/Oke-Odo",
+      "Ayobo-Ipaja",
+      "Egbe-Idimu",
+      "Igando-Ikotun",
+      "Mosan-Okunola",
+      "Ojokoro",
+      "Ojodu",
+      "Onigbongbo",
+      "Agboyi-Ketu",
+      "Ikosi-Isheri",
+      "Odi-Olowo/Ojuwoye",
+      "Ejigbo",
+      "Isolo",
+      "Bariga",
+    ],
+    count: 23,
+    themeClass: "zd-1",
+  },
+  {
+    name: "Lagos Division",
+    lgas: ["Lagos Island", "Lagos Mainland", "Apapa", "Surulere", "Eti-Osa"],
+    lcdas: [
+      "Apapa-Iganmu",
+      "Iru/Victoria Island",
+      "Ikoyi-Obalende",
+      "Lagos Island East",
+      "Yaba",
+      "Coker-Aguda",
+      "Itire-Ikate",
+    ],
+    count: 12,
+    themeClass: "zd-2",
+  },
+  {
     name: "Epe Division",
-    lgas: "Epe, Ibeju-Lekki + 4 LCDAs",
+    lgas: ["Epe", "Ibeju-Lekki"],
+    lcdas: ["Eredo", "Ikosi-Ejinrin", "Lekki", "Ibeju"],
     count: 6,
     themeClass: "zd-5",
   },
@@ -86,7 +137,14 @@ const Zones: React.FC = () => {
                 </div>
                 <div className="zone-info">
                   <h4 className="zone-name">{zone.name}</h4>
-                  <p className="zone-lgas-txt">{zone.lgas}</p>
+                  <p className="zone-lgas-txt">
+                    <span className="zone-lgas-label">LGAs: </span>
+                    {zone.lgas.join(", ")}
+                  </p>
+                  <p className="zone-lgas-txt">
+                    <span className="zone-lgas-label">LCDAs: </span>
+                    {zone.lcdas.join(", ")}
+                  </p>
                 </div>
                 <div className="zone-count-pill">{zone.count} Councils</div>
               </div>
