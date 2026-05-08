@@ -662,7 +662,7 @@ export const useAuditStore = create(
     }),
     {
       name: "audit-storage-v16",
-      version: 21,
+      version: 22,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState, version) => {
         const state = persistedState as AuditStore;
@@ -688,6 +688,14 @@ export const useAuditStore = create(
             ...state,
             users: [...MOCK_USERS],
             audits: [...SEED_AUDITS],
+          };
+        }
+        if (version < 22) {
+          // Re-seed programmes so all Fieldwork-status audits have an
+          // approved programme and the Fieldwork page is not empty.
+          return {
+            ...state,
+            programmes: [...SEED_PROGRAMMES],
           };
         }
         return state;

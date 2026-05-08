@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { type AuditStore } from "../../../store/useAuditStore";
-import type { User, PreliminaryAnalytic } from "../../../types";
+import type { User, PreliminaryAnalytic, DocumentUpload } from "../../../types";
 import { FileText, Check, Save, Sparkles, Layers } from "lucide-react";
 import s from "../../../styles/pages.module.css";
 import PlanningCard from "./PlanningCard";
@@ -16,6 +16,9 @@ import {
   AR_TB_LABELS,
   type ArRow,
 } from "../arMockData";
+import { getFile } from "../../../utils/fileStorage";
+import { parseTrialBalanceFile } from "../../../utils/excelParser";
+import type { TrialBalanceLine } from "../../../types/auditOutcomes";
 
 const arFmt = (n: number) =>
   n === 0
@@ -26,6 +29,96 @@ const arFmt = (n: number) =>
         maximumFractionDigits: 2,
       });
 const arFmtPct = (n: number) => (n >= 0 ? "+" : "") + n.toFixed(1) + "%";
+
+/** Map a TrialBalanceLine classification to an ArRow section key */
+const classifToSection = (cls: TrialBalanceLine["classification"]): string => {
+  switch (cls) {
+    case "Revenue":
+      return "revenue";
+    case "Expense":
+      return "overhead";
+    case "Asset":
+      return "assets";
+    case "Liability":
+      return "liabilities";
+    case "Equity":
+      return "equity";
+    default:
+      return "other";
+  }
+};
+
+/** Convert parsed TrialBalanceLine[] into ArRow[] */
+const linesToArRows = (lines: TrialBalanceLine[]): ArRow[] =>
+  lines.map((l, i) => ({
+    id: l.id || `r${i}`,
+    section: classifToSection(l.classification),
+    account: l.accountName,
+    code: l.ncoaCode || "",
+    note: "",
+    prior: l.priorYear,
+    budget: 0,
+    current: l.currentYear,
+    bold: false,
+    type: "line" as const,
+  }));
+
+/**
+ * Merge two separate year files (CY file + PY file) into a single ArRow[].
+ * Each file may only have one year column; CY file's `currentYear` → row.current,
+ * PY file's `currentYear` → row.prior (it's the "current" of that older file).
+ */
+const mergeYearLines = (
+  cyLines: TrialBalanceLine[],
+  pyLines: TrialBalanceLine[],
+): ArRow[] => {
+  const pyMap = new Map<string, TrialBalanceLine>();
+  pyLines.forEach((l) => {
+    const key = (l.ncoaCode || l.accountName).toLowerCase().trim();
+    pyMap.set(key, l);
+  });
+
+  const usedKeys = new Set<string>();
+  const merged: ArRow[] = cyLines.map((l, i) => {
+    const key = (l.ncoaCode || l.accountName).toLowerCase().trim();
+    const pyLine = pyMap.get(key);
+    usedKeys.add(key);
+    const priorVal = pyLine?.currentYear ?? l.priorYear;
+    return {
+      id: l.id || `r${i}`,
+      section: classifToSection(l.classification),
+      account: l.accountName,
+      code: l.ncoaCode || "",
+      note: "",
+      prior: priorVal,
+      budget: 0,
+      current: l.currentYear,
+      bold: false,
+      type: "line" as const,
+    };
+  });
+
+  // Rows that exist only in PY (not in CY) — add as current=0
+  pyLines.forEach((l, i) => {
+    const key = (l.ncoaCode || l.accountName).toLowerCase().trim();
+    if (!usedKeys.has(key)) {
+      merged.push({
+        id: `py-only-${i}`,
+        section: classifToSection(l.classification),
+        account: l.accountName,
+        code: l.ncoaCode || "",
+        note: "",
+        prior: l.currentYear,
+        budget: 0,
+        current: 0,
+        bold: false,
+        type: "line" as const,
+      });
+    }
+  });
+
+  return merged;
+};
 
 // ─── Analytical Review Step — Progressive Reveal ─────────────────────────────
 const AnalyticalReviewStep: React.FC<{
@@ -39,6 +132,7 @@ const AnalyticalReviewStep: React.FC<{
   setArDocType: (v: ArDocType | null) => void;
   arPhase: "select" | "imported";
   setArPhase: (v: "select" | "imported") => void;
+  documentUploads: DocumentUpload[];
 }> = ({
   audit,
   lgaName,
@@ -49,6 +143,7 @@ const AnalyticalReviewStep: React.FC<{
   setArDocType,
   arPhase,
   setArPhase,
+  documentUploads,
 }) => {
   const phase = arPhase;
   const setPhase = setArPhase;
@@ -58,6 +153,9 @@ const AnalyticalReviewStep: React.FC<{
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loadProgress, setLoadProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [realData, setRealData] = useState<ArRow[] | null>(null);
+  const [realBasisAmount, setRealBasisAmount] = useState<number | null>(null);
+  const [importedFromReal, setImportedFromReal] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -79,10 +177,35 @@ const AnalyticalReviewStep: React.FC<{
         return p + Math.random() * 14;
       });
     }, 180);
-    loadTimerRef.current = setTimeout(() => {
+
+    // Try to load approved xlsx docs from localforage (CY + PY separately)
+    const cyDocName =
+      docType === "fs"
+        ? "Financial Statements — Current Year (xlsx)"
+        : "Trial Balance — Current Year (xlsx)";
+    const pyDocName =
+      docType === "fs"
+        ? "Financial Statements — Prior Year (xlsx)"
+        : "Trial Balance — Prior Year (xlsx)";
+
+    const findApproved = (name: string) =>
+      documentUploads.find(
+        (d) =>
+          d.lgaId === audit.lgaId &&
+          d.mandateId === audit.mandateId &&
+          d.documentName === name &&
+          d.status === "Approved",
+      );
+    const approvedCY = findApproved(cyDocName);
+    const approvedPY = findApproved(pyDocName);
+
+    const finishImport = (rows: ArRow[] | null, basisAmount: number | null) => {
       clearInterval(progressRef.current!);
       setLoadProgress(100);
       setTimeout(() => {
+        setRealData(rows);
+        setRealBasisAmount(basisAmount);
+        setImportedFromReal(rows !== null);
         store.setAuditDocSource(audit.id, docType);
         setPhase("imported");
         setInnerTab("analytics");
@@ -90,7 +213,63 @@ const AnalyticalReviewStep: React.FC<{
         setIsLoading(false);
         setLoadProgress(0);
       }, 300);
-    }, 2000);
+    };
+
+    const runImport = async () => {
+      if (approvedCY || approvedPY) {
+        try {
+          const toFile = (blob: File | Blob | null, name: string) =>
+            blob
+              ? blob instanceof File
+                ? blob
+                : new File([blob], name)
+              : null;
+
+          const [cyBlob, pyBlob] = await Promise.all([
+            approvedCY ? getFile(approvedCY.id) : Promise.resolve(null),
+            approvedPY ? getFile(approvedPY.id) : Promise.resolve(null),
+          ]);
+
+          const cyFile = toFile(cyBlob, approvedCY?.fileName || "cy.xlsx");
+          const pyFile = toFile(pyBlob, approvedPY?.fileName || "py.xlsx");
+
+          const [cyParsed, pyParsed] = await Promise.all([
+            cyFile ? parseTrialBalanceFile(cyFile) : Promise.resolve(null),
+            pyFile ? parseTrialBalanceFile(pyFile) : Promise.resolve(null),
+          ]);
+
+          if (cyParsed || pyParsed) {
+            const cyLines = cyParsed?.lines ?? [];
+            const pyLines = pyParsed?.lines ?? [];
+            const rows =
+              cyLines.length > 0 && pyLines.length > 0
+                ? mergeYearLines(cyLines, pyLines)
+                : cyLines.length > 0
+                  ? linesToArRows(cyLines)
+                  : linesToArRows(
+                      pyLines.map((l) => ({
+                        ...l,
+                        priorYear: l.currentYear,
+                        currentYear: 0,
+                      })),
+                    );
+            const basis =
+              cyParsed?.totals.totalRevenue ||
+              cyParsed?.totals.profitBeforeTax ||
+              pyParsed?.totals.totalRevenue ||
+              null;
+            finishImport(rows, basis);
+            return;
+          }
+        } catch {
+          // fall through to mock
+        }
+      }
+      // Fallback: simulate load then use mock data
+      loadTimerRef.current = setTimeout(() => finishImport(null, null), 2000);
+    };
+
+    runImport();
   };
   const [innerTab, setInnerTab] = useState<"analytics" | "materiality">(
     "analytics",
@@ -114,9 +293,19 @@ const AnalyticalReviewStep: React.FC<{
 
   // ── Materiality state — basis is fixed as Profit Before Tax (PBT) ──
   const FIXED_BASIS = "Profit Before Tax (PBT)";
-  const [basisAmount, setBasisAmount] = useState(
-    materialityData?.basisAmount || MOCK_TB_REVENUE_BASIS,
-  );
+  const defaultBasisAmount =
+    materialityData?.basisAmount || MOCK_TB_REVENUE_BASIS;
+  const [basisAmount, setBasisAmount] = useState(defaultBasisAmount);
+  // Sync basisAmount when real parsed data provides a better figure (render-guard)
+  const [prevRealBasis, setPrevRealBasis] = useState<number | null>(null);
+  if (
+    realBasisAmount !== null &&
+    realBasisAmount !== prevRealBasis &&
+    !materialityData?.basisAmount
+  ) {
+    setPrevRealBasis(realBasisAmount);
+    setBasisAmount(realBasisAmount);
+  }
   const [percentage, setPercentage] = useState(
     materialityData?.percentage || 5,
   );
@@ -217,8 +406,43 @@ const AnalyticalReviewStep: React.FC<{
             {(["fs", "tb"] as const).map((type) => {
               const isFS = type === "fs";
               const active = docType === type;
-              const cyCode = `${lgaPrefix}-${isFS ? "FS" : "TB"}-CY-2022`;
-              const pyCode = `${lgaPrefix}-${isFS ? "FS" : "TB"}-PY-2021`;
+
+              // CY and PY doc names for this card type
+              const cyDocName = isFS
+                ? "Financial Statements — Current Year (xlsx)"
+                : "Trial Balance — Current Year (xlsx)";
+              const pyDocName = isFS
+                ? "Financial Statements — Prior Year (xlsx)"
+                : "Trial Balance — Prior Year (xlsx)";
+
+              const findDoc = (name: string) =>
+                documentUploads.find(
+                  (d) =>
+                    d.lgaId === audit.lgaId &&
+                    d.mandateId === audit.mandateId &&
+                    d.documentName === name,
+                );
+
+              const cyDoc = findDoc(cyDocName);
+              const pyDoc = findDoc(pyDocName);
+
+              const slots = [
+                {
+                  label: "Current Year (Unaudited)",
+                  hint: isFS
+                    ? "e.g. Unaudited_Financial_Statement_2026.xlsx"
+                    : "e.g. Unaudited_Trial_Balance_2026.xlsx",
+                  doc: cyDoc,
+                },
+                {
+                  label: "Prior Year (Audited)",
+                  hint: isFS
+                    ? "e.g. Audited_Financial_Statement_2025.xlsx"
+                    : "e.g. Audited_Trial_Balance_2025.xlsx",
+                  doc: pyDoc,
+                },
+              ];
+
               return (
                 <button
                   key={type}
@@ -310,65 +534,106 @@ const AnalyticalReviewStep: React.FC<{
                       gap: "0.5rem",
                     }}
                   >
-                    {[
-                      {
-                        label: "FY 2022: Current Year (Unaudited / Draft)",
-                        icon: "📄",
-                        note: "Uploaded by HLG",
-                        code: cyCode,
-                      },
-                      {
-                        label: "FY 2021: Prior Year (Audited)",
-                        icon: "✅",
-                        note: "Verified & signed",
-                        code: pyCode,
-                      },
-                    ].map((doc) => (
-                      <div
-                        key={doc.code}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.6rem",
-                          padding: "0.6rem 0.875rem",
-                          borderRadius: "8px",
-                          background: active
-                            ? "rgba(37,99,235,0.07)"
-                            : "#f8fafc",
-                          border: `1px solid ${active ? "#bfdbfe" : "#e2e8f0"}`,
-                        }}
-                      >
-                        <span style={{ fontSize: "1rem" }}>{doc.icon}</span>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              fontSize: "0.8rem",
-                              fontWeight: 600,
-                              color: "#1e293b",
-                            }}
-                          >
-                            {doc.label}
-                          </div>
-                          <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>
-                            {doc.note}
-                          </div>
-                        </div>
-                        <span
+                    {slots.map((slot) => {
+                      const st = slot.doc?.status;
+                      const isApproved = st === "Approved";
+                      const isUploaded = st === "Uploaded";
+                      const isRejected = st === "Rejected";
+
+                      return (
+                        <div
+                          key={slot.label}
                           style={{
-                            fontFamily: "monospace",
-                            fontSize: "0.68rem",
-                            fontWeight: 700,
-                            color: active ? "#1d4ed8" : "#94a3b8",
-                            background: active ? "#dbeafe" : "#f1f5f9",
-                            padding: "0.15rem 0.5rem",
-                            borderRadius: "6px",
-                            whiteSpace: "nowrap",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.6rem",
+                            padding: "0.6rem 0.875rem",
+                            borderRadius: "8px",
+                            background: isApproved
+                              ? active
+                                ? "rgba(22,163,74,0.07)"
+                                : "#f0fdf4"
+                              : isUploaded
+                                ? "#fefce8"
+                                : isRejected
+                                  ? "#fef2f2"
+                                  : active
+                                    ? "rgba(37,99,235,0.07)"
+                                    : "#f8fafc",
+                            border: `1px solid ${
+                              isApproved
+                                ? active
+                                  ? "#86efac"
+                                  : "#bbf7d0"
+                                : isUploaded
+                                  ? "#fde68a"
+                                  : isRejected
+                                    ? "#fecaca"
+                                    : active
+                                      ? "#bfdbfe"
+                                      : "#e2e8f0"
+                            }`,
                           }}
                         >
-                          {doc.code}
-                        </span>
-                      </div>
-                    ))}
+                          <span style={{ fontSize: "1rem" }}>
+                            {isApproved
+                              ? "✅"
+                              : isUploaded
+                                ? "⏳"
+                                : isRejected
+                                  ? "❌"
+                                  : "📄"}
+                          </span>
+                          <div style={{ flex: 1 }}>
+                            <div
+                              style={{
+                                fontSize: "0.8rem",
+                                fontWeight: 600,
+                                color: isApproved
+                                  ? "#15803d"
+                                  : isUploaded
+                                    ? "#92400e"
+                                    : isRejected
+                                      ? "#991b1b"
+                                      : "#1e293b",
+                              }}
+                            >
+                              {slot.label}
+                              {slot.doc?.fileName
+                                ? ` — ${slot.doc.fileName}`
+                                : ""}
+                            </div>
+                            <div
+                              style={{ fontSize: "0.7rem", color: "#94a3b8" }}
+                            >
+                              {isApproved
+                                ? `Approved${slot.doc?.uploadedAt ? " · " + new Date(slot.doc.uploadedAt).toLocaleDateString("en-NG") : ""}${slot.doc?.fileSize ? " · " + slot.doc.fileSize : ""}`
+                                : isUploaded
+                                  ? "Awaiting Audit Lead approval"
+                                  : isRejected
+                                    ? slot.doc?.rejectionReason ||
+                                      "Rejected — re-upload required"
+                                    : slot.hint}
+                            </div>
+                          </div>
+                          {isApproved && (
+                            <span
+                              style={{
+                                fontFamily: "monospace",
+                                fontSize: "0.68rem",
+                                fontWeight: 700,
+                                color: "#15803d",
+                                background: "#dcfce7",
+                                padding: "0.15rem 0.5rem",
+                                borderRadius: "6px",
+                              }}
+                            >
+                              LIVE
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </button>
               );
@@ -468,9 +733,21 @@ const AnalyticalReviewStep: React.FC<{
 
   // ── Phase 2: Analytics + Materiality (inner tabs) ────────────────────────────
   const isFS = docType === "fs";
-  const data = isFS ? MOCK_FS : MOCK_TB;
-  const sections = isFS ? AR_FS_SECTIONS : AR_TB_SECTIONS;
-  const secLabels = isFS ? AR_FS_LABELS : AR_TB_LABELS;
+  const mockData = isFS ? MOCK_FS : MOCK_TB;
+  const data = realData && realData.length > 0 ? realData : mockData;
+  // For real data, derive sections dynamically from unique section keys
+  const realSections =
+    realData && realData.length > 0
+      ? Array.from(new Set(realData.map((r) => r.section)))
+      : null;
+  const sections = realSections ?? (isFS ? AR_FS_SECTIONS : AR_TB_SECTIONS);
+  const secLabels: Record<string, string> = realSections
+    ? Object.fromEntries(
+        realSections.map((s) => [s, s.charAt(0).toUpperCase() + s.slice(1)]),
+      )
+    : isFS
+      ? AR_FS_LABELS
+      : AR_TB_LABELS;
   const docLabel = isFS ? "Financial Statements" : "Trial Balance";
 
   const grouped: Record<string, ArRow[]> = {};
@@ -568,6 +845,32 @@ const AnalyticalReviewStep: React.FC<{
           <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
             Imported: <strong style={{ color: "#0f172a" }}>{docLabel}</strong>
           </span>
+          {importedFromReal ? (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                background: "#dcfce7",
+                color: "#166534",
+                padding: "0.15rem 0.5rem",
+                borderRadius: "6px",
+                fontWeight: 600,
+              }}
+            >
+              Live Data
+            </span>
+          ) : (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                background: "#fef9c3",
+                color: "#713f12",
+                padding: "0.15rem 0.5rem",
+                borderRadius: "6px",
+              }}
+            >
+              Demo Data
+            </span>
+          )}
           <button
             className={s.btnSecondary}
             style={{ fontSize: "0.72rem", padding: "0.25rem 0.7rem" }}

@@ -117,6 +117,8 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({
   const [arDocType, setArDocType] = useState<ArDocType | null>(null);
   const [arPhase, setArPhase] = useState<"select" | "imported">("select");
 
+  const documentUploads = store.documentUploads;
+
   if (!user) return null;
 
   if (myAudits.length === 0 && !embedded) {
@@ -319,6 +321,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({
               setArDocType={setArDocType}
               arPhase={arPhase}
               setArPhase={setArPhase}
+              documentUploads={documentUploads}
             />
           )}
           {currentStep === "risk" && (
