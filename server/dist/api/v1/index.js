@@ -1,0 +1,22 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.apiV1Router = void 0;
+const express_1 = require("express");
+const auth_routes_1 = require("./auth/auth.routes");
+const users_routes_1 = require("./users/users.routes");
+const audits_routes_1 = require("./audits/audits.routes");
+const assignments_routes_1 = require("./assignments/assignments.routes");
+const notifications_routes_1 = require("./notifications/notifications.routes");
+const documents_routes_1 = require("./documents/documents.routes");
+const reports_routes_1 = require("./reports/reports.routes");
+const workpapers_routes_1 = require("./workpapers/workpapers.routes");
+exports.apiV1Router = (0, express_1.Router)();
+exports.apiV1Router.use("/auth", auth_routes_1.authRouter);
+exports.apiV1Router.use("/users", users_routes_1.usersRouter);
+exports.apiV1Router.use("/audits", audits_routes_1.auditsRouter);
+exports.apiV1Router.use("/assignments", assignments_routes_1.assignmentsRouter);
+exports.apiV1Router.use("/notifications", notifications_routes_1.notificationsRouter);
+exports.apiV1Router.use("/documents", documents_routes_1.documentsRouter);
+exports.apiV1Router.use("/reports", reports_routes_1.reportsRouter);
+exports.apiV1Router.use("/workpapers", workpapers_routes_1.workpapersRouter);
+//# sourceMappingURL=index.js.map
