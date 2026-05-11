@@ -4,7 +4,14 @@ import { prisma } from "../../config/prisma";
 export function listCouncils(filters: { zoneId?: string; type?: CouncilType }) {
   return prisma.council.findMany({
     where: filters,
-    include: { zone: true },
+    include: {
+      zone: true,
+      users: {
+        where: { role: "HEAD_OF_LOCAL_GOVERNMENT" },
+        select: { id: true, name: true, email: true, phone: true, role: true, status: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
     orderBy: [{ type: "asc" }, { name: "asc" }],
   });
 }
@@ -16,6 +23,11 @@ export function getCouncilById(id: string) {
       zone: true,
       parentLga: true,
       lcdas: { orderBy: { name: "asc" } },
+      users: {
+        where: { role: "HEAD_OF_LOCAL_GOVERNMENT" },
+        select: { id: true, name: true, email: true, phone: true, role: true, status: true },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 }

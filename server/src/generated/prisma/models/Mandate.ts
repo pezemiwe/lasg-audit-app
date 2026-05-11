@@ -298,6 +298,7 @@ export type MandateWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Mandate"> | Date | string
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   councils?: Prisma.MandateCouncilListRelationFilter
+  audits?: Prisma.AuditListRelationFilter
 }
 
 export type MandateOrderByWithRelationInput = {
@@ -319,6 +320,7 @@ export type MandateOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   createdBy?: Prisma.UserOrderByWithRelationInput
   councils?: Prisma.MandateCouncilOrderByRelationAggregateInput
+  audits?: Prisma.AuditOrderByRelationAggregateInput
 }
 
 export type MandateWhereUniqueInput = Prisma.AtLeast<{
@@ -343,6 +345,7 @@ export type MandateWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Mandate"> | Date | string
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   councils?: Prisma.MandateCouncilListRelationFilter
+  audits?: Prisma.AuditListRelationFilter
 }, "id">
 
 export type MandateOrderByWithAggregationInput = {
@@ -409,6 +412,7 @@ export type MandateCreateInput = {
   updatedAt?: Date | string
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedMandatesInput
   councils?: Prisma.MandateCouncilCreateNestedManyWithoutMandateInput
+  audits?: Prisma.AuditCreateNestedManyWithoutMandateInput
 }
 
 export type MandateUncheckedCreateInput = {
@@ -429,6 +433,7 @@ export type MandateUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   councils?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutMandateInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutMandateInput
 }
 
 export type MandateUpdateInput = {
@@ -449,6 +454,7 @@ export type MandateUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedMandatesNestedInput
   councils?: Prisma.MandateCouncilUpdateManyWithoutMandateNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutMandateNestedInput
 }
 
 export type MandateUncheckedUpdateInput = {
@@ -469,6 +475,7 @@ export type MandateUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.MandateCouncilUncheckedUpdateManyWithoutMandateNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutMandateNestedInput
 }
 
 export type MandateCreateManyInput = {
@@ -701,6 +708,20 @@ export type MandateUpdateOneRequiredWithoutCouncilsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MandateUpdateToOneWithWhereWithoutCouncilsInput, Prisma.MandateUpdateWithoutCouncilsInput>, Prisma.MandateUncheckedUpdateWithoutCouncilsInput>
 }
 
+export type MandateCreateNestedOneWithoutAuditsInput = {
+  create?: Prisma.XOR<Prisma.MandateCreateWithoutAuditsInput, Prisma.MandateUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.MandateCreateOrConnectWithoutAuditsInput
+  connect?: Prisma.MandateWhereUniqueInput
+}
+
+export type MandateUpdateOneRequiredWithoutAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.MandateCreateWithoutAuditsInput, Prisma.MandateUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.MandateCreateOrConnectWithoutAuditsInput
+  upsert?: Prisma.MandateUpsertWithoutAuditsInput
+  connect?: Prisma.MandateWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MandateUpdateToOneWithWhereWithoutAuditsInput, Prisma.MandateUpdateWithoutAuditsInput>, Prisma.MandateUncheckedUpdateWithoutAuditsInput>
+}
+
 export type MandateCreateWithoutCreatedByInput = {
   id?: string
   title: string
@@ -718,6 +739,7 @@ export type MandateCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   councils?: Prisma.MandateCouncilCreateNestedManyWithoutMandateInput
+  audits?: Prisma.AuditCreateNestedManyWithoutMandateInput
 }
 
 export type MandateUncheckedCreateWithoutCreatedByInput = {
@@ -737,6 +759,7 @@ export type MandateUncheckedCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   councils?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutMandateInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutMandateInput
 }
 
 export type MandateCreateOrConnectWithoutCreatedByInput = {
@@ -804,6 +827,7 @@ export type MandateCreateWithoutCouncilsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedMandatesInput
+  audits?: Prisma.AuditCreateNestedManyWithoutMandateInput
 }
 
 export type MandateUncheckedCreateWithoutCouncilsInput = {
@@ -823,6 +847,7 @@ export type MandateUncheckedCreateWithoutCouncilsInput = {
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutMandateInput
 }
 
 export type MandateCreateOrConnectWithoutCouncilsInput = {
@@ -858,6 +883,7 @@ export type MandateUpdateWithoutCouncilsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedMandatesNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutMandateNestedInput
 }
 
 export type MandateUncheckedUpdateWithoutCouncilsInput = {
@@ -877,6 +903,103 @@ export type MandateUncheckedUpdateWithoutCouncilsInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutMandateNestedInput
+}
+
+export type MandateCreateWithoutAuditsInput = {
+  id?: string
+  title: string
+  year: number
+  description: string
+  startDate: Date | string
+  endDate: Date | string
+  scope: string
+  objectives?: Prisma.MandateCreateobjectivesInput | string[]
+  auditTypes?: Prisma.MandateCreateauditTypesInput | $Enums.AuditType[]
+  signatureUrl: string
+  targetMode?: $Enums.MandateTargetMode
+  status?: $Enums.MandateStatus
+  publishedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdBy: Prisma.UserCreateNestedOneWithoutCreatedMandatesInput
+  councils?: Prisma.MandateCouncilCreateNestedManyWithoutMandateInput
+}
+
+export type MandateUncheckedCreateWithoutAuditsInput = {
+  id?: string
+  title: string
+  year: number
+  description: string
+  startDate: Date | string
+  endDate: Date | string
+  scope: string
+  objectives?: Prisma.MandateCreateobjectivesInput | string[]
+  auditTypes?: Prisma.MandateCreateauditTypesInput | $Enums.AuditType[]
+  signatureUrl: string
+  targetMode?: $Enums.MandateTargetMode
+  status?: $Enums.MandateStatus
+  createdById: string
+  publishedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  councils?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutMandateInput
+}
+
+export type MandateCreateOrConnectWithoutAuditsInput = {
+  where: Prisma.MandateWhereUniqueInput
+  create: Prisma.XOR<Prisma.MandateCreateWithoutAuditsInput, Prisma.MandateUncheckedCreateWithoutAuditsInput>
+}
+
+export type MandateUpsertWithoutAuditsInput = {
+  update: Prisma.XOR<Prisma.MandateUpdateWithoutAuditsInput, Prisma.MandateUncheckedUpdateWithoutAuditsInput>
+  create: Prisma.XOR<Prisma.MandateCreateWithoutAuditsInput, Prisma.MandateUncheckedCreateWithoutAuditsInput>
+  where?: Prisma.MandateWhereInput
+}
+
+export type MandateUpdateToOneWithWhereWithoutAuditsInput = {
+  where?: Prisma.MandateWhereInput
+  data: Prisma.XOR<Prisma.MandateUpdateWithoutAuditsInput, Prisma.MandateUncheckedUpdateWithoutAuditsInput>
+}
+
+export type MandateUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scope?: Prisma.StringFieldUpdateOperationsInput | string
+  objectives?: Prisma.MandateUpdateobjectivesInput | string[]
+  auditTypes?: Prisma.MandateUpdateauditTypesInput | $Enums.AuditType[]
+  signatureUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumMandateTargetModeFieldUpdateOperationsInput | $Enums.MandateTargetMode
+  status?: Prisma.EnumMandateStatusFieldUpdateOperationsInput | $Enums.MandateStatus
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedMandatesNestedInput
+  councils?: Prisma.MandateCouncilUpdateManyWithoutMandateNestedInput
+}
+
+export type MandateUncheckedUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  year?: Prisma.IntFieldUpdateOperationsInput | number
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scope?: Prisma.StringFieldUpdateOperationsInput | string
+  objectives?: Prisma.MandateUpdateobjectivesInput | string[]
+  auditTypes?: Prisma.MandateUpdateauditTypesInput | $Enums.AuditType[]
+  signatureUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumMandateTargetModeFieldUpdateOperationsInput | $Enums.MandateTargetMode
+  status?: Prisma.EnumMandateStatusFieldUpdateOperationsInput | $Enums.MandateStatus
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  councils?: Prisma.MandateCouncilUncheckedUpdateManyWithoutMandateNestedInput
 }
 
 export type MandateCreateManyCreatedByInput = {
@@ -914,6 +1037,7 @@ export type MandateUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.MandateCouncilUpdateManyWithoutMandateNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutMandateNestedInput
 }
 
 export type MandateUncheckedUpdateWithoutCreatedByInput = {
@@ -933,6 +1057,7 @@ export type MandateUncheckedUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.MandateCouncilUncheckedUpdateManyWithoutMandateNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutMandateNestedInput
 }
 
 export type MandateUncheckedUpdateManyWithoutCreatedByInput = {
@@ -960,10 +1085,12 @@ export type MandateUncheckedUpdateManyWithoutCreatedByInput = {
 
 export type MandateCountOutputType = {
   councils: number
+  audits: number
 }
 
 export type MandateCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   councils?: boolean | MandateCountOutputTypeCountCouncilsArgs
+  audits?: boolean | MandateCountOutputTypeCountAuditsArgs
 }
 
 /**
@@ -981,6 +1108,13 @@ export type MandateCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
  */
 export type MandateCountOutputTypeCountCouncilsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MandateCouncilWhereInput
+}
+
+/**
+ * MandateCountOutputType without action
+ */
+export type MandateCountOutputTypeCountAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditWhereInput
 }
 
 
@@ -1003,6 +1137,7 @@ export type MandateSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   councils?: boolean | Prisma.Mandate$councilsArgs<ExtArgs>
+  audits?: boolean | Prisma.Mandate$auditsArgs<ExtArgs>
   _count?: boolean | Prisma.MandateCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mandate"]>
 
@@ -1069,6 +1204,7 @@ export type MandateOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type MandateInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   councils?: boolean | Prisma.Mandate$councilsArgs<ExtArgs>
+  audits?: boolean | Prisma.Mandate$auditsArgs<ExtArgs>
   _count?: boolean | Prisma.MandateCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MandateIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1083,6 +1219,7 @@ export type $MandatePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     createdBy: Prisma.$UserPayload<ExtArgs>
     councils: Prisma.$MandateCouncilPayload<ExtArgs>[]
+    audits: Prisma.$AuditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1497,6 +1634,7 @@ export interface Prisma__MandateClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   councils<T extends Prisma.Mandate$councilsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Mandate$councilsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MandateCouncilPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  audits<T extends Prisma.Mandate$auditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Mandate$auditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1964,6 +2102,30 @@ export type Mandate$councilsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.MandateCouncilScalarFieldEnum | Prisma.MandateCouncilScalarFieldEnum[]
+}
+
+/**
+ * Mandate.audits
+ */
+export type Mandate$auditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Audit
+   */
+  select?: Prisma.AuditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Audit
+   */
+  omit?: Prisma.AuditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditInclude<ExtArgs> | null
+  where?: Prisma.AuditWhereInput
+  orderBy?: Prisma.AuditOrderByWithRelationInput | Prisma.AuditOrderByWithRelationInput[]
+  cursor?: Prisma.AuditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditScalarFieldEnum | Prisma.AuditScalarFieldEnum[]
 }
 
 /**

@@ -73,3 +73,17 @@ export const MandateCouncilStatus = {
 } as const
 
 export type MandateCouncilStatus = (typeof MandateCouncilStatus)[keyof typeof MandateCouncilStatus]
+
+
+export const AuditStatus = {
+  PENDING: 'PENDING',
+  PRE_AUDIT: 'PRE_AUDIT',
+  PLANNING: 'PLANNING',
+  FIELDWORK: 'FIELDWORK',
+  REVIEW: 'REVIEW',
+  REPORTING: 'REPORTING',
+  POST_AUDIT: 'POST_AUDIT',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type AuditStatus = (typeof AuditStatus)[keyof typeof AuditStatus]

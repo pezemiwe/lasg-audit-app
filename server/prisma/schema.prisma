@@ -52,6 +52,17 @@ enum MandateCouncilStatus {
   REJECTED
 }
 
+enum AuditStatus {
+  PENDING
+  PRE_AUDIT
+  PLANNING
+  FIELDWORK
+  REVIEW
+  REPORTING
+  POST_AUDIT
+  COMPLETED
+}
+
 model User {
   id             String     @id @default(cuid())
   name           String
@@ -74,6 +85,7 @@ model User {
   createdMandates    Mandate[] @relation("MandateCreatedBy")
   acceptedMandates   MandateCouncil[] @relation("MandateAcceptedBy")
   rejectedMandates   MandateCouncil[] @relation("MandateRejectedBy")
+  ledAudits          Audit[] @relation("AuditLead")
 
   @@index([role])
   @@index([status])
@@ -107,6 +119,7 @@ model Zone {
   supervisor   User?     @relation("ZoneSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
   councils     Council[]
   users        User[]    @relation("UserZone")
+  audits       Audit[]
 }
 
 model Council {
@@ -126,6 +139,7 @@ model Council {
   lcdas        Council[]   @relation("CouncilParent")
   users        User[]      @relation("UserCouncil")
   mandateTargets MandateCouncil[]
+  audits       Audit[]
 
   @@index([zoneId])
   @@index([type])
@@ -152,6 +166,7 @@ model Mandate {
 
   createdBy     User              @relation("MandateCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   councils      MandateCouncil[]
+  audits        Audit[]
 
   @@index([year])
   @@index([status])
@@ -178,12 +193,45 @@ model MandateCouncil {
   council                    Council                @relation(fields: [councilId], references: [id], onDelete: Restrict)
   acceptedBy                 User?                  @relation("MandateAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
   rejectedBy                 User?                  @relation("MandateRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
+  audit                      Audit?
 
   @@unique([mandateId, councilId])
   @@index([councilId])
   @@index([status])
   @@index([acceptedById])
   @@index([rejectedById])
+}
+
+model Audit {
+  id                 String      @id @default(cuid())
+  mandateId          String
+  mandateCouncilId   String      @unique
+  councilId          String
+  zoneId             String
+  title              String
+  year               Int
+  auditTypes         AuditType[]  @default([])
+  status             AuditStatus  @default(PENDING)
+  progress           Int          @default(0)
+  startDate          DateTime?
+  endDate            DateTime?
+  leadId             String?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  mandate            Mandate      @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  mandateCouncil     MandateCouncil @relation(fields: [mandateCouncilId], references: [id], onDelete: Cascade)
+  council            Council      @relation(fields: [councilId], references: [id], onDelete: Restrict)
+  zone               Zone         @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  lead               User?        @relation("AuditLead", fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([mandateId])
+  @@index([councilId])
+  @@index([zoneId])
+  @@index([status])
+  @@index([leadId])
 }
 
 model ActivityLog {

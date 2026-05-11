@@ -242,6 +242,7 @@ export type UserWhereInput = {
   createdMandates?: Prisma.MandateListRelationFilter
   acceptedMandates?: Prisma.MandateCouncilListRelationFilter
   rejectedMandates?: Prisma.MandateCouncilListRelationFilter
+  ledAudits?: Prisma.AuditListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -265,6 +266,7 @@ export type UserOrderByWithRelationInput = {
   createdMandates?: Prisma.MandateOrderByRelationAggregateInput
   acceptedMandates?: Prisma.MandateCouncilOrderByRelationAggregateInput
   rejectedMandates?: Prisma.MandateCouncilOrderByRelationAggregateInput
+  ledAudits?: Prisma.AuditOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -291,6 +293,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdMandates?: Prisma.MandateListRelationFilter
   acceptedMandates?: Prisma.MandateCouncilListRelationFilter
   rejectedMandates?: Prisma.MandateCouncilListRelationFilter
+  ledAudits?: Prisma.AuditListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -348,6 +351,7 @@ export type UserCreateInput = {
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -369,6 +373,7 @@ export type UserUncheckedCreateInput = {
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserUpdateInput = {
@@ -390,6 +395,7 @@ export type UserUpdateInput = {
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -411,6 +417,7 @@ export type UserUncheckedUpdateInput = {
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -716,6 +723,22 @@ export type UserUpdateOneWithoutRejectedMandatesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRejectedMandatesInput, Prisma.UserUpdateWithoutRejectedMandatesInput>, Prisma.UserUncheckedUpdateWithoutRejectedMandatesInput>
 }
 
+export type UserCreateNestedOneWithoutLedAuditsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLedAuditsInput, Prisma.UserUncheckedCreateWithoutLedAuditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLedAuditsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutLedAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLedAuditsInput, Prisma.UserUncheckedCreateWithoutLedAuditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLedAuditsInput
+  upsert?: Prisma.UserUpsertWithoutLedAuditsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLedAuditsInput, Prisma.UserUpdateWithoutLedAuditsInput>, Prisma.UserUncheckedUpdateWithoutLedAuditsInput>
+}
+
 export type UserCreateNestedOneWithoutActivityLogsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutActivityLogsInput, Prisma.UserUncheckedCreateWithoutActivityLogsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutActivityLogsInput
@@ -750,6 +773,7 @@ export type UserCreateWithoutPasswordResetTokensInput = {
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
@@ -770,6 +794,7 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
@@ -806,6 +831,7 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
@@ -826,6 +852,7 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserCreateWithoutSupervisedZoneInput = {
@@ -846,6 +873,7 @@ export type UserCreateWithoutSupervisedZoneInput = {
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutSupervisedZoneInput = {
@@ -866,6 +894,7 @@ export type UserUncheckedCreateWithoutSupervisedZoneInput = {
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutSupervisedZoneInput = {
@@ -891,6 +920,7 @@ export type UserCreateWithoutZoneInput = {
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutZoneInput = {
@@ -911,6 +941,7 @@ export type UserUncheckedCreateWithoutZoneInput = {
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutZoneInput = {
@@ -952,6 +983,7 @@ export type UserUpdateWithoutSupervisedZoneInput = {
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupervisedZoneInput = {
@@ -972,6 +1004,7 @@ export type UserUncheckedUpdateWithoutSupervisedZoneInput = {
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutZoneInput = {
@@ -1026,6 +1059,7 @@ export type UserCreateWithoutCouncilInput = {
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutCouncilInput = {
@@ -1046,6 +1080,7 @@ export type UserUncheckedCreateWithoutCouncilInput = {
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutCouncilInput = {
@@ -1092,6 +1127,7 @@ export type UserCreateWithoutCreatedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutCreatedMandatesInput = {
@@ -1112,6 +1148,7 @@ export type UserUncheckedCreateWithoutCreatedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutCreatedMandatesInput = {
@@ -1148,6 +1185,7 @@ export type UserUpdateWithoutCreatedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedMandatesInput = {
@@ -1168,6 +1206,7 @@ export type UserUncheckedUpdateWithoutCreatedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserCreateWithoutAcceptedMandatesInput = {
@@ -1188,6 +1227,7 @@ export type UserCreateWithoutAcceptedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutAcceptedMandatesInput = {
@@ -1208,6 +1248,7 @@ export type UserUncheckedCreateWithoutAcceptedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutAcceptedMandatesInput = {
@@ -1233,6 +1274,7 @@ export type UserCreateWithoutRejectedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutRejectedMandatesInput = {
@@ -1253,6 +1295,7 @@ export type UserUncheckedCreateWithoutRejectedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutRejectedMandatesInput = {
@@ -1289,6 +1332,7 @@ export type UserUpdateWithoutAcceptedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAcceptedMandatesInput = {
@@ -1309,6 +1353,7 @@ export type UserUncheckedUpdateWithoutAcceptedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUpsertWithoutRejectedMandatesInput = {
@@ -1340,6 +1385,7 @@ export type UserUpdateWithoutRejectedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRejectedMandatesInput = {
@@ -1360,6 +1406,107 @@ export type UserUncheckedUpdateWithoutRejectedMandatesInput = {
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
+}
+
+export type UserCreateWithoutLedAuditsInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  role: $Enums.Role
+  status?: $Enums.UserStatus
+  passwordHash: string
+  specialisations?: Prisma.UserCreatespecialisationsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  zone?: Prisma.ZoneCreateNestedOneWithoutUsersInput
+  council?: Prisma.CouncilCreateNestedOneWithoutUsersInput
+  supervisedZone?: Prisma.ZoneCreateNestedOneWithoutSupervisorInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+  createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
+  acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
+  rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+}
+
+export type UserUncheckedCreateWithoutLedAuditsInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  role: $Enums.Role
+  status?: $Enums.UserStatus
+  passwordHash: string
+  zoneId?: string | null
+  councilId?: string | null
+  specialisations?: Prisma.UserCreatespecialisationsInput | string[]
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  supervisedZone?: Prisma.ZoneUncheckedCreateNestedOneWithoutSupervisorInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+  createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
+  acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
+  rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+}
+
+export type UserCreateOrConnectWithoutLedAuditsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLedAuditsInput, Prisma.UserUncheckedCreateWithoutLedAuditsInput>
+}
+
+export type UserUpsertWithoutLedAuditsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLedAuditsInput, Prisma.UserUncheckedUpdateWithoutLedAuditsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLedAuditsInput, Prisma.UserUncheckedCreateWithoutLedAuditsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLedAuditsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLedAuditsInput, Prisma.UserUncheckedUpdateWithoutLedAuditsInput>
+}
+
+export type UserUpdateWithoutLedAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  specialisations?: Prisma.UserUpdatespecialisationsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  zone?: Prisma.ZoneUpdateOneWithoutUsersNestedInput
+  council?: Prisma.CouncilUpdateOneWithoutUsersNestedInput
+  supervisedZone?: Prisma.ZoneUpdateOneWithoutSupervisorNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+  createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
+  acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
+  rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLedAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  zoneId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  councilId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  specialisations?: Prisma.UserUpdatespecialisationsInput | string[]
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supervisedZone?: Prisma.ZoneUncheckedUpdateOneWithoutSupervisorNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+  createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
+  acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
+  rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
 }
 
 export type UserCreateWithoutActivityLogsInput = {
@@ -1380,6 +1527,7 @@ export type UserCreateWithoutActivityLogsInput = {
   createdMandates?: Prisma.MandateCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditCreateNestedManyWithoutLeadInput
 }
 
 export type UserUncheckedCreateWithoutActivityLogsInput = {
@@ -1400,6 +1548,7 @@ export type UserUncheckedCreateWithoutActivityLogsInput = {
   createdMandates?: Prisma.MandateUncheckedCreateNestedManyWithoutCreatedByInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutAcceptedByInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedCreateNestedManyWithoutRejectedByInput
+  ledAudits?: Prisma.AuditUncheckedCreateNestedManyWithoutLeadInput
 }
 
 export type UserCreateOrConnectWithoutActivityLogsInput = {
@@ -1436,6 +1585,7 @@ export type UserUpdateWithoutActivityLogsInput = {
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActivityLogsInput = {
@@ -1456,6 +1606,7 @@ export type UserUncheckedUpdateWithoutActivityLogsInput = {
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserCreateManyZoneInput = {
@@ -1490,6 +1641,7 @@ export type UserUpdateWithoutZoneInput = {
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutZoneInput = {
@@ -1510,6 +1662,7 @@ export type UserUncheckedUpdateWithoutZoneInput = {
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutZoneInput = {
@@ -1558,6 +1711,7 @@ export type UserUpdateWithoutCouncilInput = {
   createdMandates?: Prisma.MandateUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCouncilInput = {
@@ -1578,6 +1732,7 @@ export type UserUncheckedUpdateWithoutCouncilInput = {
   createdMandates?: Prisma.MandateUncheckedUpdateManyWithoutCreatedByNestedInput
   acceptedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutAcceptedByNestedInput
   rejectedMandates?: Prisma.MandateCouncilUncheckedUpdateManyWithoutRejectedByNestedInput
+  ledAudits?: Prisma.AuditUncheckedUpdateManyWithoutLeadNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutCouncilInput = {
@@ -1605,6 +1760,7 @@ export type UserCountOutputType = {
   createdMandates: number
   acceptedMandates: number
   rejectedMandates: number
+  ledAudits: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1613,6 +1769,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   createdMandates?: boolean | UserCountOutputTypeCountCreatedMandatesArgs
   acceptedMandates?: boolean | UserCountOutputTypeCountAcceptedMandatesArgs
   rejectedMandates?: boolean | UserCountOutputTypeCountRejectedMandatesArgs
+  ledAudits?: boolean | UserCountOutputTypeCountLedAuditsArgs
 }
 
 /**
@@ -1660,6 +1817,13 @@ export type UserCountOutputTypeCountRejectedMandatesArgs<ExtArgs extends runtime
   where?: Prisma.MandateCouncilWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountLedAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1682,6 +1846,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdMandates?: boolean | Prisma.User$createdMandatesArgs<ExtArgs>
   acceptedMandates?: boolean | Prisma.User$acceptedMandatesArgs<ExtArgs>
   rejectedMandates?: boolean | Prisma.User$rejectedMandatesArgs<ExtArgs>
+  ledAudits?: boolean | Prisma.User$ledAuditsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1744,6 +1909,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdMandates?: boolean | Prisma.User$createdMandatesArgs<ExtArgs>
   acceptedMandates?: boolean | Prisma.User$acceptedMandatesArgs<ExtArgs>
   rejectedMandates?: boolean | Prisma.User$rejectedMandatesArgs<ExtArgs>
+  ledAudits?: boolean | Prisma.User$ledAuditsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1766,6 +1932,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdMandates: Prisma.$MandatePayload<ExtArgs>[]
     acceptedMandates: Prisma.$MandateCouncilPayload<ExtArgs>[]
     rejectedMandates: Prisma.$MandateCouncilPayload<ExtArgs>[]
+    ledAudits: Prisma.$AuditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2182,6 +2349,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   createdMandates<T extends Prisma.User$createdMandatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdMandatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MandatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   acceptedMandates<T extends Prisma.User$acceptedMandatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$acceptedMandatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MandateCouncilPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rejectedMandates<T extends Prisma.User$rejectedMandatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rejectedMandatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MandateCouncilPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ledAudits<T extends Prisma.User$ledAuditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ledAuditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2798,6 +2966,30 @@ export type User$rejectedMandatesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.MandateCouncilScalarFieldEnum | Prisma.MandateCouncilScalarFieldEnum[]
+}
+
+/**
+ * User.ledAudits
+ */
+export type User$ledAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Audit
+   */
+  select?: Prisma.AuditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Audit
+   */
+  omit?: Prisma.AuditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditInclude<ExtArgs> | null
+  where?: Prisma.AuditWhereInput
+  orderBy?: Prisma.AuditOrderByWithRelationInput | Prisma.AuditOrderByWithRelationInput[]
+  cursor?: Prisma.AuditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditScalarFieldEnum | Prisma.AuditScalarFieldEnum[]
 }
 
 /**

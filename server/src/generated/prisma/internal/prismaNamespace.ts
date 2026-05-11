@@ -390,6 +390,7 @@ export const ModelName = {
   Council: 'Council',
   Mandate: 'Mandate',
   MandateCouncil: 'MandateCouncil',
+  Audit: 'Audit',
   ActivityLog: 'ActivityLog'
 } as const
 
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "activityLog"
+    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "audit" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -854,6 +855,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Audit: {
+      payload: Prisma.$AuditPayload<ExtArgs>
+      fields: Prisma.AuditFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        findFirst: {
+          args: Prisma.AuditFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        findMany: {
+          args: Prisma.AuditFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+        }
+        create: {
+          args: Prisma.AuditCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        createMany: {
+          args: Prisma.AuditCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuditCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+        }
+        delete: {
+          args: Prisma.AuditDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        update: {
+          args: Prisma.AuditUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuditUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>[]
+        }
+        upsert: {
+          args: Prisma.AuditUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditPayload>
+        }
+        aggregate: {
+          args: Prisma.AuditAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAudit>
+        }
+        groupBy: {
+          args: Prisma.AuditGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditCountAggregateOutputType> | number
+        }
+      }
+    }
     ActivityLog: {
       payload: Prisma.$ActivityLogPayload<ExtArgs>
       fields: Prisma.ActivityLogFieldRefs
@@ -1066,6 +1141,29 @@ export const MandateCouncilScalarFieldEnum = {
 export type MandateCouncilScalarFieldEnum = (typeof MandateCouncilScalarFieldEnum)[keyof typeof MandateCouncilScalarFieldEnum]
 
 
+export const AuditScalarFieldEnum = {
+  id: 'id',
+  mandateId: 'mandateId',
+  mandateCouncilId: 'mandateCouncilId',
+  councilId: 'councilId',
+  zoneId: 'zoneId',
+  title: 'title',
+  year: 'year',
+  auditTypes: 'auditTypes',
+  status: 'status',
+  progress: 'progress',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  leadId: 'leadId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+
+
 export const ActivityLogScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1269,6 +1367,20 @@ export type ListEnumMandateCouncilStatusFieldRefInput<$PrismaModel> = FieldRefIn
 
 
 /**
+ * Reference to a field of type 'AuditStatus'
+ */
+export type EnumAuditStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditStatus[]'
+ */
+export type ListEnumAuditStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1411,6 +1523,7 @@ export type GlobalOmitConfig = {
   council?: Prisma.CouncilOmit
   mandate?: Prisma.MandateOmit
   mandateCouncil?: Prisma.MandateCouncilOmit
+  audit?: Prisma.AuditOmit
   activityLog?: Prisma.ActivityLogOmit
 }
 

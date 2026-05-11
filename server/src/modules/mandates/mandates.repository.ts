@@ -182,7 +182,23 @@ export function acceptMandate(id: string, councilId: string, acceptedById: strin
       include: mandateInclude,
     });
 
-    return { ...accepted, mandate };
+    const audit = await tx.audit.upsert({
+      where: { mandateCouncilId: accepted.id },
+      update: {},
+      create: {
+        mandateId: id,
+        mandateCouncilId: accepted.id,
+        councilId,
+        zoneId: accepted.council.zoneId,
+        title: `${mandate.title} - ${accepted.council.name}`,
+        year: mandate.year,
+        auditTypes: mandate.auditTypes,
+        startDate: mandate.startDate,
+        endDate: mandate.endDate,
+      },
+    });
+
+    return { ...accepted, mandate, audit };
   });
 }
 

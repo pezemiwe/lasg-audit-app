@@ -323,6 +323,7 @@ export async function acceptMandate(id: string, user: AuthUser) {
     rejectionReason: accepted.rejectionReason,
     documentPortalUnlockedAt: accepted.documentPortalUnlockedAt,
     questionnaireUnlockedAt: accepted.questionnaireUnlockedAt,
+    audit: accepted.audit,
   };
 }
 

@@ -48,6 +48,11 @@ export type Mandate = Prisma.MandateModel
  */
 export type MandateCouncil = Prisma.MandateCouncilModel
 /**
+ * Model Audit
+ * 
+ */
+export type Audit = Prisma.AuditModel
+/**
  * Model ActivityLog
  * 
  */

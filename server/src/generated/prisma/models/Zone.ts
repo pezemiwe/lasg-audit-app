@@ -193,6 +193,7 @@ export type ZoneWhereInput = {
   supervisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   councils?: Prisma.CouncilListRelationFilter
   users?: Prisma.UserListRelationFilter
+  audits?: Prisma.AuditListRelationFilter
 }
 
 export type ZoneOrderByWithRelationInput = {
@@ -205,6 +206,7 @@ export type ZoneOrderByWithRelationInput = {
   supervisor?: Prisma.UserOrderByWithRelationInput
   councils?: Prisma.CouncilOrderByRelationAggregateInput
   users?: Prisma.UserOrderByRelationAggregateInput
+  audits?: Prisma.AuditOrderByRelationAggregateInput
 }
 
 export type ZoneWhereUniqueInput = Prisma.AtLeast<{
@@ -220,6 +222,7 @@ export type ZoneWhereUniqueInput = Prisma.AtLeast<{
   supervisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   councils?: Prisma.CouncilListRelationFilter
   users?: Prisma.UserListRelationFilter
+  audits?: Prisma.AuditListRelationFilter
 }, "id" | "name" | "supervisorId">
 
 export type ZoneOrderByWithAggregationInput = {
@@ -255,6 +258,7 @@ export type ZoneCreateInput = {
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedZoneInput
   councils?: Prisma.CouncilCreateNestedManyWithoutZoneInput
   users?: Prisma.UserCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUncheckedCreateInput = {
@@ -266,6 +270,7 @@ export type ZoneUncheckedCreateInput = {
   updatedAt?: Date | string
   councils?: Prisma.CouncilUncheckedCreateNestedManyWithoutZoneInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUpdateInput = {
@@ -277,6 +282,7 @@ export type ZoneUpdateInput = {
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedZoneNestedInput
   councils?: Prisma.CouncilUpdateManyWithoutZoneNestedInput
   users?: Prisma.UserUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUncheckedUpdateInput = {
@@ -288,6 +294,7 @@ export type ZoneUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.CouncilUncheckedUpdateManyWithoutZoneNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneCreateManyInput = {
@@ -415,6 +422,20 @@ export type ZoneUpdateOneRequiredWithoutCouncilsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ZoneUpdateToOneWithWhereWithoutCouncilsInput, Prisma.ZoneUpdateWithoutCouncilsInput>, Prisma.ZoneUncheckedUpdateWithoutCouncilsInput>
 }
 
+export type ZoneCreateNestedOneWithoutAuditsInput = {
+  create?: Prisma.XOR<Prisma.ZoneCreateWithoutAuditsInput, Prisma.ZoneUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.ZoneCreateOrConnectWithoutAuditsInput
+  connect?: Prisma.ZoneWhereUniqueInput
+}
+
+export type ZoneUpdateOneRequiredWithoutAuditsNestedInput = {
+  create?: Prisma.XOR<Prisma.ZoneCreateWithoutAuditsInput, Prisma.ZoneUncheckedCreateWithoutAuditsInput>
+  connectOrCreate?: Prisma.ZoneCreateOrConnectWithoutAuditsInput
+  upsert?: Prisma.ZoneUpsertWithoutAuditsInput
+  connect?: Prisma.ZoneWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ZoneUpdateToOneWithWhereWithoutAuditsInput, Prisma.ZoneUpdateWithoutAuditsInput>, Prisma.ZoneUncheckedUpdateWithoutAuditsInput>
+}
+
 export type ZoneCreateWithoutUsersInput = {
   id?: string
   name: string
@@ -423,6 +444,7 @@ export type ZoneCreateWithoutUsersInput = {
   updatedAt?: Date | string
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedZoneInput
   councils?: Prisma.CouncilCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUncheckedCreateWithoutUsersInput = {
@@ -433,6 +455,7 @@ export type ZoneUncheckedCreateWithoutUsersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   councils?: Prisma.CouncilUncheckedCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneCreateOrConnectWithoutUsersInput = {
@@ -448,6 +471,7 @@ export type ZoneCreateWithoutSupervisorInput = {
   updatedAt?: Date | string
   councils?: Prisma.CouncilCreateNestedManyWithoutZoneInput
   users?: Prisma.UserCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUncheckedCreateWithoutSupervisorInput = {
@@ -458,6 +482,7 @@ export type ZoneUncheckedCreateWithoutSupervisorInput = {
   updatedAt?: Date | string
   councils?: Prisma.CouncilUncheckedCreateNestedManyWithoutZoneInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneCreateOrConnectWithoutSupervisorInput = {
@@ -484,6 +509,7 @@ export type ZoneUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedZoneNestedInput
   councils?: Prisma.CouncilUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUncheckedUpdateWithoutUsersInput = {
@@ -494,6 +520,7 @@ export type ZoneUncheckedUpdateWithoutUsersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.CouncilUncheckedUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUpsertWithoutSupervisorInput = {
@@ -515,6 +542,7 @@ export type ZoneUpdateWithoutSupervisorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.CouncilUpdateManyWithoutZoneNestedInput
   users?: Prisma.UserUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUncheckedUpdateWithoutSupervisorInput = {
@@ -525,6 +553,7 @@ export type ZoneUncheckedUpdateWithoutSupervisorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   councils?: Prisma.CouncilUncheckedUpdateManyWithoutZoneNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneCreateWithoutCouncilsInput = {
@@ -535,6 +564,7 @@ export type ZoneCreateWithoutCouncilsInput = {
   updatedAt?: Date | string
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedZoneInput
   users?: Prisma.UserCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUncheckedCreateWithoutCouncilsInput = {
@@ -545,6 +575,7 @@ export type ZoneUncheckedCreateWithoutCouncilsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutZoneInput
+  audits?: Prisma.AuditUncheckedCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneCreateOrConnectWithoutCouncilsInput = {
@@ -571,6 +602,7 @@ export type ZoneUpdateWithoutCouncilsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedZoneNestedInput
   users?: Prisma.UserUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUncheckedUpdateWithoutCouncilsInput = {
@@ -580,6 +612,67 @@ export type ZoneUncheckedUpdateWithoutCouncilsInput = {
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutZoneNestedInput
+  audits?: Prisma.AuditUncheckedUpdateManyWithoutZoneNestedInput
+}
+
+export type ZoneCreateWithoutAuditsInput = {
+  id?: string
+  name: string
+  capital: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedZoneInput
+  councils?: Prisma.CouncilCreateNestedManyWithoutZoneInput
+  users?: Prisma.UserCreateNestedManyWithoutZoneInput
+}
+
+export type ZoneUncheckedCreateWithoutAuditsInput = {
+  id?: string
+  name: string
+  capital: string
+  supervisorId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  councils?: Prisma.CouncilUncheckedCreateNestedManyWithoutZoneInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutZoneInput
+}
+
+export type ZoneCreateOrConnectWithoutAuditsInput = {
+  where: Prisma.ZoneWhereUniqueInput
+  create: Prisma.XOR<Prisma.ZoneCreateWithoutAuditsInput, Prisma.ZoneUncheckedCreateWithoutAuditsInput>
+}
+
+export type ZoneUpsertWithoutAuditsInput = {
+  update: Prisma.XOR<Prisma.ZoneUpdateWithoutAuditsInput, Prisma.ZoneUncheckedUpdateWithoutAuditsInput>
+  create: Prisma.XOR<Prisma.ZoneCreateWithoutAuditsInput, Prisma.ZoneUncheckedCreateWithoutAuditsInput>
+  where?: Prisma.ZoneWhereInput
+}
+
+export type ZoneUpdateToOneWithWhereWithoutAuditsInput = {
+  where?: Prisma.ZoneWhereInput
+  data: Prisma.XOR<Prisma.ZoneUpdateWithoutAuditsInput, Prisma.ZoneUncheckedUpdateWithoutAuditsInput>
+}
+
+export type ZoneUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capital?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  supervisor?: Prisma.UserUpdateOneWithoutSupervisedZoneNestedInput
+  councils?: Prisma.CouncilUpdateManyWithoutZoneNestedInput
+  users?: Prisma.UserUpdateManyWithoutZoneNestedInput
+}
+
+export type ZoneUncheckedUpdateWithoutAuditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capital?: Prisma.StringFieldUpdateOperationsInput | string
+  supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  councils?: Prisma.CouncilUncheckedUpdateManyWithoutZoneNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutZoneNestedInput
 }
 
@@ -591,11 +684,13 @@ export type ZoneUncheckedUpdateWithoutCouncilsInput = {
 export type ZoneCountOutputType = {
   councils: number
   users: number
+  audits: number
 }
 
 export type ZoneCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   councils?: boolean | ZoneCountOutputTypeCountCouncilsArgs
   users?: boolean | ZoneCountOutputTypeCountUsersArgs
+  audits?: boolean | ZoneCountOutputTypeCountAuditsArgs
 }
 
 /**
@@ -622,6 +717,13 @@ export type ZoneCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.UserWhereInput
 }
 
+/**
+ * ZoneCountOutputType without action
+ */
+export type ZoneCountOutputTypeCountAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditWhereInput
+}
+
 
 export type ZoneSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -633,6 +735,7 @@ export type ZoneSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   supervisor?: boolean | Prisma.Zone$supervisorArgs<ExtArgs>
   councils?: boolean | Prisma.Zone$councilsArgs<ExtArgs>
   users?: boolean | Prisma.Zone$usersArgs<ExtArgs>
+  audits?: boolean | Prisma.Zone$auditsArgs<ExtArgs>
   _count?: boolean | Prisma.ZoneCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["zone"]>
 
@@ -670,6 +773,7 @@ export type ZoneInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   supervisor?: boolean | Prisma.Zone$supervisorArgs<ExtArgs>
   councils?: boolean | Prisma.Zone$councilsArgs<ExtArgs>
   users?: boolean | Prisma.Zone$usersArgs<ExtArgs>
+  audits?: boolean | Prisma.Zone$auditsArgs<ExtArgs>
   _count?: boolean | Prisma.ZoneCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ZoneIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -685,6 +789,7 @@ export type $ZonePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     supervisor: Prisma.$UserPayload<ExtArgs> | null
     councils: Prisma.$CouncilPayload<ExtArgs>[]
     users: Prisma.$UserPayload<ExtArgs>[]
+    audits: Prisma.$AuditPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1090,6 +1195,7 @@ export interface Prisma__ZoneClient<T, Null = never, ExtArgs extends runtime.Typ
   supervisor<T extends Prisma.Zone$supervisorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$supervisorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   councils<T extends Prisma.Zone$councilsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$councilsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CouncilPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.Zone$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  audits<T extends Prisma.Zone$auditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$auditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1590,6 +1696,30 @@ export type Zone$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
+ * Zone.audits
+ */
+export type Zone$auditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Audit
+   */
+  select?: Prisma.AuditSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Audit
+   */
+  omit?: Prisma.AuditOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditInclude<ExtArgs> | null
+  where?: Prisma.AuditWhereInput
+  orderBy?: Prisma.AuditOrderByWithRelationInput | Prisma.AuditOrderByWithRelationInput[]
+  cursor?: Prisma.AuditWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditScalarFieldEnum | Prisma.AuditScalarFieldEnum[]
 }
 
 /**

@@ -123,14 +123,16 @@ async function main() {
 
   await upsertUser({
     name: "Engr. Babatunde Fashola",
-    email: "sysadmin@lasg.gov.ng",
+    // email: "sysadmin@lasg.gov.ng",
+    email: "dewaleolaoye@gmail.com",
     role: "SYSTEM_ADMIN",
     phone: "+234 802 000 0001",
   });
 
   await upsertUser({
     name: "Hon. Adebayo Oluwaseun",
-    email: "ag@lasg.gov.ng",
+    // email: "ag@lasg.gov.ng",
+    email: "ade@gmail.com",
     role: "STATE_AUDITOR_GENERAL",
     phone: "+234 802 300 0001",
   });

@@ -57,6 +57,7 @@ export const ModelName = {
   Council: 'Council',
   Mandate: 'Mandate',
   MandateCouncil: 'MandateCouncil',
+  Audit: 'Audit',
   ActivityLog: 'ActivityLog'
 } as const
 
@@ -173,6 +174,29 @@ export const MandateCouncilScalarFieldEnum = {
 } as const
 
 export type MandateCouncilScalarFieldEnum = (typeof MandateCouncilScalarFieldEnum)[keyof typeof MandateCouncilScalarFieldEnum]
+
+
+export const AuditScalarFieldEnum = {
+  id: 'id',
+  mandateId: 'mandateId',
+  mandateCouncilId: 'mandateCouncilId',
+  councilId: 'councilId',
+  zoneId: 'zoneId',
+  title: 'title',
+  year: 'year',
+  auditTypes: 'auditTypes',
+  status: 'status',
+  progress: 'progress',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  leadId: 'leadId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
 
 
 export const ActivityLogScalarFieldEnum = {

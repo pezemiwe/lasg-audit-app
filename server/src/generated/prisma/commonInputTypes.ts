@@ -264,6 +264,23 @@ export type EnumMandateCouncilStatusWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumMandateCouncilStatusFilter<$PrismaModel>
 }
 
+export type EnumAuditStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuditStatus | Prisma.EnumAuditStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuditStatusFilter<$PrismaModel> | $Enums.AuditStatus
+}
+
+export type EnumAuditStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuditStatus | Prisma.EnumAuditStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuditStatusWithAggregatesFilter<$PrismaModel> | $Enums.AuditStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAuditStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAuditStatusFilter<$PrismaModel>
+}
+
 export type JsonNullableFilter<$PrismaModel = never> =
 | Prisma.PatchUndefined<
     Prisma.Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -576,6 +593,23 @@ export type NestedEnumMandateCouncilStatusWithAggregatesFilter<$PrismaModel = ne
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMandateCouncilStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMandateCouncilStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumAuditStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuditStatus | Prisma.EnumAuditStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuditStatusFilter<$PrismaModel> | $Enums.AuditStatus
+}
+
+export type NestedEnumAuditStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AuditStatus | Prisma.EnumAuditStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AuditStatus[] | Prisma.ListEnumAuditStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAuditStatusWithAggregatesFilter<$PrismaModel> | $Enums.AuditStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAuditStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAuditStatusFilter<$PrismaModel>
 }
 
 export type NestedJsonNullableFilter<$PrismaModel = never> =
