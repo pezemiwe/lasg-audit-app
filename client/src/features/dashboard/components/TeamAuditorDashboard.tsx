@@ -154,7 +154,7 @@ const TeamAuditorDashboard: React.FC<TeamAuditorDashboardProps> = ({
             <div className={s.kpiLabel}>Assigned Tasks</div>
             <div className={s.kpiValue}>{myTasks.length}</div>
             <div className={s.kpiMeta}>
-              {inProgressTasks} in progress Â· {pendingTasks} pending
+              {inProgressTasks} in progress Â| {pendingTasks} pending
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ const TeamAuditorDashboard: React.FC<TeamAuditorDashboardProps> = ({
             <div className={s.kpiLabel}>Procedures</div>
             <div className={s.kpiValue}>{myExecutions.length}</div>
             <div className={s.kpiMeta}>
-              {clearedExecutions} cleared Â· {inProgressExecutions} in progress
+              {clearedExecutions} cleared Â| {inProgressExecutions} in progress
             </div>
           </div>
         </div>
@@ -263,7 +263,7 @@ const TeamAuditorDashboard: React.FC<TeamAuditorDashboardProps> = ({
                                   marginLeft: "0.5rem",
                                 }}
                               >
-                                Â· Overdue
+                                Â| Overdue
                               </span>
                             )}
                           </div>

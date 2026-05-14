@@ -151,7 +151,7 @@ const TrialBalanceUpload: React.FC<TrialBalanceUploadProps> = ({
             , or click to browse
           </div>
           <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>
-            Expected columns: NCOA Code 路 Account 路 {currentYear} 路 {priorYear}
+            Expected columns: NCOA Code 聕 Account 聕 {currentYear} 聕 {priorYear}
           </div>
           {parsing && (
             <div style={{ marginTop: 12, color: "#064e3b", fontSize: "0.8rem" }}>
@@ -198,7 +198,7 @@ const TrialBalanceUpload: React.FC<TrialBalanceUploadProps> = ({
                 {existing.fileName}
               </div>
               <div style={{ fontSize: "0.75rem", color: "#166534" }}>
-                {existing.lines.length} account lines parsed 路 Uploaded{" "}
+                {existing.lines.length} account lines parsed 聕 Uploaded{" "}
                 {new Date(existing.uploadedAt).toLocaleDateString()}
               </div>
             </div>

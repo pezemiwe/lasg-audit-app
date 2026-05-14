@@ -1018,9 +1018,9 @@ const ProcedureWorkspace: React.FC<{
                 marginTop: "0.2rem",
               }}
             >
-              {currentExec.auditArea} Â· Assertions:{" "}
-              {currentExec.assertions.join(", ")} Â· Assigned:{" "}
-              {userNameById(currentExec.assignedTo, store.users)} Â· Due:{" "}
+              {currentExec.auditArea} Â| Assertions:{" "}
+              {currentExec.assertions.join(", ")} Â| Assigned:{" "}
+              {userNameById(currentExec.assignedTo, store.users)} Â| Due:{" "}
               {new Date(currentExec.dueDate).toLocaleDateString("en-GB", {
                 day: "numeric",
                 month: "short",
@@ -3188,7 +3188,7 @@ const ProcedureWorkspace: React.FC<{
                                 fontSize: "0.78rem",
                               }}
                             >
-                              Â·Â·Â·{ba.accountNumber.slice(-4)}
+                              Â|Â|Â|{ba.accountNumber.slice(-4)}
                             </td>
                             <td>{ba.declaredByEntity ? "âœ…" : "âŒ"}</td>
                             <td style={{ fontSize: "0.78rem" }}>
@@ -3259,7 +3259,7 @@ const ProcedureWorkspace: React.FC<{
                               exceptionType: "Bank Discrepancy",
                               assertionAffected: "Completeness",
                               severity: "Critical",
-                              finding: `Undisclosed bank account detected: ${ba.bankName} (Â·Â·Â·${ba.accountNumber.slice(-4)}). Confirmed by bank but NOT declared by the entity. Cashbook balance: â‚¦${ba.cashbookBalance.toLocaleString()}.`,
+                              finding: `Undisclosed bank account detected: ${ba.bankName} (Â|Â|Â|${ba.accountNumber.slice(-4)}). Confirmed by bank but NOT declared by the entity. Cashbook balance: â‚¦${ba.cashbookBalance.toLocaleString()}.`,
                               evidenceCodes: exec.evidence.map((e) => e.code),
                               financialImpact: ba.cashbookBalance,
                               qualitativeImpact:

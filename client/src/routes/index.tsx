@@ -5,6 +5,7 @@ import Landing from "../pages/Landing";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PublicLayout from "../layouts/PublicLayout";
 import ProtectedRoute from "../components/UI/ProtectedRoute";
+import PageSkeleton from "../components/UI/PageSkeleton";
 
 const Dashboard = React.lazy(() => import("../pages/Dashboard"));
 const Audit = React.lazy(() => import("../pages/Audit"));
@@ -37,41 +38,8 @@ const NotFound = React.lazy(() => import("../pages/NotFound"));
 const Unauthorized = React.lazy(() => import("../pages/Unauthorized"));
 
 const PageLoader = () => (
-  <div
-    role="status"
-    aria-live="polite"
-    aria-label="Loading page"
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: "calc(100vh - 200px)",
-      color: "#064e3b",
-      width: "100%",
-    }}
-  >
-    <div
-      aria-hidden="true"
-      style={{
-        width: "32px",
-        height: "32px",
-        border: "3px solid #e2e8f0",
-        borderTopColor: "#064e3b",
-        borderRadius: "50%",
-        animation: "rotate 0.6s linear infinite",
-      }}
-    />
-    <span
-      style={{
-        position: "absolute",
-        width: "1px",
-        height: "1px",
-        overflow: "hidden",
-        clip: "rect(0 0 0 0)",
-      }}
-    >
-      Loading
-    </span>
+  <div style={{ padding: "0" }}>
+    <PageSkeleton />
   </div>
 );
 

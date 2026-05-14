@@ -7,7 +7,6 @@ import {
   PenTool,
   MessageSquare,
   DollarSign,
-  FileText,
   FileCheck,
 } from "lucide-react";
 
@@ -59,7 +58,6 @@ export type TabKey =
   | "journals"
   | "comments"
   | "statements"
-  | "report"
   | "completion";
 
 export const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
@@ -91,6 +89,5 @@ export const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     label: "Financial Statements",
     icon: <DollarSign size={14} />,
   },
-  { key: "report", label: "Audit Report", icon: <FileText size={14} /> },
   { key: "completion", label: "Completion", icon: <FileCheck size={14} /> },
 ];

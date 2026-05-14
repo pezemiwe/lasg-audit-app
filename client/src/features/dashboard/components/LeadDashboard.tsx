@@ -91,7 +91,7 @@ const LeadDashboard: React.FC<LeadDashboardProps> = ({
             {myAudit && (
               <>
                 {" "}
-                Â·{" "}
+                Â|{" "}
                 <span
                   style={{
                     padding: "0.15rem 0.5rem",

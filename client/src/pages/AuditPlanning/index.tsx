@@ -1,7 +1,9 @@
-﻿import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
+import { useSimulatedLoading } from "../../hooks/useSimulatedLoading";
+import PageSkeleton from "../../components/UI/PageSkeleton";
 import { ClipboardList, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import s from "../../styles/pages.module.css";
 import {
@@ -22,6 +24,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({
   auditId: propAuditId,
   embedded,
 }) => {
+  const isLoading = useSimulatedLoading(500);
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const store = useAuditStore();
@@ -118,6 +121,10 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({
   const [arPhase, setArPhase] = useState<"select" | "imported">("select");
 
   const documentUploads = store.documentUploads;
+
+  if (isLoading) {
+    return <PageSkeleton />;
+  }
 
   if (!user) return null;
 
@@ -260,7 +267,7 @@ const AuditPlanning: React.FC<AuditPlanningProps> = ({
                     flexShrink: 0,
                   }}
                 >
-                  {done ? <Check size={14} /> : <Icon size={14} />}
+                  {done ? <Check size={14} color="#ffffff" /> : <Icon size={14} />}
                 </div>
                 <div style={{ textAlign: "left" }}>
                   <div

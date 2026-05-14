@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
               Audit Platform
             </span>
             <span className={s.brandSub}>
-              Office of the State Auditor General
+              Office of the Auditor-General for Local Governments
             </span>
           </div>
         </a>

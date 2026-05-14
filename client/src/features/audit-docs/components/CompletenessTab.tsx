@@ -268,7 +268,7 @@ const CompletenessTab: React.FC<{ complete: number; completePct: number }> = ({
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
                   {qc.name}
-                  {qc.date !== "—" ? ` · ${qc.date}` : ""}
+                  {qc.date !== "—" ? ` �| ${qc.date}` : ""}
                 </div>
               </div>
               <Badge

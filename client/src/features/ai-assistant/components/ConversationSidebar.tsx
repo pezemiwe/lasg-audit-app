@@ -54,7 +54,7 @@ const ConversationSidebar: React.FC<Props> = ({ onNewChat }) => {
           <div className={s.convo_group_title}>Last 7 Days</div>
           <button className={s.convo_item}>
             <MessageSquare size={12} className={s.convo_icon} color="inherit" />
-            <span className={s.convo_text}>state Auditor General powers</span>
+            <span className={s.convo_text}>Auditor-General for Local Governments powers</span>
           </button>
         </div>
       </div>

@@ -16,7 +16,7 @@ export const MOCK_USERS: User[] = [
   ...ADDITIONAL_SUPERVISORS,
   {
     id: "user-sysadmin",
-    name: "Engr. Babatunde Fashola",
+    name: "Engr. Olalekan Shodeinde",
     email: "sysadmin@lasg.gov.ng",
     role: "SYSTEM_ADMIN",
     phone: "+234 802 000 0001",

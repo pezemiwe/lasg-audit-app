@@ -28,7 +28,7 @@ const WorkpaperRow: React.FC<Props> = ({
           <div className={s.wpDetails}>
             <div className={s.wpTitle}>{workpaper.title}</div>
             <div className={s.wpMeta}>
-              {workpaper.fileName} · {workpaper.fileSize} · {uploader?.name} ·{" "}
+              {workpaper.fileName} | {workpaper.fileSize} | {uploader?.name} |{" "}
               {new Date(workpaper.uploadedAt).toLocaleDateString("en-NG")}
             </div>
             {task && <div className={s.wpMeta}>Task: {task.title}</div>}

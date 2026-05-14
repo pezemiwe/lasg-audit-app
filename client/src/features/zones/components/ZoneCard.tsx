@@ -78,7 +78,7 @@ const ZoneCard: React.FC<Props> = ({
               LGAs, {zoneLgas.filter((l) => l.councilType === "LCDA").length}{" "}
               LCDAs
               {hasSupervisors &&
-                ` · ${assignedSupervisors.length} Supervisor(s)`}
+                ` | ${assignedSupervisors.length} Supervisor(s)`}
             </div>
           </div>
         </div>

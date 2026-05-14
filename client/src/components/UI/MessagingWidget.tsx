@@ -844,7 +844,7 @@ const MessagingWidget: React.FC<MessagingWidgetProps> = ({
                 >
                   Enter
                 </kbd>{" "}
-                to send Â·{" "}
+                to send Â|{" "}
                 <kbd
                   style={{
                     background: "#f1f5f9",

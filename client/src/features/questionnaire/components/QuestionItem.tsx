@@ -329,7 +329,7 @@ const QuestionItem: React.FC<Props> = ({
                 >
                   ✓ Saved
                   {existing.answeredAt
-                    ? ` · ${new Date(existing.answeredAt).toLocaleString()}`
+                    ? ` | ${new Date(existing.answeredAt).toLocaleString()}`
                     : ""}
                 </span>
                 {canEdit && (

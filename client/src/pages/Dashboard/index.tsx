@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
+import { useSimulatedLoading } from "../../hooks/useSimulatedLoading";
+import PageSkeleton from "../../components/UI/PageSkeleton";
 import StateAGDashboard from "../../features/dashboard/components/StateAGDashboard";
 import SupervisorDashboard from "../../features/dashboard/components/SupervisorDashboard";
 import LeadDashboard from "../../features/dashboard/components/LeadDashboard";
@@ -11,6 +13,7 @@ import HLGDashboard from "../../features/dashboard/components/HLGDashboard";
 import DefaultDashboard from "../../features/dashboard/components/DefaultDashboard";
 
 const Dashboard: React.FC = () => {
+  const isLoading = useSimulatedLoading(500);
   const { user } = useAuth();
   const navigate = useNavigate();
   const activityLog = useAuditStore((state) => state.activityLog);
@@ -19,6 +22,7 @@ const Dashboard: React.FC = () => {
   const letters = useAuditStore((state) => state.letters);
   const documentUploads = useAuditStore((state) => state.documentUploads);
   const reports = useAuditStore((state) => state.reports);
+
   const stageApprovals = useAuditStore((state) => state.stageApprovals);
   const controlTests = useAuditStore((state) => state.controlTests);
   const substantiveTests = useAuditStore((state) => state.substantiveTests);
@@ -31,6 +35,10 @@ const Dashboard: React.FC = () => {
     null,
   );
   const [selectedLeadId, setSelectedLeadId] = React.useState<string>("");
+
+  if (isLoading) {
+    return <PageSkeleton />;
+  }
 
   if (!user) return null;
 

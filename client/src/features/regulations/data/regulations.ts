@@ -14,7 +14,7 @@ export const regulationsData: Regulation[] = [
       "Constitution of the Federal Republic of Nigeria, 1999: Section 125(2)",
     date: "May 29, 1999",
     jurisdiction: "federal",
-    desc: "Establishes the mandate for State Auditor-Generals to audit all LGA accounts and report findings to the House of Assembly.",
+    desc: "Establishes the mandate for Auditor-Generals for Local Governments to audit all LGA accounts and report findings to the House of Assembly.",
     tags: ["Constitutional mandate", "LGA audit", "Reporting"],
   },
   {

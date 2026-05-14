@@ -14,7 +14,7 @@ const SupervisorCard: React.FC<Props> = ({ supervisor: sup, onRemove }) => {
       <div className={s.poolInfo}>
         <div className={s.poolName}>{sup.name}</div>
         <div className={s.poolMeta}>
-          {sup.email} · {sup.phone}
+          {sup.email} | {sup.phone}
         </div>
         <div className={s.poolTags} style={{ marginTop: "0.3rem" }}>
           {sup.specialisations?.map((sp) => (

@@ -123,7 +123,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
               {inv.acceptedAt
                 ? new Date(inv.acceptedAt).toLocaleDateString("en-NG")
                 : ""}
-              {" Â· "}
+              {" Â| "}
               Mandate: {getMandateTitle(inv.mandateId)}
             </div>
           </div>
@@ -372,7 +372,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
                       marginTop: "0.15rem",
                     }}
                   >
-                    Ref: EL-2024-{inv.lgaId?.toUpperCase() ?? "LGA"} Â· Issued by
+                    Ref: EL-2024-{inv.lgaId?.toUpperCase() ?? "LGA"} Â| Issued by
                     Supervisor
                   </div>
                 </div>
@@ -414,7 +414,7 @@ const AcceptedInvitationCard: React.FC<Props> = ({
                       marginTop: "0.15rem",
                     }}
                   >
-                    LASG Standing Instructions 2024 Â· Mandatory reading
+                    LASG Standing Instructions 2024 Â| Mandatory reading
                   </div>
                 </div>
                 <button

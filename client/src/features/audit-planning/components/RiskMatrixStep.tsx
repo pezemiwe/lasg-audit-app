@@ -399,7 +399,7 @@ const RiskMatrixStep: React.FC<{
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255);
-    doc.text("LAGOS STATE AUDITOR GENERAL'S OFFICE", W / 2, 55, {
+    doc.text("OFFICE OF THE AUDITOR-GENERAL FOR LOCAL GOVERNMENTS", W / 2, 55, {
       align: "center",
     });
     doc.setFont("helvetica", "bold");
@@ -706,7 +706,7 @@ const RiskMatrixStep: React.FC<{
             fontWeight: 700,
           }}
         >
-          Lagos State Auditor General's Office
+          OFFICE OF THE AUDITOR-GENERAL FOR LOCAL GOVERNMENTS
         </div>
         <div
           style={{
