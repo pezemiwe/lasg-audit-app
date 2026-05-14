@@ -3,10 +3,13 @@ import { useAuditStore } from "../../store/useAuditStore";
 import MandateListView from "../../features/mandates/components/MandateListView";
 import MandateCreateView from "../../features/mandates/components/MandateCreateView";
 import MandateDetailView from "../../features/mandates/components/MandateDetailView";
+import { useSimulatedLoading } from "../../hooks/useSimulatedLoading";
+import PageSkeleton from "../../components/UI/PageSkeleton";
 
 type View = "list" | "create" | "detail";
 
 const MandatesPage: React.FC = () => {
+  const isLoading = useSimulatedLoading(600);
   const mandates = useAuditStore((s) => s.mandates);
 
   const [view, setView] = useState<View>("list");
@@ -17,12 +20,13 @@ const MandatesPage: React.FC = () => {
     [mandates, selectedId],
   );
 
+  if (isLoading) {
+    return <PageSkeleton />;
+  }
+
   if (view === "detail" && selected) {
     return (
-      <MandateDetailView
-        mandate={selected}
-        onBack={() => setView("list")}
-      />
+      <MandateDetailView mandate={selected} onBack={() => setView("list")} />
     );
   }
 

@@ -607,7 +607,7 @@ const AnalyticalReviewStep: React.FC<{
                               style={{ fontSize: "0.7rem", color: "#94a3b8" }}
                             >
                               {isApproved
-                                ? `Approved${slot.doc?.uploadedAt ? " Â· " + new Date(slot.doc.uploadedAt).toLocaleDateString("en-NG") : ""}${slot.doc?.fileSize ? " Â· " + slot.doc.fileSize : ""}`
+                                ? `Approved${slot.doc?.uploadedAt ? " Â| " + new Date(slot.doc.uploadedAt).toLocaleDateString("en-NG") : ""}${slot.doc?.fileSize ? " Â| " + slot.doc.fileSize : ""}`
                                 : isUploaded
                                   ? "Awaiting Audit Lead approval"
                                   : isRejected
@@ -1333,7 +1333,7 @@ const AnalyticalReviewStep: React.FC<{
                           }}
                         >
                           {group.items.length} item
-                          {group.items.length !== 1 ? "s" : ""} Â· CY vs PY
+                          {group.items.length !== 1 ? "s" : ""} Â| CY vs PY
                         </span>
                       </div>
                       {/* Items */}

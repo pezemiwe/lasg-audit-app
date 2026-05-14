@@ -75,7 +75,7 @@ const LgaRow: React.FC<Props> = ({
             )}
           </div>
           <div className={s.listRowSub}>
-            {lga.contactName} · {lga.contactEmail}
+            {lga.contactName} | {lga.contactEmail}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

@@ -209,7 +209,7 @@ const LeadTeamView: React.FC<Props> = ({
                   <div className={s.poolInfo}>
                     <div className={s.poolName}>{auditor.name}</div>
                     <div className={s.poolMeta}>
-                      {auditor.email} · Workload: {auditor.workload || 0}
+                      {auditor.email} | Workload: {auditor.workload || 0}
                     </div>
                     <div className={s.poolTags} style={{ marginTop: "0.2rem" }}>
                       {auditor.specialisations?.map((sp) => (

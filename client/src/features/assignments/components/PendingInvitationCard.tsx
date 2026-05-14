@@ -65,7 +65,7 @@ const PendingInvitationCard: React.FC<Props> = ({
           <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
             {inv.lgaId && `${getLgaName(inv.lgaId)}`}
             {inv.zoneId && `${getZoneName(inv.zoneId)} Zone`}
-            {` Â· Sent ${new Date(inv.sentAt).toLocaleDateString("en-NG")}`}
+            {` Â| Sent ${new Date(inv.sentAt).toLocaleDateString("en-NG")}`}
           </div>
         </div>
       </div>

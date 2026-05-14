@@ -17,7 +17,7 @@ const REG_EXAMPLES: { icon: string; prompt: string }[] = [
   },
   {
     icon: "🏛️",
-    prompt: "Explain the role and powers of the State Auditor General",
+    prompt: "Explain the role and powers of the Auditor-General for Local Governments",
   },
   {
     icon: "⚖️",

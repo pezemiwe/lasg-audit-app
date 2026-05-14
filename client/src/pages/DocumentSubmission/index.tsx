@@ -371,7 +371,7 @@ export default function DocumentSubmission() {
                 }}
               >
                 Review and acknowledge the official audit notification letter
-                sent by the State Auditor-General.
+                sent by the Auditor-General for Local Governments.
               </p>
 
               {activeMandate ? (
@@ -546,7 +546,7 @@ export default function DocumentSubmission() {
               >
                 <h3>Required Documents</h3>
                 <span style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>
-                  {docsUploaded} of {myDocs.length} submitted · {docsApproved}{" "}
+                  {docsUploaded} of {myDocs.length} submitted | {docsApproved}{" "}
                   approved
                 </span>
               </div>

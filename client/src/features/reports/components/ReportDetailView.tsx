@@ -182,7 +182,7 @@ const ReportDetailView: React.FC<Props> = ({
         <div>
           <h1 className={s.pageTitle}>{report.title}</h1>
           <p className={s.pageSubtitle}>
-            {getLgaForAudit(report.auditId)} · {report.type} Report
+            {getLgaForAudit(report.auditId)} | {report.type} Report
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>

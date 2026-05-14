@@ -43,7 +43,7 @@ const WorkpaperDetail: React.FC<Props> = ({
         <div>
           <h1 className={s.pageTitle}>{workpaper.title}</h1>
           <p className={s.pageSubtitle}>
-            Task: {task?.title || "—"} · Uploaded by {uploader?.name || "—"}
+            Task: {task?.title || "—"} | Uploaded by {uploader?.name || "—"}
           </p>
         </div>
         <StatusBadge

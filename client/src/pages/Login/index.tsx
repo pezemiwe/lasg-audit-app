@@ -7,7 +7,7 @@ import s from "../../styles/login.module.css";
 
 const ROLE_LABELS: Record<Role, string> = {
   SYSTEM_ADMIN: "System Administrator",
-  STATE_AUDITOR_GENERAL: "State Auditor General",
+  STATE_AUDITOR_GENERAL: "Auditor-General for Local Governments",
   AUDIT_SUPERVISOR: "Audit Supervisor",
   AUDIT_LEAD: "Audit Lead",
   TEAM_AUDITOR: "Team Auditor",

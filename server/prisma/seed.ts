@@ -12,7 +12,16 @@ const zones = [
   {
     name: "Ikeja",
     capital: "Ikeja",
-    lgas: ["Agege", "Alimosho", "Ifako-Ijaiye", "Ikeja", "Kosofe", "Mushin", "Oshodi-Isolo", "Somolu"],
+    lgas: [
+      "Agege",
+      "Alimosho",
+      "Ifako-Ijaiye",
+      "Ikeja",
+      "Kosofe",
+      "Mushin",
+      "Oshodi-Isolo",
+      "Somolu",
+    ],
     lcdas: [
       "Agbado/Oke-Odo",
       "Ayobo-Ipaja",
@@ -35,19 +44,40 @@ const zones = [
     name: "Lagos Island",
     capital: "Lagos",
     lgas: ["Apapa", "Eti-Osa", "Lagos Island", "Lagos Mainland", "Surulere"],
-    lcdas: ["Coker-Aguda", "Iru-Victoria Island", "Itire-Ikate", "Lagos Island East", "Yaba", "Ikoyi-Obalende", "Apapa-Iganmu"],
+    lcdas: [
+      "Coker-Aguda",
+      "Iru-Victoria Island",
+      "Itire-Ikate",
+      "Lagos Island East",
+      "Yaba",
+      "Ikoyi-Obalende",
+      "Apapa-Iganmu",
+    ],
   },
   {
     name: "Ikorodu",
     capital: "Ikorodu",
     lgas: ["Ikorodu"],
-    lcdas: ["Igbogbo-Baiyeku", "Ijede", "Ikorodu North", "Ikorodu West", "Imota"],
+    lcdas: [
+      "Igbogbo-Baiyeku",
+      "Ijede",
+      "Ikorodu North",
+      "Ikorodu West",
+      "Imota",
+    ],
   },
   {
     name: "Badagry",
     capital: "Badagry",
     lgas: ["Ajeromi-Ifelodun", "Amuwo-Odofin", "Badagry", "Ojo"],
-    lcdas: ["Badagry West", "Ifelodun", "Olorunda", "Oriade", "Oto-Awori", "Iba"],
+    lcdas: [
+      "Badagry West",
+      "Ifelodun",
+      "Olorunda",
+      "Oriade",
+      "Oto-Awori",
+      "Iba",
+    ],
   },
   {
     name: "Epe",
@@ -116,13 +146,15 @@ async function main() {
 
   const ikejaZoneId = zoneRecords.get("Ikeja");
   const lagosIslandZoneId = zoneRecords.get("Lagos Island");
-  const mushinCouncil = await prisma.council.findUniqueOrThrow({ where: { name: "Mushin" } });
+  const mushinCouncil = await prisma.council.findUniqueOrThrow({
+    where: { name: "Mushin" },
+  });
   const lagosIslandCouncil = await prisma.council.findUniqueOrThrow({
     where: { name: "Lagos Island" },
   });
 
   await upsertUser({
-    name: "Engr. Babatunde Fashola",
+    name: "Engr. Olalekan Shodeinde",
     email: "sysadmin@lasg.gov.ng",
     role: "SYSTEM_ADMIN",
     phone: "+234 802 000 0001",

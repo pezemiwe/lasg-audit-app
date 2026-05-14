@@ -327,7 +327,7 @@ const CompileTab: React.FC<{ outcome: AuditOutcome }> = ({ outcome }) => {
             gap: 6,
           }}
         >
-          <Check size={14} /> Last generated {new Date().toLocaleTimeString()} Â·{" "}
+          <Check size={14} /> Last generated {new Date().toLocaleTimeString()} Â|{" "}
           {(lastBlob.size / 1024 / 1024).toFixed(2)} MB
         </div>
       )}

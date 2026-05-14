@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuditStore } from "../../store/useAuditStore";
+import { useSimulatedLoading } from "../../hooks/useSimulatedLoading";
+import PageSkeleton from "../../components/UI/PageSkeleton";
 import StatusBadge from "../../components/UI/StatusBadge";
 import type { Audit, AuditStatus } from "../../types";
 import { FileText, Search } from "lucide-react";
@@ -8,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import s from "../../styles/pages.module.css";
 
 const AuditPage: React.FC = () => {
+  const isLoading = useSimulatedLoading(400);
   const { user } = useAuth();
   const navigate = useNavigate();
   const audits = useAuditStore((state) => state.audits);
@@ -19,6 +22,7 @@ const AuditPage: React.FC = () => {
   );
 
   const [search, setSearch] = useState("");
+
   const [statusFilter, setStatusFilter] = useState<
     AuditStatus | "All" | "In Progress"
   >("All");
@@ -110,7 +114,9 @@ const AuditPage: React.FC = () => {
     lgas,
     zones,
   ]);
-
+  if (isLoading) {
+    return <PageSkeleton />;
+  }
   return (
     <div className={s.container}>
       <div className={s.pageHeader}>

@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
+import { useSimulatedLoading } from "../../hooks/useSimulatedLoading";
+import PageSkeleton from "../../components/UI/PageSkeleton";
 import s from "../../styles/pages.module.css";
 import TrialBalanceTab from "../../features/audit-outcomes/components/TrialBalanceTab";
 import MaterialityTab from "../../features/audit-outcomes/components/MaterialityTab";
@@ -54,6 +56,7 @@ const TABS: Array<{ key: TabKey; label: string; icon: React.ReactNode }> = [
 ];
 
 const AuditOutcomesPage: React.FC = () => {
+  const isLoading = useSimulatedLoading(500);
   const { user } = useAuth();
   const store = useAuditStore();
 
@@ -102,6 +105,10 @@ const AuditOutcomesPage: React.FC = () => {
     role === "STATE_AUDITOR_GENERAL" ||
     role === "SYSTEM_ADMIN";
 
+  if (isLoading) {
+    return <PageSkeleton />;
+  }
+
   if (!outcome || !user) {
     return (
       <div style={{ padding: "2rem" }}>
@@ -138,7 +145,7 @@ const AuditOutcomesPage: React.FC = () => {
           </div>
           <div className={s.pageTitle}>{outcome.title}</div>
           <div className={s.pageSubtitle}>
-            Year of Audit: {outcome.auditYear} · Status:{" "}
+            Year of Audit: {outcome.auditYear} | Status:{" "}
             <strong>{outcome.status}</strong>
           </div>
         </div>

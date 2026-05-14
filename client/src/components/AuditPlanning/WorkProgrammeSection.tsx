@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useCallback, useEffect } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuditStore } from "../../store/useAuditStore";
 import { useAuth } from "../../hooks/useAuth";
@@ -26,7 +26,6 @@ import {
   Eye,
   Check,
   ChevronRight,
-  Pencil,
   Trash2,
   X,
   ArrowRight,
@@ -48,6 +47,14 @@ import {
   matchProceduresForLineItem,
 } from "../../features/auditProcedures/data/lineItemCategorizer";
 import type { ProcedureCategory } from "../../features/auditProcedures/data/auditProcedures";
+import {
+  MOCK_FS,
+  MOCK_TB,
+  AR_FS_SECTIONS,
+  AR_FS_LABELS,
+  AR_TB_SECTIONS,
+  AR_TB_LABELS,
+} from "../../features/audit-planning/arMockData";
 
 interface WorkProgrammeSectionProps {
   auditId?: string;
@@ -87,7 +94,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const initFinancialStatements = useAuditStore(
     (st) => st.initFinancialStatements,
   );
-  const reports = useAuditStore((st) => st.reports);
+
   /* interactive tab store hooks */
   const setAuditMateriality = useAuditStore((st) => st.setAuditMateriality);
   const addAuditJournal = useAuditStore((st) => st.addAuditJournal);
@@ -210,13 +217,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   const [excFilter, setExcFilter] = useState<"all" | ExceptionSeverity>("all");
   const [classifyId, setClassifyId] = useState<string | null>(null);
 
-  /* Procedures tab — source document for line-item driven view.
+  /* Procedures tab � source document for line-item driven view.
      Derived from the arDocType the audit team selected during the
      Analytical Review step; defaults to "tb" if not yet chosen. */
   const procSource = (auditDocSources[selectedAuditId] ?? "tb") as "tb" | "fs";
   const [expandedLineItem, setExpandedLineItem] = useState<string | null>(null);
 
-  /* Evidence Library — view / delete */
+  /* Evidence Library � view / delete */
   const [previewEvidence, setPreviewEvidence] = useState<{
     name: string;
     type: string;
@@ -271,10 +278,6 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     () => auditWorkpapers.filter((w) => w.auditId === selectedAuditId),
     [auditWorkpapers, selectedAuditId],
   );
-  const filteredReports = useMemo(
-    () => reports.filter((r) => r.auditId === selectedAuditId),
-    [reports, selectedAuditId],
-  );
 
   /* Trial-Balance line items for the current audit (selected in planning).
      Falls back to the most recently uploaded TB if none is tagged to this
@@ -288,7 +291,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
   }, [trialBalances, selectedAuditId]);
 
   /* Audited Financial Statements rows (Statement of Financial Position +
-     Statement of Financial Performance) — used as the alternate procedure
+     Statement of Financial Performance) � used as the alternate procedure
      source. */
   const auditFsRows = useMemo(() => {
     if (!auditedFinancialStatements) return [];
@@ -312,7 +315,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     );
   }, [auditedFinancialStatements]);
 
-  /* Build category → line items for the chosen source */
+  /* Build category ? line items for the chosen source */
   const categorisedLineItems = useMemo(() => {
     type Item = {
       id: string;
@@ -601,6 +604,48 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     addToast({ type: "success", title: "Audit Comment Recorded" });
   };
 
+  /* ─── Financial Statements Tab: base data, adjustment map, budget util ─── */
+  const stmtBaseRows = useMemo(
+    () => (procSource === "fs" ? MOCK_FS : MOCK_TB),
+    [procSource],
+  );
+  const stmtSections = procSource === "fs" ? AR_FS_SECTIONS : AR_TB_SECTIONS;
+  const stmtSectionLabels = procSource === "fs" ? AR_FS_LABELS : AR_TB_LABELS;
+
+  /** accountName (lower-trim) → net debit/credit effect from active journals */
+  const stmtAdjMap = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredJournals
+      .filter((j) => j.status !== "Waived")
+      .forEach((journal) => {
+        journal.entries.forEach((entry) => {
+          const key = entry.account.toLowerCase().trim();
+          map.set(key, (map.get(key) ?? 0) + entry.debit - entry.credit);
+        });
+      });
+    return map;
+  }, [filteredJournals]);
+
+  const stmtHasJournals = filteredJournals.some((j) => j.status !== "Waived");
+
+  const stmtTotalAdjEffect = useMemo(
+    () =>
+      filteredJournals
+        .filter((j) => j.status !== "Waived")
+        .reduce((sum, j) => sum + j.netEffect, 0),
+    [filteredJournals],
+  );
+
+  /** Budget utilisation % based on the first revenue total row */
+  const stmtBudgetUtil = useMemo(() => {
+    const pbtRow =
+      stmtBaseRows.find((r) => r.type === "pbt") ||
+      stmtBaseRows.find((r) => r.type === "total" && r.id.endsWith("-r0")) ||
+      stmtBaseRows.find((r) => r.type === "total");
+    if (!pbtRow || pbtRow.budget <= 0) return 0;
+    return Math.round((pbtRow.current / pbtRow.budget) * 100);
+  }, [stmtBaseRows]);
+
   const overviewStats = useMemo(() => {
     const journalTotal = filteredJournals.reduce(
       (sum, j) => sum + j.netEffect,
@@ -749,7 +794,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ─── CREATE FORM ─── */}
+      {/* --- CREATE FORM --- */}
       {showCreateForm && !currentProgramme && !embedded && (
         <div className={s.card}>
           <div className={s.cardHeader}>
@@ -931,7 +976,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ─── TAB: OVERVIEW ─── */}
+      {/* --- TAB: OVERVIEW --- */}
       {embedded && !currentProgramme && activeTab === "overview" && (
         <div className={s.card}>
           <div className={s.cardBody}>
@@ -940,7 +985,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               <div className={s.emptyTitle}>No Work Programme Yet</div>
               <div className={s.emptyDesc}>
                 A work programme has not been created for this audit. Please
-                complete the Planning stage first — the Audit Lead will create
+                complete the Planning stage first � the Audit Lead will create
                 and submit the work programme before fieldwork can begin.
               </div>
             </div>
@@ -949,7 +994,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
       )}
       {currentProgramme && activeTab === "overview" && (
         <>
-          {/* ─── Audit Lead Workflow Guide ─── */}
+          {/* --- Audit Lead Workflow Guide --- */}
           {isLead && (
             <div
               style={{
@@ -1012,7 +1057,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   {
                     step: "01",
                     tab: "procedures",
-                    icon: "📋",
+                    icon: "📝",
                     title: "Review Procedures",
                     desc: "Update procedure status as audit testing is completed.",
                     action: "Procedures tab",
@@ -1020,7 +1065,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   {
                     step: "02",
                     tab: "journals",
-                    icon: "📒",
+                    icon: "📓",
                     title: "Record Journals",
                     desc: "Log AJE/RJE audit adjustments with debit/credit lines.",
                     action: "Journals tab",
@@ -1028,7 +1073,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   {
                     step: "03",
                     tab: "comments",
-                    icon: "💬",
+                    icon: "🔍",
                     title: "Record Findings",
                     desc: "Document CCEE audit comments for all control deficiencies.",
                     action: "Comments tab",
@@ -1036,7 +1081,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   {
                     step: "04",
                     tab: "statements",
-                    icon: "📑",
+                    icon: "📊",
                     title: "Update Statements",
                     desc: "Track financial statements from Received through to Final.",
                     action: "Statements tab",
@@ -1355,7 +1400,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     "Obtain management response",
                     "Final AG approval & sign-off",
                   ],
-                  done: filteredReports.length > 0,
+                  done: false,
                 },
                 {
                   phase: "8. Completion & File Assembly",
@@ -1395,7 +1440,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       flexShrink: 0,
                     }}
                   >
-                    {step.done ? <Check size={14} /> : idx + 1}
+                    {step.done ? <Check size={14} color="#ffffff" /> : idx + 1}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div
@@ -1438,7 +1483,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </>
       )}
 
-      {/* ─── TAB: PROCEDURES (Risk-Based Audit Programme) ─── */}
+      {/* --- TAB: PROCEDURES (Risk-Based Audit Programme) --- */}
       {currentProgramme && activeTab === "procedures" && (
         <>
           {/* KPI strip */}
@@ -1487,7 +1532,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             </div>
           </div>
 
-          {/* ─── NEW: Reference procedures driven by TB / FS line items ─── */}
+          {/* --- NEW: Reference procedures driven by TB / FS line items --- */}
           {(() => {
             const buckets = categorisedLineItems;
             const totalItems = Array.from(buckets.values()).reduce(
@@ -2162,11 +2207,11 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
             );
           })()}
 
-          {/* ─── Currently saved in Work Programme ─── (hidden — use reference table above) */}
+          {/* --- Currently saved in Work Programme --- (hidden � use reference table above) */}
           {null}
         </>
       )}
-      {/* ─── TAB: EVIDENCE LIBRARY ─── */}
+      {/* --- TAB: EVIDENCE LIBRARY --- */}
       {currentProgramme && activeTab === "evidence" && (
         <div>
           <div
@@ -2281,7 +2326,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       .replace(/[^A-Z]/gi, "")
                       .slice(0, 4)
                       .toUpperCase()}{" "}
-                    — {area}
+                    � {area}
                   </h3>
                 </div>
                 <div className={s.cardBody}>
@@ -2378,7 +2423,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ─── Evidence preview modal ─── */}
+      {/* --- Evidence preview modal --- */}
       {previewEvidence && (
         <DocumentPreviewModal
           document={previewEvidence}
@@ -2386,7 +2431,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         />
       )}
 
-      {/* ─── Evidence delete confirm ─── */}
+      {/* --- Evidence delete confirm --- */}
       {confirmDeleteEvidence && (
         <div
           style={{
@@ -2466,7 +2511,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ─── Exception delete confirm ─── */}
+      {/* --- Exception delete confirm --- */}
       {confirmDeleteException && (
         <div
           style={{
@@ -2544,7 +2589,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ─── TAB: EXCEPTIONS REGISTER ─── */}
+      {/* --- TAB: EXCEPTIONS REGISTER --- */}
       {currentProgramme && activeTab === "exceptions" && (
         <div>
           <div
@@ -2587,15 +2632,15 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     <strong style={{ color: "var(--text-3)" }}>
                       {excStats.critical}
                     </strong>{" "}
-                    · High:{" "}
+                    | High:{" "}
                     <strong style={{ color: "#ea580c" }}>
                       {excStats.high}
                     </strong>{" "}
-                    · Medium:{" "}
+                    | Medium:{" "}
                     <strong style={{ color: "#ca8a04" }}>
                       {excStats.medium}
                     </strong>{" "}
-                    · Low: <strong>{excStats.low}</strong>
+                    | Low: <strong>{excStats.low}</strong>
                   </div>
                   <div
                     style={{
@@ -2606,7 +2651,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   >
                     Total Exposure:{" "}
                     <strong>₦{(excStats.totalImpact / 1e6).toFixed(1)}M</strong>{" "}
-                    · Classified:{" "}
+                    | Classified:{" "}
                     <strong>
                       {
                         fieldworkExceptions.filter((e) => e.classification)
@@ -2732,7 +2777,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         marginBottom: "0.35rem",
                       }}
                     >
-                      {exc.auditArea} · {exc.procedureRef} · Assertion:{" "}
+                      {exc.auditArea} | {exc.procedureRef} | Assertion:{" "}
                       {exc.assertionAffected}
                     </div>
                     <div
@@ -2812,7 +2857,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                             addToast({
                               type: "error",
                               title: "Escalated to HLG",
-                              message: `${exc.ref} escalated — Critical finding alert sent`,
+                              message: `${exc.ref} escalated � Critical finding alert sent`,
                             });
                           }}
                           style={{ fontSize: "0.72rem" }}
@@ -2860,7 +2905,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           addToast({
                             type: "success",
                             title: "Exception Classified",
-                            message: `${exc.ref} → ${cl}`,
+                            message: `${exc.ref} ? ${cl}`,
                           });
                           setClassifyId(null);
                         }}
@@ -2877,11 +2922,11 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ─── TAB: WORKPAPERS (grouped by Risk Area) ─── */}
+      {/* --- TAB: WORKPAPERS (grouped by Risk Area) --- */}
       {currentProgramme &&
         activeTab === "workpapers" &&
         (() => {
-          /* Build a map of procedure workpaper refs → risk area */
+          /* Build a map of procedure workpaper refs ? risk area */
           const wpRefToArea: Record<string, string> = {};
           currentProgramme.procedures.forEach((p) => {
             if (p.workpaperRef) wpRefToArea[p.workpaperRef] = p.area;
@@ -3213,7 +3258,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
           );
         })()}
 
-      {/* ─── TAB: JOURNALS ─── */}
+      {/* --- TAB: JOURNALS --- */}
       {currentProgramme && activeTab === "journals" && (
         <>
           <div className={s.kpiRow}>
@@ -3341,8 +3386,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       <thead>
                         <tr>
                           <th>Account</th>
-                          <th style={{ textAlign: "right" }}>Debit (₦)</th>
-                          <th style={{ textAlign: "right" }}>Credit (₦)</th>
+                          <th style={{ textAlign: "right" }}>Debit (?)</th>
+                          <th style={{ textAlign: "right" }}>Credit (?)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3433,7 +3478,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </>
       )}
 
-      {/* ─── TAB: AUDIT COMMENTS ─── */}
+      {/* --- TAB: AUDIT COMMENTS --- */}
       {currentProgramme && activeTab === "comments" && (
         <>
           <div className={s.kpiRow}>
@@ -3649,177 +3694,450 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </>
       )}
 
-      {/* ─── TAB: FINANCIAL STATEMENTS ─── */}
+      {/* --- TAB: FINANCIAL STATEMENTS --- */}
       {currentProgramme && activeTab === "statements" && (
         <>
+          {/* ── KPI Row ───────────────────────────────────────────────── */}
           <div className={s.kpiRow}>
             <div className={s.kpiCard}>
               <div className={s.kpiIconBlue}>
                 <DollarSign size={20} />
               </div>
               <div>
-                <div className={s.kpiLabel}>Statements</div>
-                <div className={s.kpiValue}>{filteredStatements.length}</div>
+                <div className={s.kpiLabel}>Source Document</div>
+                <div
+                  className={s.kpiValue}
+                  style={{ fontSize: "0.82rem", textTransform: "none" }}
+                >
+                  {procSource === "fs"
+                    ? "Financial Statements"
+                    : "Trial Balance"}
+                </div>
               </div>
             </div>
             <div className={s.kpiCard}>
               <div className={s.kpiIconGreen}>
-                <CheckCircle2 size={20} />
+                <PenTool size={20} />
               </div>
               <div>
-                <div className={s.kpiLabel}>Finalised</div>
-                <div className={s.kpiValue}>{overviewStats.stmtsFinal}</div>
+                <div className={s.kpiLabel}>Active Journals</div>
+                <div className={s.kpiValue}>
+                  {filteredJournals.filter((j) => j.status !== "Waived").length}
+                </div>
               </div>
             </div>
             <div className={s.kpiCard}>
               <div className={s.kpiIconAmber}>
-                <PenTool size={20} />
+                <TrendingUp size={20} />
               </div>
               <div>
-                <div className={s.kpiLabel}>Total Adjustments</div>
-                <div className={s.kpiValue}>
-                  {filteredStatements.reduce(
-                    (acc, f) => acc + f.adjustmentsCount,
-                    0,
-                  )}
+                <div className={s.kpiLabel}>Net Adj. Effect</div>
+                <div
+                  className={s.kpiValue}
+                  style={{
+                    fontSize: stmtTotalAdjEffect !== 0 ? "0.82rem" : undefined,
+                  }}
+                >
+                  {stmtTotalAdjEffect !== 0
+                    ? fmtCurrency(Math.abs(stmtTotalAdjEffect))
+                    : "—"}
                 </div>
               </div>
             </div>
             <div className={s.kpiCard}>
               <div className={s.kpiIconPurple}>
-                <TrendingUp size={20} />
+                <BarChart3 size={20} />
               </div>
               <div>
-                <div className={s.kpiLabel}>Adjustment Value</div>
-                <div className={s.kpiValue} style={{ fontSize: "0.95rem" }}>
-                  {fmtCurrency(
-                    filteredStatements.reduce(
-                      (acc, f) => acc + f.adjustmentsAmount,
-                      0,
-                    ),
-                  )}
-                </div>
+                <div className={s.kpiLabel}>Budget Utilisation</div>
+                <div className={s.kpiValue}>{stmtBudgetUtil}%</div>
               </div>
             </div>
           </div>
 
-          <div className={s.card}>
+          {/* ── Source / adjustment banner ─────────────────────────────── */}
+          <div className={s.card} style={{ marginBottom: "0.75rem" }}>
+            <div
+              className={s.cardBody}
+              style={{
+                padding: "0.65rem 1.25rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <Layers
+                size={15}
+                style={{ color: "var(--primary)", flexShrink: 0 }}
+              />
+              <span style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
+                <strong>Source:</strong>{" "}
+                {procSource === "fs"
+                  ? "Financial Statements (imported for Analytical Review)"
+                  : "Trial Balance (imported for Analytical Review)"}
+              </span>
+              <span style={{ color: "var(--border)" }}>|</span>
+              {stmtHasJournals ? (
+                <span style={{ fontSize: "0.82rem", color: "#92400e" }}>
+                  <strong>
+                    {
+                      filteredJournals.filter((j) => j.status !== "Waived")
+                        .length
+                    }{" "}
+                    journal entr
+                    {filteredJournals.filter((j) => j.status !== "Waived")
+                      .length === 1
+                      ? "y"
+                      : "ies"}
+                  </strong>{" "}
+                  applied — adjusted amounts shown
+                </span>
+              ) : (
+                <span style={{ fontSize: "0.82rem", color: "var(--text-3)" }}>
+                  No audit journal adjustments — original amounts shown
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* ── Section-by-section financial data ─────────────────────── */}
+          {stmtSections.map((section) => {
+            const rows = stmtBaseRows.filter((r) => r.section === section);
+            if (rows.length === 0) return null;
+            return (
+              <div
+                className={s.card}
+                key={section}
+                style={{ marginBottom: "1rem" }}
+              >
+                <div className={s.cardHeader}>
+                  <h3 className={s.cardTitle}>
+                    <DollarSign
+                      size={15}
+                      style={{ marginRight: "0.4rem", opacity: 0.6 }}
+                    />
+                    {stmtSectionLabels[section]}
+                  </h3>
+                </div>
+                <div className={s.cardBody} style={{ padding: 0 }}>
+                  <div className={s.tableWrap}>
+                    <table className={s.table}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: "5.5rem" }}>Code</th>
+                          <th>Account / Line Item</th>
+                          <th style={{ textAlign: "right" }}>Budget (₦)</th>
+                          <th style={{ textAlign: "right" }}>Prior Year (₦)</th>
+                          <th style={{ textAlign: "right" }}>
+                            Current Year (₦)
+                          </th>
+                          {stmtHasJournals && (
+                            <th style={{ textAlign: "right" }}>
+                              Audit Adj. (₦)
+                            </th>
+                          )}
+                          {stmtHasJournals && (
+                            <th style={{ textAlign: "right" }}>Adjusted (₦)</th>
+                          )}
+                          <th style={{ textAlign: "right" }}>Budget Var.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((row) => {
+                          const adjKey = row.account.toLowerCase().trim();
+                          const adj = stmtAdjMap.get(adjKey) ?? 0;
+                          const finalAmt = row.current + adj;
+                          const budgetVar =
+                            row.budget > 0
+                              ? ((finalAmt - row.budget) / row.budget) * 100
+                              : null;
+                          const isSectionRow =
+                            row.type === "total" || row.type === "pbt";
+                          return (
+                            <tr
+                              key={row.id}
+                              style={
+                                isSectionRow
+                                  ? {
+                                      fontWeight: 700,
+                                      borderTop: "2px solid var(--border)",
+                                      background: "var(--bg-hover)",
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <td
+                                style={{
+                                  fontFamily: "monospace",
+                                  fontSize: "0.72rem",
+                                  color: "var(--text-3)",
+                                }}
+                              >
+                                {row.code || ""}
+                              </td>
+                              <td
+                                style={{
+                                  fontWeight: isSectionRow ? 700 : undefined,
+                                }}
+                              >
+                                {row.account}
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: "right",
+                                  fontFamily: "monospace",
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-3)",
+                                }}
+                              >
+                                {row.budget > 0 ? fmtCurrency(row.budget) : "—"}
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: "right",
+                                  fontFamily: "monospace",
+                                  fontSize: "0.8rem",
+                                  color: "var(--text-2)",
+                                }}
+                              >
+                                {row.prior > 0 ? fmtCurrency(row.prior) : "—"}
+                              </td>
+                              <td
+                                style={{
+                                  textAlign: "right",
+                                  fontFamily: "monospace",
+                                  fontSize: "0.8rem",
+                                }}
+                              >
+                                {fmtCurrency(row.current)}
+                              </td>
+                              {stmtHasJournals && (
+                                <td
+                                  style={{
+                                    textAlign: "right",
+                                    fontFamily: "monospace",
+                                    fontSize: "0.8rem",
+                                    color:
+                                      adj > 0
+                                        ? "#166534"
+                                        : adj < 0
+                                          ? "#991b1b"
+                                          : "var(--text-3)",
+                                    fontWeight: adj !== 0 ? 600 : undefined,
+                                  }}
+                                >
+                                  {adj !== 0
+                                    ? `${adj > 0 ? "+" : ""}${fmtCurrency(adj)}`
+                                    : "—"}
+                                </td>
+                              )}
+                              {stmtHasJournals && (
+                                <td
+                                  style={{
+                                    textAlign: "right",
+                                    fontFamily: "monospace",
+                                    fontSize: "0.8rem",
+                                    fontWeight: adj !== 0 ? 700 : undefined,
+                                  }}
+                                >
+                                  {fmtCurrency(finalAmt)}
+                                </td>
+                              )}
+                              <td
+                                style={{
+                                  textAlign: "right",
+                                  fontSize: "0.78rem",
+                                  fontWeight: isSectionRow ? 700 : undefined,
+                                  color:
+                                    budgetVar === null
+                                      ? "var(--text-3)"
+                                      : budgetVar > 10
+                                        ? "#991b1b"
+                                        : budgetVar < -10
+                                          ? "#92400e"
+                                          : "var(--text-2)",
+                                }}
+                              >
+                                {budgetVar !== null
+                                  ? `${budgetVar >= 0 ? "+" : ""}${budgetVar.toFixed(1)}%`
+                                  : "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* ── Budget vs Actual Comparison Summary ───────────────────── */}
+          <div className={s.card} style={{ marginBottom: "1rem" }}>
             <div className={s.cardHeader}>
-              <h3 className={s.cardTitle}>
-                <DollarSign size={16} style={{ marginRight: "0.5rem" }} />
-                Financial Statements Audited
-              </h3>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <h3 className={s.cardTitle} style={{ margin: 0 }}>
+                  <BarChart3 size={16} style={{ marginRight: "0.5rem" }} />
+                  Budget vs Actual Comparison &mdash; FY{" "}
+                  {selectedAudit?.year ?? "2022"}/
+                  {String((selectedAudit?.year ?? 2022) + 1).slice(-2)}
+                </h3>
+                <span
+                  style={{
+                    fontSize: "0.72rem",
+                    color: "var(--text-3)",
+                    fontStyle: "italic",
+                  }}
+                >
+                  ISA 520 · IPSAS 24 — Presentation of Budget Information
+                </span>
+              </div>
             </div>
             <div className={s.cardBody} style={{ padding: 0 }}>
               <div className={s.tableWrap}>
                 <table className={s.table}>
                   <thead>
                     <tr>
-                      <th>Statement</th>
-                      <th>Status</th>
-                      <th>Draft Received</th>
-                      <th>Adjustments</th>
-                      <th>Adjustment Amount</th>
-                      <th>Reviewed By</th>
-                      <th>Final Date</th>
-                      <th>Notes</th>
-                      {isLead && <th>Actions</th>}
+                      <th>Section</th>
+                      <th style={{ textAlign: "right" }}>
+                        Approved Budget (₦)
+                      </th>
+                      <th style={{ textAlign: "right" }}>
+                        Actual / Adjusted (₦)
+                      </th>
+                      <th style={{ textAlign: "right" }}>Variance (₦)</th>
+                      <th style={{ textAlign: "right" }}>% Utilised</th>
+                      <th>IPSAS 24 Note</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStatements.map((stmt) => {
-                      const sc = statusColor[stmt.status] || {
-                        bg: "#f3f4f6",
-                        color: "#374151",
-                      };
+                    {stmtSections.map((section) => {
+                      const sectionRows = stmtBaseRows.filter(
+                        (r) => r.section === section,
+                      );
+                      const totalRow =
+                        sectionRows.find(
+                          (r) => r.type === "total" || r.type === "pbt",
+                        ) ?? sectionRows[sectionRows.length - 1];
+                      if (!totalRow || totalRow.budget <= 0) return null;
+
+                      /* Apply section-level journal adjustments */
+                      const sectionAdj = filteredJournals
+                        .filter((j) => j.status !== "Waived")
+                        .filter((j) => {
+                          const area = j.affectedArea.toLowerCase();
+                          const label = (
+                            stmtSectionLabels[section] ?? ""
+                          ).toLowerCase();
+                          return (
+                            label.includes(area) ||
+                            area.includes(section) ||
+                            j.entries.some((e) =>
+                              sectionRows.some(
+                                (r) =>
+                                  r.account.toLowerCase().trim() ===
+                                  e.account.toLowerCase().trim(),
+                              ),
+                            )
+                          );
+                        })
+                        .reduce((sum, j) => sum + j.netEffect, 0);
+
+                      const actual = totalRow.current + sectionAdj;
+                      const variance = actual - totalRow.budget;
+                      const pctUtil = (actual / totalRow.budget) * 100;
+
+                      let note = "";
+                      let noteColor = "var(--text-2)";
+                      if (Math.abs(pctUtil - 100) <= 5) {
+                        note = "On target — within 5% of budget";
+                        noteColor = "#166534";
+                      } else if (pctUtil > 120) {
+                        note =
+                          "Significantly over budget — management explanation required";
+                        noteColor = "#991b1b";
+                      } else if (pctUtil > 100) {
+                        note = "Marginally over budget — document reasons";
+                        noteColor = "#92400e";
+                      } else if (pctUtil < 60) {
+                        note =
+                          "Significantly under-utilised — review budget assumptions";
+                        noteColor = "#92400e";
+                      } else if (pctUtil < 80) {
+                        note =
+                          "Under-utilised — review capital/project execution";
+                        noteColor = "#92400e";
+                      } else {
+                        note = "Within acceptable range";
+                        noteColor = "#166534";
+                      }
+
                       return (
-                        <React.Fragment key={stmt.id}>
-                          <tr>
-                            <td style={{ fontWeight: 600 }}>
-                              {stmt.statementType}
-                            </td>
-                            <td>
-                              <InlineBadge
-                                label={stmt.status}
-                                bg={sc.bg}
-                                color={sc.color}
-                              />
-                            </td>
-                            <td style={{ fontSize: "0.78rem" }}>
-                              {stmt.draftReceivedDate
-                                ? new Date(
-                                    stmt.draftReceivedDate,
-                                  ).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "short",
-                                  })
-                                : "-"}
-                            </td>
-                            <td
-                              style={{ textAlign: "center", fontWeight: 600 }}
-                            >
-                              {stmt.adjustmentsCount}
-                            </td>
-                            <td
-                              style={{
-                                textAlign: "right",
-                                fontFamily: "monospace",
-                              }}
-                            >
-                              {stmt.adjustmentsAmount > 0
-                                ? fmtCurrency(stmt.adjustmentsAmount)
-                                : "-"}
-                            </td>
-                            <td style={{ fontSize: "0.78rem" }}>
-                              {stmt.reviewedBy || "-"}
-                            </td>
-                            <td style={{ fontSize: "0.78rem" }}>
-                              {stmt.finalDate
-                                ? new Date(stmt.finalDate).toLocaleDateString(
-                                    "en-GB",
-                                    { day: "2-digit", month: "short" },
-                                  )
-                                : "-"}
-                            </td>
-                            <td
-                              style={{
-                                fontSize: "0.72rem",
-                                color: "var(--text-2)",
-                                maxWidth: "200px",
-                              }}
-                            >
-                              {stmt.notes || "-"}
-                            </td>
-                            {isLead && (
-                              <td>
-                                <button
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "var(--primary)",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.25rem",
-                                    fontSize: "0.72rem",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                  onClick={() => {
-                                    setEditingStmtId(stmt.id);
-                                    setStmtEditForm({
-                                      status: stmt.status,
-                                      notes: stmt.notes || "",
-                                      reviewedBy: stmt.reviewedBy || "",
-                                    });
-                                  }}
-                                >
-                                  <Pencil size={12} />
-                                  Update
-                                </button>
-                              </td>
-                            )}
-                          </tr>
-                        </React.Fragment>
+                        <tr key={`bva-${section}`}>
+                          <td style={{ fontWeight: 600 }}>
+                            {stmtSectionLabels[section]}
+                          </td>
+                          <td
+                            style={{
+                              textAlign: "right",
+                              fontFamily: "monospace",
+                              fontSize: "0.82rem",
+                              color: "var(--text-3)",
+                            }}
+                          >
+                            {fmtCurrency(totalRow.budget)}
+                          </td>
+                          <td
+                            style={{
+                              textAlign: "right",
+                              fontFamily: "monospace",
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {fmtCurrency(actual)}
+                          </td>
+                          <td
+                            style={{
+                              textAlign: "right",
+                              fontFamily: "monospace",
+                              fontSize: "0.82rem",
+                              color: variance > 0 ? "#991b1b" : "#166534",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {variance !== 0
+                              ? `${variance > 0 ? "+" : ""}${fmtCurrency(Math.abs(variance))} (${variance > 0 ? "Over" : "Under"})`
+                              : "—"}
+                          </td>
+                          <td
+                            style={{
+                              textAlign: "right",
+                              fontWeight: 700,
+                              fontSize: "0.85rem",
+                              color:
+                                pctUtil > 110
+                                  ? "#991b1b"
+                                  : pctUtil < 70
+                                    ? "#92400e"
+                                    : "#166534",
+                            }}
+                          >
+                            {pctUtil.toFixed(1)}%
+                          </td>
+                          <td style={{ fontSize: "0.75rem", color: noteColor }}>
+                            {note}
+                          </td>
+                        </tr>
                       );
                     })}
                   </tbody>
@@ -3829,216 +4147,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
           </div>
         </>
       )}
-
-      {/* ─── TAB: AUDIT REPORT ─── */}
-      {currentProgramme && activeTab === "report" && (
-        <>
-          {filteredReports.length === 0 ? (
-            <div className={s.card}>
-              <div className={s.cardBody}>
-                <div className={s.emptyState}>
-                  <FileText size={40} className={s.emptyIcon} />
-                  <div className={s.emptyTitle}>No Audit Report</div>
-                  <div className={s.emptyDesc}>
-                    Audit reports are drafted from the Reports module once
-                    fieldwork and completion procedures are done. The report
-                    will include:
-                  </div>
-                  <div
-                    style={{
-                      textAlign: "left",
-                      marginTop: "1rem",
-                      maxWidth: 500,
-                      margin: "1rem auto",
-                    }}
-                  >
-                    {[
-                      "Audit opinion (Unqualified / Qualified / Adverse / Disclaimer)",
-                      "Basis for opinion",
-                      "Key audit matters",
-                      "Summary of audit findings",
-                      "Management letter points",
-                      "Audited financial statements",
-                      "Management representation letter",
-                      "Exit conference notes",
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          display: "flex",
-                          gap: "0.5rem",
-                          alignItems: "center",
-                          marginBottom: "0.5rem",
-                          fontSize: "0.82rem",
-                          color: "var(--text-2)",
-                        }}
-                      >
-                        <ChevronRight size={12} /> {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            filteredReports.map((report) => (
-              <div
-                className={s.card}
-                key={report.id}
-                style={{ marginBottom: "1rem" }}
-              >
-                <div className={s.cardHeader}>
-                  <h3
-                    className={s.cardTitle}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <FileText size={16} /> {report.title}
-                    <InlineBadge
-                      label={report.type}
-                      bg="var(--bg-card)"
-                      color="var(--primary)"
-                    />
-                    <InlineBadge
-                      label={report.status}
-                      bg={(statusColor[report.status] || { bg: "#f3f4f6" }).bg}
-                      color={
-                        (statusColor[report.status] || { color: "#374151" })
-                          .color
-                      }
-                    />
-                  </h3>
-                </div>
-                <div className={s.cardBody}>
-                  <div className={s.detailRow}>
-                    <span className={s.detailLabel}>Prepared By</span>
-                    <span className={s.detailValue}>{report.preparedBy}</span>
-                  </div>
-                  {report.submittedAt && (
-                    <div className={s.detailRow}>
-                      <span className={s.detailLabel}>Submitted</span>
-                      <span className={s.detailValue}>
-                        {new Date(report.submittedAt).toLocaleDateString(
-                          "en-GB",
-                          { day: "2-digit", month: "short", year: "numeric" },
-                        )}
-                      </span>
-                    </div>
-                  )}
-                  {report.reviewedBy && (
-                    <div className={s.detailRow}>
-                      <span className={s.detailLabel}>Reviewed By</span>
-                      <span className={s.detailValue}>{report.reviewedBy}</span>
-                    </div>
-                  )}
-                  {report.findings.length > 0 && (
-                    <div style={{ marginTop: "1rem" }}>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                          color: "var(--text-3)",
-                          marginBottom: "0.75rem",
-                        }}
-                      >
-                        Findings ({report.findings.length})
-                      </div>
-                      <div className={s.tableWrap}>
-                        <table className={s.table}>
-                          <thead>
-                            <tr>
-                              <th>#</th>
-                              <th>Finding</th>
-                              <th>Severity</th>
-                              <th>Recommendation</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {report.findings.map((f, i) => {
-                              const sev = sevColor[f.severity] || {
-                                bg: "#f3f4f6",
-                                color: "#374151",
-                              };
-                              return (
-                                <tr key={f.id}>
-                                  <td
-                                    style={{
-                                      fontWeight: 600,
-                                      color: "var(--text-3)",
-                                    }}
-                                  >
-                                    {i + 1}
-                                  </td>
-                                  <td>
-                                    <div style={{ fontWeight: 600 }}>
-                                      {f.title}
-                                    </div>
-                                    <div
-                                      style={{
-                                        fontSize: "0.72rem",
-                                        color: "var(--text-2)",
-                                        marginTop: "0.2rem",
-                                      }}
-                                    >
-                                      {f.description}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <InlineBadge
-                                      label={f.severity}
-                                      bg={sev.bg}
-                                      color={sev.color}
-                                    />
-                                  </td>
-                                  <td
-                                    style={{
-                                      fontSize: "0.78rem",
-                                      maxWidth: "200px",
-                                    }}
-                                  >
-                                    {f.recommendation}
-                                  </td>
-                                  <td>
-                                    <InlineBadge
-                                      label={f.status}
-                                      bg={
-                                        f.status === "Closed"
-                                          ? "var(--bg-card)"
-                                          : f.status === "Addressed"
-                                            ? "var(--text-3)"
-                                            : "var(--text-3)"
-                                      }
-                                      color={
-                                        f.status === "Closed"
-                                          ? "var(--primary)"
-                                          : f.status === "Addressed"
-                                            ? "var(--text-3)"
-                                            : "var(--text-3)"
-                                      }
-                                    />
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </>
-      )}
-
-      {/* ─── TAB: COMPLETION CHECKLIST ─── */}
+      {/* --- TAB: COMPLETION CHECKLIST --- */}
       {currentProgramme && activeTab === "completion" && (
         <>
           <div className={s.kpiRow}>
@@ -4248,9 +4357,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </>
       )}
 
-      {/* ══════════════════════════════════════════════════════════
+      {/* ----------------------------------------------------------
            MODAL: SET MATERIALITY THRESHOLDS (ISA 320)
-      ══════════════════════════════════════════════════════════ */}
+      ---------------------------------------------------------- */}
       {showMatModal && (
         <div
           style={{
@@ -4334,7 +4443,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       marginTop: "0.2rem",
                     }}
                   >
-                    ISA 320 — Materiality in Planning and Performance
+                    ISA 320 � Materiality in Planning and Performance
                   </p>
                 </div>
               </div>
@@ -4426,7 +4535,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 }}
               >
                 <div>
-                  <label className={s.label}>Basis Amount (₦)</label>
+                  <label className={s.label}>Basis Amount (?)</label>
                   <input
                     className={s.input}
                     placeholder="e.g. 5,200,000,000"
@@ -4594,7 +4703,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontStyle: "italic",
                 }}
               >
-                Ref: ISA 320 — Audit materiality must be documented in the
+                Ref: ISA 320 � Audit materiality must be documented in the
                 planning file
               </span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -4621,9 +4730,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════
+      {/* ----------------------------------------------------------
            MODAL: RECORD JOURNAL ENTRY
-      ══════════════════════════════════════════════════════════ */}
+      ---------------------------------------------------------- */}
       {showAddJournal && (
         <div
           style={{
@@ -4707,7 +4816,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       marginTop: "0.2rem",
                     }}
                   >
-                    ISA 330 — Document audit adjustments and reclassifications
+                    ISA 330 � Document audit adjustments and reclassifications
                   </p>
                 </div>
               </div>
@@ -4750,25 +4859,25 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     [
                       {
                         val: "Adjusting",
-                        label: "AJE — Audit Journal Entry",
+                        label: "AJE � Audit Journal Entry",
                         color: "var(--text-3)",
                         bg: "var(--text-3)",
                       },
                       {
                         val: "Reclassifying",
-                        label: "RJE — Reclassification Entry",
+                        label: "RJE � Reclassification Entry",
                         color: "var(--text-3)",
                         bg: "var(--text-3)",
                       },
                       {
                         val: "Passed",
-                        label: "PJE — Passed Difference",
+                        label: "PJE � Passed Difference",
                         color: "#7c3aed",
                         bg: "#f5f3ff",
                       },
                       {
                         val: "Proposed",
-                        label: "EJE — Unadjusted Entry",
+                        label: "EJE � Unadjusted Entry",
                         color: "var(--text-2)",
                         bg: "var(--border)",
                       },
@@ -4801,7 +4910,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         transition: "all 0.15s",
                       }}
                     >
-                      {t.val} — {t.label}
+                      {t.val} � {t.label}
                     </button>
                   ))}
                 </div>
@@ -4883,8 +4992,8 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   }}
                 >
                   <span>Account / Description</span>
-                  <span>Debit (Dr) ₦</span>
-                  <span>Credit (Cr) ₦</span>
+                  <span>Debit (Dr) ?</span>
+                  <span>Credit (Cr) ?</span>
                   <span />
                 </div>
                 {journalEntries.map((entry, idx) => (
@@ -5072,7 +5181,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontStyle: "italic",
                 }}
               >
-                Ref: ISA 330 — Audit adjustments must be approved by Audit Lead
+                Ref: ISA 330 � Audit adjustments must be approved by Audit Lead
               </span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 <button
@@ -5098,9 +5207,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════
+      {/* ----------------------------------------------------------
            MODAL: RECORD AUDIT COMMENT (CCEE)
-      ══════════════════════════════════════════════════════════ */}
+      ---------------------------------------------------------- */}
       {showAddComment && (
         <div
           style={{
@@ -5187,7 +5296,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       marginTop: "0.2rem",
                     }}
                   >
-                    ISA 265 — Communicate deficiencies in internal control using
+                    ISA 265 � Communicate deficiencies in internal control using
                     CCEE framework
                   </p>
                 </div>
@@ -5278,7 +5387,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 <label className={s.label}>Finding Title</label>
                 <input
                   className={s.input}
-                  placeholder="e.g. Unreconciled bank statements — Ministry of Finance"
+                  placeholder="e.g. Unreconciled bank statements � Ministry of Finance"
                   value={commentForm.title}
                   onChange={(e) =>
                     setCommentForm((f) => ({ ...f, title: e.target.value }))
@@ -5298,7 +5407,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   [
                     {
                       key: "observation",
-                      num: "①",
+                      num: "?",
                       label: "Observation (Condition)",
                       tag: "THE WHAT",
                       placeholder:
@@ -5307,7 +5416,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     },
                     {
                       key: "criteria",
-                      num: "②",
+                      num: "?",
                       label: "Criteria",
                       tag: "THE STANDARD",
                       placeholder:
@@ -5316,7 +5425,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     },
                     {
                       key: "cause",
-                      num: "③",
+                      num: "?",
                       label: "Cause",
                       tag: "THE WHY",
                       placeholder:
@@ -5325,7 +5434,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     },
                     {
                       key: "effect",
-                      num: "④",
+                      num: "?",
                       label: "Effect / Risk",
                       tag: "THE IMPACT",
                       placeholder:
@@ -5334,7 +5443,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     },
                     {
                       key: "recommendation",
-                      num: "⑤",
+                      num: "?",
                       label: "Recommendation",
                       tag: "THE REMEDY",
                       placeholder:
@@ -5458,7 +5567,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   fontStyle: "italic",
                 }}
               >
-                Ref: ISA 265 — All material deficiencies must be communicated in
+                Ref: ISA 265 � All material deficiencies must be communicated in
                 writing to management
               </span>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -5485,9 +5594,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════
+      {/* ----------------------------------------------------------
            MODAL: UPDATE FINANCIAL STATEMENT STATUS
-      ══════════════════════════════════════════════════════════ */}
+      ---------------------------------------------------------- */}
       {editingStmtId &&
         (() => {
           const editStmt = filteredStatements.find(
@@ -5767,7 +5876,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                     <textarea
                       className={s.input}
                       rows={3}
-                      placeholder="Describe actions taken, adjustments made, or outstanding issues…"
+                      placeholder="Describe actions taken, adjustments made, or outstanding issues�"
                       value={stmtEditForm.notes}
                       onChange={(e) =>
                         setStmtEditForm((f) => ({
@@ -5820,7 +5929,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                       fontStyle: "italic",
                     }}
                   >
-                    Ref: ISA 700 — Financial statements must be reviewed and
+                    Ref: ISA 700 � Financial statements must be reviewed and
                     finalised before signing
                   </span>
                   <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -5846,7 +5955,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                         addToast({
                           type: "success",
                           title: "Statement Updated",
-                          message: `${editStmt.statementType} → ${stmtEditForm.status}`,
+                          message: `${editStmt.statementType} ? ${stmtEditForm.status}`,
                         });
                       }}
                       style={{
@@ -5864,7 +5973,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
           );
         })()}
 
-      {/* ─── NO PROGRAMME ─── */}
+      {/* --- NO PROGRAMME --- */}
       {!currentProgramme && !showCreateForm && (
         <div className={s.card}>
           <div className={s.cardBody}>

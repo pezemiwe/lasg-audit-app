@@ -45,7 +45,7 @@ const ReportsTab: React.FC<{ auditReports: AuditReport[] }> = ({
                   marginTop: "0.2rem",
                 }}
               >
-                Type: {report.type} Â· Prepared by {report.preparedBy}
+                Type: {report.type} Â| Prepared by {report.preparedBy}
               </div>
             </div>
             <Badge status={report.status} />

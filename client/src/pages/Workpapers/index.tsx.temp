@@ -146,7 +146,7 @@ const WorkpapersPage: React.FC = () => {
           <div>
             <h1 className={s.pageTitle}>{selectedDetail.title}</h1>
             <p className={s.pageSubtitle}>
-              Task: {task?.title || "—"} · Uploaded by {uploader?.name || "—"}
+              Task: {task?.title || "—"} �| Uploaded by {uploader?.name || "—"}
             </p>
           </div>
           <StatusBadge
@@ -408,7 +408,7 @@ const WorkpapersPage: React.FC = () => {
                   <div className={s.wpDetails}>
                     <div className={s.wpTitle}>{wp.title}</div>
                     <div className={s.wpMeta}>
-                      {wp.fileName} · {wp.fileSize} · {uploader?.name} ·{" "}
+                      {wp.fileName} �| {wp.fileSize} �| {uploader?.name} �|{" "}
                       {new Date(wp.uploadedAt).toLocaleDateString("en-NG")}
                     </div>
                     {task && <div className={s.wpMeta}>Task: {task.title}</div>}
