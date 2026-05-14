@@ -610,8 +610,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
     [procSource],
   );
   const stmtSections = procSource === "fs" ? AR_FS_SECTIONS : AR_TB_SECTIONS;
-  const stmtSectionLabels =
-    procSource === "fs" ? AR_FS_LABELS : AR_TB_LABELS;
+  const stmtSectionLabels = procSource === "fs" ? AR_FS_LABELS : AR_TB_LABELS;
 
   /** accountName (lower-trim) → net debit/credit effect from active journals */
   const stmtAdjMap = useMemo(() => {
@@ -3710,7 +3709,9 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                   className={s.kpiValue}
                   style={{ fontSize: "0.82rem", textTransform: "none" }}
                 >
-                  {procSource === "fs" ? "Financial Statements" : "Trial Balance"}
+                  {procSource === "fs"
+                    ? "Financial Statements"
+                    : "Trial Balance"}
                 </div>
               </div>
             </div>
@@ -3766,7 +3767,10 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                 flexWrap: "wrap",
               }}
             >
-              <Layers size={15} style={{ color: "var(--primary)", flexShrink: 0 }} />
+              <Layers
+                size={15}
+                style={{ color: "var(--primary)", flexShrink: 0 }}
+              />
               <span style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
                 <strong>Source:</strong>{" "}
                 {procSource === "fs"
@@ -3777,9 +3781,13 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
               {stmtHasJournals ? (
                 <span style={{ fontSize: "0.82rem", color: "#92400e" }}>
                   <strong>
-                    {filteredJournals.filter((j) => j.status !== "Waived").length}{" "}
+                    {
+                      filteredJournals.filter((j) => j.status !== "Waived")
+                        .length
+                    }{" "}
                     journal entr
-                    {filteredJournals.filter((j) => j.status !== "Waived").length === 1
+                    {filteredJournals.filter((j) => j.status !== "Waived")
+                      .length === 1
                       ? "y"
                       : "ies"}
                   </strong>{" "}
@@ -3883,9 +3891,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                                   color: "var(--text-3)",
                                 }}
                               >
-                                {row.budget > 0
-                                  ? fmtCurrency(row.budget)
-                                  : "—"}
+                                {row.budget > 0 ? fmtCurrency(row.budget) : "—"}
                               </td>
                               <td
                                 style={{
@@ -3972,7 +3978,12 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
           <div className={s.card} style={{ marginBottom: "1rem" }}>
             <div className={s.cardHeader}>
               <div
-                style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  flexWrap: "wrap",
+                }}
               >
                 <h3 className={s.cardTitle} style={{ margin: 0 }}>
                   <BarChart3 size={16} style={{ marginRight: "0.5rem" }} />
@@ -4123,9 +4134,7 @@ const WorkProgrammeSection: React.FC<WorkProgrammeSectionProps> = ({
                           >
                             {pctUtil.toFixed(1)}%
                           </td>
-                          <td
-                            style={{ fontSize: "0.75rem", color: noteColor }}
-                          >
+                          <td style={{ fontSize: "0.75rem", color: noteColor }}>
                             {note}
                           </td>
                         </tr>
