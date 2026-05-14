@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Audit Procedures reference data.
  * Covers Revenue, Recurrent Expenditure, Capital Expenditure,
  * Assets, Liabilities, and Equity per Lagos State NCOA.
@@ -954,56 +954,56 @@ export const CATEGORY_META: Record<
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ’°",
+    icon: "\u{1F4B0}",
   },
   recurrent: {
     label: "Recurrent Expenditure",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ“‹",
+    icon: "\u{1F4CB}",
   },
   capital: {
     label: "Capital Expenditure",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "🗏️",
+    icon: "\u{1F3D7}\uFE0F",
   },
   "current-asset": {
     label: "Current Assets",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ’µ",
+    icon: "\u{1F4B5}",
   },
   "non-current-asset": {
     label: "Non-Current Assets",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ¢",
+    icon: "\u{1F3E2}",
   },
   "current-liability": {
     label: "Current Liabilities",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ“‘",
+    icon: "\u{1F511}",
   },
   "non-current-liability": {
     label: "Non-Current Liabilities",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "ðŸ¦",
+    icon: "\u{1F3E6}",
   },
   equity: {
     label: "Equity / Net Assets",
     color: "#0f172a",
     bg: "#f8fafc",
     border: "#064e3b",
-    icon: "âš–ï¸",
+    icon: "\u2696\uFE0F",
   },
 };
 
