@@ -63,6 +63,19 @@ enum AuditStatus {
   COMPLETED
 }
 
+enum DocumentRequirementStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AuditDocumentStatus {
+  NOT_UPLOADED
+  UPLOADED
+  REVIEWED
+  APPROVED
+  REJECTED
+}
+
 model User {
   id             String     @id @default(cuid())
   name           String
@@ -86,6 +99,8 @@ model User {
   acceptedMandates   MandateCouncil[] @relation("MandateAcceptedBy")
   rejectedMandates   MandateCouncil[] @relation("MandateRejectedBy")
   ledAudits          Audit[] @relation("AuditLead")
+  uploadedAuditDocuments AuditDocument[] @relation("AuditDocumentUploadedBy")
+  reviewedAuditDocuments AuditDocument[] @relation("AuditDocumentReviewedBy")
 
   @@index([role])
   @@index([status])
@@ -226,12 +241,65 @@ model Audit {
   council            Council      @relation(fields: [councilId], references: [id], onDelete: Restrict)
   zone               Zone         @relation(fields: [zoneId], references: [id], onDelete: Restrict)
   lead               User?        @relation("AuditLead", fields: [leadId], references: [id], onDelete: SetNull)
+  documents          AuditDocument[]
 
   @@index([mandateId])
   @@index([councilId])
   @@index([zoneId])
   @@index([status])
   @@index([leadId])
+}
+
+model DocumentRequirement {
+  id             String                    @id @default(cuid())
+  name           String                    @unique
+  description    String?
+  requiredFormat String
+  category       String?
+  sortOrder      Int                       @default(0)
+  status         DocumentRequirementStatus @default(ACTIVE)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  auditDocuments AuditDocument[]
+
+  @@index([status])
+  @@index([sortOrder])
+}
+
+model AuditDocument {
+  id                    String              @id @default(cuid())
+  auditId               String
+  documentRequirementId String?
+  name                  String
+  description           String?
+  requiredFormat        String
+  category              String?
+  sortOrder             Int                 @default(0)
+  status                AuditDocumentStatus @default(NOT_UPLOADED)
+  fileUrl               String?
+  originalFileName      String?
+  mimeType              String?
+  fileSize              Int?
+  uploadedById          String?
+  uploadedAt            DateTime?
+  reviewedById          String?
+  reviewedAt            DateTime?
+  rejectionReason       String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  audit                 Audit                @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  documentRequirement   DocumentRequirement? @relation(fields: [documentRequirementId], references: [id], onDelete: SetNull)
+  uploadedBy            User?                @relation("AuditDocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  reviewedBy            User?                @relation("AuditDocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([auditId, documentRequirementId])
+  @@index([auditId])
+  @@index([documentRequirementId])
+  @@index([status])
+  @@index([uploadedById])
+  @@index([reviewedById])
 }
 
 model ActivityLog {

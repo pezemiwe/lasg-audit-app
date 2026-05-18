@@ -31,7 +31,7 @@ export function errorHandler(
 
   if (error instanceof multer.MulterError) {
     if (error.code === "LIMIT_FILE_SIZE") {
-      return sendError(res, 400, "Signature file must not exceed 2MB");
+      return sendError(res, 400, "Uploaded file exceeds the allowed size");
     }
 
     return sendError(res, 400, error.message);

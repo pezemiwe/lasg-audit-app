@@ -96,6 +96,123 @@ const lcdaParentLgas = new Map<string, string>([
   ["Itire-Ikate", "Surulere"],
 ]);
 
+const documentRequirements = [
+  {
+    name: "Financial Statements - Current Year",
+    description: "Unaudited financial statements for the current audit year.",
+    requiredFormat: "Excel",
+    category: "Financial Statements",
+  },
+  {
+    name: "Financial Statements - Prior Year",
+    description: "Audited financial statements for the prior year.",
+    requiredFormat: "Excel",
+    category: "Financial Statements",
+  },
+  {
+    name: "Trial Balance - Current Year",
+    description: "Unaudited trial balance for the current audit year.",
+    requiredFormat: "Excel",
+    category: "Trial Balance",
+  },
+  {
+    name: "Trial Balance - Prior Year",
+    description: "Audited trial balance for the prior year.",
+    requiredFormat: "Excel",
+    category: "Trial Balance",
+  },
+  {
+    name: "Approved Budget - Current Year",
+    description: "Approved budget for the current fiscal year.",
+    requiredFormat: "Excel",
+    category: "Budget",
+  },
+  {
+    name: "Approved Budget - Prior Year",
+    description: "Approved budget for the prior fiscal year.",
+    requiredFormat: "Excel",
+    category: "Budget",
+  },
+  {
+    name: "Bank Statements",
+    description: "Bank statements for all council accounts covering the audit period.",
+    requiredFormat: "PDF",
+    category: "Treasury",
+  },
+  {
+    name: "Payroll Records",
+    description: "Staff establishment and payroll records for the audit period.",
+    requiredFormat: "Excel",
+    category: "Payroll",
+  },
+  {
+    name: "Revenue Collection Records",
+    description: "IGR collection records, receipts, and revenue schedules.",
+    requiredFormat: "Excel/PDF",
+    category: "Revenue",
+  },
+  {
+    name: "Capital Project Files",
+    description: "Contract documents, project files, and completion certificates.",
+    requiredFormat: "PDF",
+    category: "Projects",
+  },
+  {
+    name: "Procurement Records",
+    description: "Procurement documentation, bid evaluations, and contract awards.",
+    requiredFormat: "PDF",
+    category: "Procurement",
+  },
+  {
+    name: "Fixed Asset Register",
+    description: "Fixed asset register with acquisition details, locations, and values.",
+    requiredFormat: "Excel",
+    category: "Assets",
+  },
+  {
+    name: "Tenders Board Minutes",
+    description: "Minutes of Tenders Board and Finance Committee meetings.",
+    requiredFormat: "PDF",
+    category: "Governance",
+  },
+  {
+    name: "Internal Audit Reports",
+    description: "Internal audit reports and management responses.",
+    requiredFormat: "PDF",
+    category: "Internal Audit",
+  },
+  {
+    name: "Cash Books and Ledgers",
+    description: "Cash books and general ledger records for all council accounts.",
+    requiredFormat: "Excel",
+    category: "Accounting Records",
+  },
+  {
+    name: "Previous Audit Reports",
+    description: "Previous external audit reports and management responses.",
+    requiredFormat: "PDF",
+    category: "Audit History",
+  },
+  {
+    name: "Payment Vouchers",
+    description: "Payment vouchers and supporting expenditure documentation.",
+    requiredFormat: "PDF",
+    category: "Expenditure",
+  },
+  {
+    name: "Budget Implementation Report",
+    description: "Budget performance reports showing actual versus approved expenditure.",
+    requiredFormat: "PDF",
+    category: "Budget",
+  },
+  {
+    name: "Management Letter Responses",
+    description: "Responses to previous audit management letters and outstanding audit queries.",
+    requiredFormat: "PDF",
+    category: "Audit History",
+  },
+];
+
 async function upsertUser(data: {
   name: string;
   email: string;
@@ -126,6 +243,22 @@ async function upsertUser(data: {
 
 async function main() {
   const zoneRecords = new Map<string, string>();
+
+  for (const [index, requirement] of documentRequirements.entries()) {
+    await prisma.documentRequirement.upsert({
+      where: { name: requirement.name },
+      update: {
+        description: requirement.description,
+        requiredFormat: requirement.requiredFormat,
+        category: requirement.category,
+        sortOrder: index + 1,
+      },
+      create: {
+        ...requirement,
+        sortOrder: index + 1,
+      },
+    });
+  }
 
   for (const zone of zones) {
     const zoneRecord = await prisma.zone.upsert({

@@ -391,6 +391,8 @@ export const ModelName = {
   Mandate: 'Mandate',
   MandateCouncil: 'MandateCouncil',
   Audit: 'Audit',
+  DocumentRequirement: 'DocumentRequirement',
+  AuditDocument: 'AuditDocument',
   ActivityLog: 'ActivityLog'
 } as const
 
@@ -407,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "audit" | "activityLog"
+    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "audit" | "documentRequirement" | "auditDocument" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -929,6 +931,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DocumentRequirement: {
+      payload: Prisma.$DocumentRequirementPayload<ExtArgs>
+      fields: Prisma.DocumentRequirementFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DocumentRequirementFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DocumentRequirementFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>
+        }
+        findFirst: {
+          args: Prisma.DocumentRequirementFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DocumentRequirementFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>
+        }
+        findMany: {
+          args: Prisma.DocumentRequirementFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>[]
+        }
+        create: {
+          args: Prisma.DocumentRequirementCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>
+        }
+        createMany: {
+          args: Prisma.DocumentRequirementCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentRequirementCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>[]
+        }
+        delete: {
+          args: Prisma.DocumentRequirementDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>
+        }
+        update: {
+          args: Prisma.DocumentRequirementUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>
+        }
+        deleteMany: {
+          args: Prisma.DocumentRequirementDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DocumentRequirementUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DocumentRequirementUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentRequirementUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentRequirementPayload>
+        }
+        aggregate: {
+          args: Prisma.DocumentRequirementAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDocumentRequirement>
+        }
+        groupBy: {
+          args: Prisma.DocumentRequirementGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentRequirementGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DocumentRequirementCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentRequirementCountAggregateOutputType> | number
+        }
+      }
+    }
+    AuditDocument: {
+      payload: Prisma.$AuditDocumentPayload<ExtArgs>
+      fields: Prisma.AuditDocumentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditDocumentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditDocumentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>
+        }
+        findFirst: {
+          args: Prisma.AuditDocumentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditDocumentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>
+        }
+        findMany: {
+          args: Prisma.AuditDocumentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>[]
+        }
+        create: {
+          args: Prisma.AuditDocumentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>
+        }
+        createMany: {
+          args: Prisma.AuditDocumentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuditDocumentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>[]
+        }
+        delete: {
+          args: Prisma.AuditDocumentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>
+        }
+        update: {
+          args: Prisma.AuditDocumentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditDocumentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditDocumentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuditDocumentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>[]
+        }
+        upsert: {
+          args: Prisma.AuditDocumentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditDocumentPayload>
+        }
+        aggregate: {
+          args: Prisma.AuditDocumentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuditDocument>
+        }
+        groupBy: {
+          args: Prisma.AuditDocumentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditDocumentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditDocumentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditDocumentCountAggregateOutputType> | number
+        }
+      }
+    }
     ActivityLog: {
       payload: Prisma.$ActivityLogPayload<ExtArgs>
       fields: Prisma.ActivityLogFieldRefs
@@ -1164,6 +1314,47 @@ export const AuditScalarFieldEnum = {
 export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
 
 
+export const DocumentRequirementScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  requiredFormat: 'requiredFormat',
+  category: 'category',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentRequirementScalarFieldEnum = (typeof DocumentRequirementScalarFieldEnum)[keyof typeof DocumentRequirementScalarFieldEnum]
+
+
+export const AuditDocumentScalarFieldEnum = {
+  id: 'id',
+  auditId: 'auditId',
+  documentRequirementId: 'documentRequirementId',
+  name: 'name',
+  description: 'description',
+  requiredFormat: 'requiredFormat',
+  category: 'category',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  fileUrl: 'fileUrl',
+  originalFileName: 'originalFileName',
+  mimeType: 'mimeType',
+  fileSize: 'fileSize',
+  uploadedById: 'uploadedById',
+  uploadedAt: 'uploadedAt',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  rejectionReason: 'rejectionReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditDocumentScalarFieldEnum = (typeof AuditDocumentScalarFieldEnum)[keyof typeof AuditDocumentScalarFieldEnum]
+
+
 export const ActivityLogScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1381,6 +1572,34 @@ export type ListEnumAuditStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'DocumentRequirementStatus'
+ */
+export type EnumDocumentRequirementStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocumentRequirementStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DocumentRequirementStatus[]'
+ */
+export type ListEnumDocumentRequirementStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DocumentRequirementStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditDocumentStatus'
+ */
+export type EnumAuditDocumentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditDocumentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AuditDocumentStatus[]'
+ */
+export type ListEnumAuditDocumentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuditDocumentStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1524,6 +1743,8 @@ export type GlobalOmitConfig = {
   mandate?: Prisma.MandateOmit
   mandateCouncil?: Prisma.MandateCouncilOmit
   audit?: Prisma.AuditOmit
+  documentRequirement?: Prisma.DocumentRequirementOmit
+  auditDocument?: Prisma.AuditDocumentOmit
   activityLog?: Prisma.ActivityLogOmit
 }
 

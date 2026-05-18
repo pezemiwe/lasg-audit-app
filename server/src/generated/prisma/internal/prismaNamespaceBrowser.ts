@@ -58,6 +58,8 @@ export const ModelName = {
   Mandate: 'Mandate',
   MandateCouncil: 'MandateCouncil',
   Audit: 'Audit',
+  DocumentRequirement: 'DocumentRequirement',
+  AuditDocument: 'AuditDocument',
   ActivityLog: 'ActivityLog'
 } as const
 
@@ -197,6 +199,47 @@ export const AuditScalarFieldEnum = {
 } as const
 
 export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+
+
+export const DocumentRequirementScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  requiredFormat: 'requiredFormat',
+  category: 'category',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentRequirementScalarFieldEnum = (typeof DocumentRequirementScalarFieldEnum)[keyof typeof DocumentRequirementScalarFieldEnum]
+
+
+export const AuditDocumentScalarFieldEnum = {
+  id: 'id',
+  auditId: 'auditId',
+  documentRequirementId: 'documentRequirementId',
+  name: 'name',
+  description: 'description',
+  requiredFormat: 'requiredFormat',
+  category: 'category',
+  sortOrder: 'sortOrder',
+  status: 'status',
+  fileUrl: 'fileUrl',
+  originalFileName: 'originalFileName',
+  mimeType: 'mimeType',
+  fileSize: 'fileSize',
+  uploadedById: 'uploadedById',
+  uploadedAt: 'uploadedAt',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  rejectionReason: 'rejectionReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditDocumentScalarFieldEnum = (typeof AuditDocumentScalarFieldEnum)[keyof typeof AuditDocumentScalarFieldEnum]
 
 
 export const ActivityLogScalarFieldEnum = {

@@ -87,3 +87,22 @@ export const AuditStatus = {
 } as const
 
 export type AuditStatus = (typeof AuditStatus)[keyof typeof AuditStatus]
+
+
+export const DocumentRequirementStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE'
+} as const
+
+export type DocumentRequirementStatus = (typeof DocumentRequirementStatus)[keyof typeof DocumentRequirementStatus]
+
+
+export const AuditDocumentStatus = {
+  NOT_UPLOADED: 'NOT_UPLOADED',
+  UPLOADED: 'UPLOADED',
+  REVIEWED: 'REVIEWED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type AuditDocumentStatus = (typeof AuditDocumentStatus)[keyof typeof AuditDocumentStatus]

@@ -77,6 +77,16 @@ export type MandateCouncil = Prisma.MandateCouncilModel
  */
 export type Audit = Prisma.AuditModel
 /**
+ * Model DocumentRequirement
+ * 
+ */
+export type DocumentRequirement = Prisma.DocumentRequirementModel
+/**
+ * Model AuditDocument
+ * 
+ */
+export type AuditDocument = Prisma.AuditDocumentModel
+/**
  * Model ActivityLog
  * 
  */

@@ -20,6 +20,7 @@ export const openApiDocument = {
     { name: "Councils" },
     { name: "Mandates" },
     { name: "Audits" },
+    { name: "Document Requirements" },
     { name: "Activity" },
     { name: "Health" },
   ],
@@ -79,6 +80,53 @@ export const openApiDocument = {
           "POST_AUDIT",
           "COMPLETED",
         ],
+      },
+      DocumentRequirementStatus: {
+        type: "string",
+        enum: ["ACTIVE", "INACTIVE"],
+      },
+      DocumentRequirement: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          description: { type: "string", nullable: true },
+          requiredFormat: { type: "string" },
+          category: { type: "string", nullable: true },
+          sortOrder: { type: "integer" },
+          status: { $ref: "#/components/schemas/DocumentRequirementStatus" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      AuditDocumentStatus: {
+        type: "string",
+        enum: ["NOT_UPLOADED", "UPLOADED", "REVIEWED", "APPROVED", "REJECTED"],
+      },
+      AuditDocument: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          auditId: { type: "string" },
+          documentRequirementId: { type: "string", nullable: true },
+          name: { type: "string" },
+          description: { type: "string", nullable: true },
+          requiredFormat: { type: "string" },
+          category: { type: "string", nullable: true },
+          sortOrder: { type: "integer" },
+          status: { $ref: "#/components/schemas/AuditDocumentStatus" },
+          fileUrl: { type: "string", nullable: true },
+          originalFileName: { type: "string", nullable: true },
+          mimeType: { type: "string", nullable: true },
+          fileSize: { type: "integer", nullable: true },
+          uploadedById: { type: "string", nullable: true },
+          uploadedAt: { type: "string", format: "date-time", nullable: true },
+          reviewedById: { type: "string", nullable: true },
+          reviewedAt: { type: "string", format: "date-time", nullable: true },
+          rejectionReason: { type: "string", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
       },
       Audit: {
         type: "object",
@@ -879,6 +927,176 @@ export const openApiDocument = {
         responses: {
           "200": { description: "Audit" },
           "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/audits/{auditId}/documents": {
+      get: {
+        tags: ["Audits"],
+        summary: "List documents required for an audit",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "auditId", in: "path", required: true, schema: { type: "string" } },
+        ],
+        responses: {
+          "200": {
+            description: "Audit documents",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/AuditDocument" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/audits/{auditId}/documents/{documentId}/upload": {
+      post: {
+        tags: ["Audits"],
+        summary: "Upload a document for an audit checklist item",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "auditId", in: "path", required: true, schema: { type: "string" } },
+          { name: "documentId", in: "path", required: true, schema: { type: "string" } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                required: ["file"],
+                properties: {
+                  file: { type: "string", format: "binary" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Uploaded audit document" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/audit-documents/{id}/review": {
+      patch: {
+        tags: ["Audits"],
+        summary: "Mark uploaded audit document as reviewed",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Reviewed audit document" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/audit-documents/{id}/approve": {
+      patch: {
+        tags: ["Audits"],
+        summary: "Approve uploaded audit document",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Approved audit document" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/audit-documents/{id}/reject": {
+      patch: {
+        tags: ["Audits"],
+        summary: "Reject uploaded audit document",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["rejectionReason"],
+                properties: {
+                  rejectionReason: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Rejected audit document" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/document-requirements": {
+      get: {
+        tags: ["Document Requirements"],
+        summary: "List document requirements",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "status",
+            in: "query",
+            schema: { $ref: "#/components/schemas/DocumentRequirementStatus" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Document requirements",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/DocumentRequirement" },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["Document Requirements"],
+        summary: "Create document requirement",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "201": { description: "Created document requirement" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/document-requirements/{id}": {
+      get: {
+        tags: ["Document Requirements"],
+        summary: "Get document requirement by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Document requirement" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      put: {
+        tags: ["Document Requirements"],
+        summary: "Update document requirement",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Updated document requirement" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+      delete: {
+        tags: ["Document Requirements"],
+        summary: "Deactivate document requirement",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Deactivated document requirement" },
+          "403": { $ref: "#/components/responses/Forbidden" },
         },
       },
     },

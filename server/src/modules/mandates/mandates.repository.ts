@@ -6,6 +6,7 @@ import type {
   Prisma,
 } from "../../generated/prisma/client";
 import { prisma } from "../../config/prisma";
+import { createAuditDocumentsFromRequirements } from "../document-requirements/document-requirements.repository";
 
 const mandateInclude = {
   createdBy: {
@@ -197,6 +198,13 @@ export function acceptMandate(id: string, councilId: string, acceptedById: strin
         endDate: mandate.endDate,
       },
     });
+
+    const activeRequirements = await tx.documentRequirement.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    });
+
+    await createAuditDocumentsFromRequirements(tx, audit.id, activeRequirements);
 
     return { ...accepted, mandate, audit };
   });
