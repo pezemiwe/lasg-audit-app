@@ -1,4 +1,5 @@
 import { Role, UserStatus, } from "../../generated/prisma/client";
+import { HttpError } from "../../common/errors/httpError";
 import { serializeUser } from "./users.serializer";
 import * as usersRepository from "./users.repository";
 
@@ -16,6 +17,20 @@ export async function listUsers(filters: {
 }
 
 export async function createUser(data: Parameters<typeof usersRepository.createUser>[0]) {
+  if (data.zoneId !== undefined) {
+    const zoneExists = await usersRepository.zoneExists(data.zoneId);
+    if (!zoneExists) {
+      throw new HttpError(400, "zoneId must reference an existing zone");
+    }
+  }
+
+  if (data.councilId !== undefined) {
+    const councilExists = await usersRepository.councilExists(data.councilId);
+    if (!councilExists) {
+      throw new HttpError(400, "councilId must reference an existing council");
+    }
+  }
+
   const user = await usersRepository.createUser(data);
   return serializeUser(user);
 }

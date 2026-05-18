@@ -45,6 +45,17 @@ export const MandateCouncilStatus = {
   REJECTED: "REJECTED",
 } as const;
 
+export const AuditStatus = {
+  PENDING: "PENDING",
+  PRE_AUDIT: "PRE_AUDIT",
+  PLANNING: "PLANNING",
+  FIELDWORK: "FIELDWORK",
+  REVIEW: "REVIEW",
+  REPORTING: "REPORTING",
+  POST_AUDIT: "POST_AUDIT",
+  COMPLETED: "COMPLETED",
+} as const;
+
 class PrismaClientKnownRequestError extends Error {
   code: string;
 
@@ -61,6 +72,14 @@ export const Prisma = {
 
 export class PrismaClient {
   user = {
+    findUnique: jest.fn(),
+  };
+
+  zone = {
+    findUnique: jest.fn(),
+  };
+
+  council = {
     findUnique: jest.fn(),
   };
 

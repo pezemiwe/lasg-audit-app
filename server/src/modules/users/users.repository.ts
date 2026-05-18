@@ -14,6 +14,24 @@ export function listUsers(filters: {
   });
 }
 
+export async function zoneExists(id: string) {
+  const zone = await prisma.zone.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  return zone !== null;
+}
+
+export async function councilExists(id: string) {
+  const council = await prisma.council.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  return council !== null;
+}
+
 export async function createUser(data: {
   name: string;
   email: string;
