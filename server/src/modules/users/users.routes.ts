@@ -32,7 +32,7 @@ router.get(
 );
 router.post(
   "/",
-  requireRoles("SYSTEM_ADMIN"),
+  requireRoles("SYSTEM_ADMIN", "STATE_AUDITOR_GENERAL"),
   createUserValidator,
   asyncHandler(createUserController),
 );
