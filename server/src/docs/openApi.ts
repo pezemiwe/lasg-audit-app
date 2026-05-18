@@ -19,6 +19,7 @@ export const openApiDocument = {
     { name: "Zones" },
     { name: "Councils" },
     { name: "Mandates" },
+    { name: "Audits" },
     { name: "Activity" },
     { name: "Health" },
   ],
@@ -65,6 +66,44 @@ export const openApiDocument = {
       MandateCouncilStatus: {
         type: "string",
         enum: ["PENDING", "ACCEPTED", "REJECTED"],
+      },
+      AuditStatus: {
+        type: "string",
+        enum: [
+          "PENDING",
+          "PRE_AUDIT",
+          "PLANNING",
+          "FIELDWORK",
+          "REVIEW",
+          "REPORTING",
+          "POST_AUDIT",
+          "COMPLETED",
+        ],
+      },
+      Audit: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          mandateId: { type: "string" },
+          mandateCouncilId: { type: "string" },
+          councilId: { type: "string" },
+          zoneId: { type: "string" },
+          title: { type: "string" },
+          year: { type: "integer" },
+          auditTypes: {
+            type: "array",
+            items: { $ref: "#/components/schemas/AuditType" },
+          },
+          status: { $ref: "#/components/schemas/AuditStatus" },
+          progress: { type: "integer", minimum: 0, maximum: 100 },
+          startDate: { type: "string", format: "date-time", nullable: true },
+          endDate: { type: "string", format: "date-time", nullable: true },
+          leadId: { type: "string", nullable: true },
+          startedAt: { type: "string", format: "date-time", nullable: true },
+          completedAt: { type: "string", format: "date-time", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
       },
       User: {
         type: "object",
@@ -800,6 +839,46 @@ export const openApiDocument = {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
           "200": { description: "Mandate acceptance summary" },
+        },
+      },
+    },
+    "/audits": {
+      get: {
+        tags: ["Audits"],
+        summary: "List audits visible to the authenticated user",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "status", in: "query", schema: { $ref: "#/components/schemas/AuditStatus" } },
+          { name: "mandateId", in: "query", schema: { type: "string" } },
+          { name: "councilId", in: "query", schema: { type: "string" } },
+          { name: "zoneId", in: "query", schema: { type: "string" } },
+          { name: "leadId", in: "query", schema: { type: "string" } },
+          { name: "year", in: "query", schema: { type: "integer", example: 2026 } },
+        ],
+        responses: {
+          "200": {
+            description: "Audits",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/Audit" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/audits/{id}": {
+      get: {
+        tags: ["Audits"],
+        summary: "Get audit by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Audit" },
+          "404": { $ref: "#/components/responses/NotFound" },
         },
       },
     },

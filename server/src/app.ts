@@ -15,6 +15,7 @@ import councilRoutes from "./modules/councils/councils.routes";
 import activityRoutes from "./modules/activity/activity.routes";
 import roleRoutes from "./modules/roles/roles.routes";
 import mandateRoutes from "./modules/mandates/mandates.routes";
+import auditRoutes from "./modules/audits/audits.routes";
 
 export const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/v1/zones", zoneRoutes);
 app.use("/api/v1/councils", councilRoutes);
 app.use("/api/v1/activity", activityRoutes);
 app.use("/api/v1/mandates", mandateRoutes);
+app.use("/api/v1/audits", auditRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
