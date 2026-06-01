@@ -11,9 +11,9 @@ const auditDocumentInclude = {
   },
 } satisfies Prisma.AuditDocumentInclude;
 
-export function listAuditDocuments(auditId: string) {
+export function listAuditDocuments(auditEngagementId: string) {
   return prisma.auditDocument.findMany({
-    where: { auditId },
+    where: { auditEngagementId },
     include: auditDocumentInclude,
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
@@ -24,7 +24,7 @@ export function getAuditDocumentById(id: string) {
     where: { id },
     include: {
       ...auditDocumentInclude,
-      audit: true,
+      auditEngagement: true,
     },
   });
 }
@@ -77,8 +77,8 @@ export function updateAuditDocumentReview(
   });
 }
 
-export function getAuditById(id: string) {
-  return prisma.audit.findUniqueOrThrow({ where: { id } });
+export function getAuditEngagementById(id: string) {
+  return prisma.auditEngagement.findUniqueOrThrow({ where: { id } });
 }
 
 export function getUserScope(userId: string) {

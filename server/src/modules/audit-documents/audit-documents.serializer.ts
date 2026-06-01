@@ -9,7 +9,7 @@ type AuditDocumentWithRelations = AuditDocument & {
 export function serializeAuditDocument(document: AuditDocumentWithRelations) {
   return {
     id: document.id,
-    auditId: document.auditId,
+    auditEngagementId: document.auditEngagementId,
     documentRequirementId: document.documentRequirementId,
     name: document.name,
     description: document.description,

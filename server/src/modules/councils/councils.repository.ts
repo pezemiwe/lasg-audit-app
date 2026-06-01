@@ -42,3 +42,35 @@ export function updateCouncil(
 ) {
   return prisma.council.update({ where: { id }, data });
 }
+
+export function getUserById(id: string) {
+  return prisma.user.findUniqueOrThrow({
+    where: { id },
+    select: { id: true, name: true, email: true, phone: true, role: true, status: true },
+  });
+}
+
+export function assignHeadOfLocalGovernment(councilId: string, userId: string) {
+  return prisma.$transaction(async (tx) => {
+    await tx.council.findUniqueOrThrow({ where: { id: councilId } });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { councilId },
+    });
+
+    return tx.council.findUniqueOrThrow({
+      where: { id: councilId },
+      include: {
+        zone: true,
+        parentLga: true,
+        lcdas: { orderBy: { name: "asc" } },
+        users: {
+          where: { role: "HEAD_OF_LOCAL_GOVERNMENT" },
+          select: { id: true, name: true, email: true, phone: true, role: true, status: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+  });
+}

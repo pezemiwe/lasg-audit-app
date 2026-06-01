@@ -184,18 +184,26 @@ export function acceptMandate(id: string, councilId: string, acceptedById: strin
     });
 
     const audit = await tx.audit.upsert({
-      where: { mandateCouncilId: accepted.id },
+      where: { mandateId: id },
       update: {},
       create: {
         mandateId: id,
-        mandateCouncilId: accepted.id,
-        councilId,
-        zoneId: accepted.council.zoneId,
-        title: `${mandate.title} - ${accepted.council.name}`,
+        title: mandate.title,
         year: mandate.year,
         auditTypes: mandate.auditTypes,
         startDate: mandate.startDate,
         endDate: mandate.endDate,
+      },
+    });
+
+    const auditEngagement = await tx.auditEngagement.upsert({
+      where: { mandateCouncilId: accepted.id },
+      update: {},
+      create: {
+        auditId: audit.id,
+        mandateCouncilId: accepted.id,
+        councilId,
+        zoneId: accepted.council.zoneId,
       },
     });
 
@@ -204,9 +212,9 @@ export function acceptMandate(id: string, councilId: string, acceptedById: strin
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
 
-    await createAuditDocumentsFromRequirements(tx, audit.id, activeRequirements);
+    await createAuditDocumentsFromRequirements(tx, auditEngagement.id, activeRequirements);
 
-    return { ...accepted, mandate, audit };
+    return { ...accepted, mandate, audit, auditEngagement };
   });
 }
 

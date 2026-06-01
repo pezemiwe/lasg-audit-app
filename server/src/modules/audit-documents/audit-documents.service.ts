@@ -8,8 +8,8 @@ type AuthUser = {
   role: Role;
 };
 
-function canReadAudit(
-  audit: Awaited<ReturnType<typeof auditDocumentsRepository.getAuditById>>,
+function canReadAuditEngagement(
+  engagement: Awaited<ReturnType<typeof auditDocumentsRepository.getAuditEngagementById>>,
   scope: Awaited<ReturnType<typeof auditDocumentsRepository.getUserScope>>,
 ) {
   if (scope.role === "STATE_AUDITOR_GENERAL" || scope.role === "SYSTEM_ADMIN") {
@@ -17,22 +17,22 @@ function canReadAudit(
   }
 
   if (scope.role === "AUDIT_SUPERVISOR") {
-    return audit.zoneId === scope.zoneId;
+    return engagement.zoneId === scope.zoneId;
   }
 
   if (scope.role === "AUDIT_LEAD") {
-    return audit.leadId === scope.id;
+    return engagement.leadId === scope.id;
   }
 
   if (scope.role === "HEAD_OF_LOCAL_GOVERNMENT") {
-    return audit.councilId === scope.councilId;
+    return engagement.councilId === scope.councilId;
   }
 
   return false;
 }
 
-function canReviewAudit(
-  audit: Awaited<ReturnType<typeof auditDocumentsRepository.getAuditById>>,
+function canReviewAuditEngagement(
+  engagement: Awaited<ReturnType<typeof auditDocumentsRepository.getAuditEngagementById>>,
   scope: Awaited<ReturnType<typeof auditDocumentsRepository.getUserScope>>,
 ) {
   if (scope.role === "STATE_AUDITOR_GENERAL") {
@@ -40,51 +40,51 @@ function canReviewAudit(
   }
 
   if (scope.role === "AUDIT_SUPERVISOR") {
-    return audit.zoneId === scope.zoneId;
+    return engagement.zoneId === scope.zoneId;
   }
 
   if (scope.role === "AUDIT_LEAD") {
-    return audit.leadId === scope.id;
+    return engagement.leadId === scope.id;
   }
 
   return false;
 }
 
-async function assertCanReadAudit(auditId: string, user: AuthUser) {
-  const [audit, scope] = await Promise.all([
-    auditDocumentsRepository.getAuditById(auditId),
+async function assertCanReadAuditEngagement(auditEngagementId: string, user: AuthUser) {
+  const [engagement, scope] = await Promise.all([
+    auditDocumentsRepository.getAuditEngagementById(auditEngagementId),
     auditDocumentsRepository.getUserScope(user.id),
   ]);
 
-  if (!canReadAudit(audit, scope)) {
-    throw new HttpError(403, "You do not have access to this audit");
+  if (!canReadAuditEngagement(engagement, scope)) {
+    throw new HttpError(403, "You do not have access to this audit engagement");
   }
 
-  return { audit, scope };
+  return { engagement, scope };
 }
 
-async function assertCanReviewAudit(auditId: string, user: AuthUser) {
-  const [audit, scope] = await Promise.all([
-    auditDocumentsRepository.getAuditById(auditId),
+async function assertCanReviewAuditEngagement(auditEngagementId: string, user: AuthUser) {
+  const [engagement, scope] = await Promise.all([
+    auditDocumentsRepository.getAuditEngagementById(auditEngagementId),
     auditDocumentsRepository.getUserScope(user.id),
   ]);
 
-  if (!canReviewAudit(audit, scope)) {
+  if (!canReviewAuditEngagement(engagement, scope)) {
     throw new HttpError(403, "You do not have permission to review this audit document");
   }
 
-  return { audit, scope };
+  return { engagement, scope };
 }
 
-export async function listAuditDocuments(auditId: string, user: AuthUser) {
-  await assertCanReadAudit(auditId, user);
-  const documents = await auditDocumentsRepository.listAuditDocuments(auditId);
+export async function listAuditDocuments(auditEngagementId: string, user: AuthUser) {
+  await assertCanReadAuditEngagement(auditEngagementId, user);
+  const documents = await auditDocumentsRepository.listAuditDocuments(auditEngagementId);
 
   return documents.map(serializeAuditDocument);
 }
 
 export async function uploadAuditDocument(
-  auditId: string,
+  auditEngagementId: string,
   documentId: string,
   file: Express.Multer.File | undefined,
   user: AuthUser,
@@ -93,16 +93,16 @@ export async function uploadAuditDocument(
     throw new HttpError(400, "Document file is required");
   }
 
-  const { audit, scope } = await assertCanReadAudit(auditId, user);
+  const { engagement, scope } = await assertCanReadAuditEngagement(auditEngagementId, user);
 
-  if (scope.role !== "HEAD_OF_LOCAL_GOVERNMENT" || audit.councilId !== scope.councilId) {
+  if (scope.role !== "HEAD_OF_LOCAL_GOVERNMENT" || engagement.councilId !== scope.councilId) {
     throw new HttpError(403, "Only the HoLG for this council can upload documents");
   }
 
   const document = await auditDocumentsRepository.getAuditDocumentById(documentId);
 
-  if (document.auditId !== auditId) {
-    throw new HttpError(400, "Document does not belong to this audit");
+  if (document.auditEngagementId !== auditEngagementId) {
+    throw new HttpError(400, "Document does not belong to this audit engagement");
   }
 
   if (document.status === "APPROVED") {
@@ -122,7 +122,7 @@ export async function uploadAuditDocument(
 
 export async function markAuditDocumentReviewed(documentId: string, user: AuthUser) {
   const document = await auditDocumentsRepository.getAuditDocumentById(documentId);
-  await assertCanReviewAudit(document.auditId, user);
+  await assertCanReviewAuditEngagement(document.auditEngagementId, user);
 
   if (document.status !== "UPLOADED") {
     throw new HttpError(409, "Only uploaded documents can be marked as reviewed");
@@ -138,7 +138,7 @@ export async function markAuditDocumentReviewed(documentId: string, user: AuthUs
 
 export async function approveAuditDocument(documentId: string, user: AuthUser) {
   const document = await auditDocumentsRepository.getAuditDocumentById(documentId);
-  await assertCanReviewAudit(document.auditId, user);
+  await assertCanReviewAuditEngagement(document.auditEngagementId, user);
 
   if (!["UPLOADED", "REVIEWED"].includes(document.status)) {
     throw new HttpError(409, "Only uploaded or reviewed documents can be approved");
@@ -158,7 +158,7 @@ export async function rejectAuditDocument(
   user: AuthUser,
 ) {
   const document = await auditDocumentsRepository.getAuditDocumentById(documentId);
-  await assertCanReviewAudit(document.auditId, user);
+  await assertCanReviewAuditEngagement(document.auditEngagementId, user);
 
   if (!["UPLOADED", "REVIEWED"].includes(document.status)) {
     throw new HttpError(409, "Only uploaded or reviewed documents can be rejected");

@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { AuditStatus } from "../../generated/prisma/client";
 import { sendSuccess } from "../../common/responses/apiResponse";
-import { getAudit, listAudits } from "./audits.service";
+import { getAudit, listAuditEngagements, listAudits } from "./audits.service";
 
 export async function listAuditsController(req: Request, res: Response) {
   const audits = await listAudits(req.user!, {
@@ -19,4 +19,9 @@ export async function listAuditsController(req: Request, res: Response) {
 export async function getAuditController(req: Request, res: Response) {
   const audit = await getAudit(req.params.id as string, req.user!);
   sendSuccess(res, audit);
+}
+
+export async function listAuditEngagementsController(req: Request, res: Response) {
+  const engagements = await listAuditEngagements(req.params.id as string, req.user!);
+  sendSuccess(res, engagements);
 }

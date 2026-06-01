@@ -56,6 +56,19 @@ export const AuditStatus = {
   COMPLETED: "COMPLETED",
 } as const;
 
+export const DocumentRequirementStatus = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+} as const;
+
+export const AuditDocumentStatus = {
+  NOT_UPLOADED: "NOT_UPLOADED",
+  UPLOADED: "UPLOADED",
+  REVIEWED: "REVIEWED",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+} as const;
+
 class PrismaClientKnownRequestError extends Error {
   code: string;
 

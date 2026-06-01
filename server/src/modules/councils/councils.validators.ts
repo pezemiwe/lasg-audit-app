@@ -17,3 +17,9 @@ export const updateCouncilValidator = [
   body("contactPhone").optional({ nullable: true }).isString(),
   validateRequest,
 ];
+
+export const assignHeadOfLocalGovernmentValidator = [
+  param("id").isString().notEmpty().withMessage("council id is required"),
+  body("userId").isString().notEmpty().withMessage("userId is required"),
+  validateRequest,
+];

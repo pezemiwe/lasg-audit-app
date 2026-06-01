@@ -98,7 +98,7 @@ model User {
   createdMandates    Mandate[] @relation("MandateCreatedBy")
   acceptedMandates   MandateCouncil[] @relation("MandateAcceptedBy")
   rejectedMandates   MandateCouncil[] @relation("MandateRejectedBy")
-  ledAudits          Audit[] @relation("AuditLead")
+  ledAuditEngagements AuditEngagement[] @relation("AuditEngagementLead")
   uploadedAuditDocuments AuditDocument[] @relation("AuditDocumentUploadedBy")
   reviewedAuditDocuments AuditDocument[] @relation("AuditDocumentReviewedBy")
 
@@ -134,7 +134,7 @@ model Zone {
   supervisor   User?     @relation("ZoneSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
   councils     Council[]
   users        User[]    @relation("UserZone")
-  audits       Audit[]
+  auditEngagements AuditEngagement[]
 }
 
 model Council {
@@ -154,7 +154,7 @@ model Council {
   lcdas        Council[]   @relation("CouncilParent")
   users        User[]      @relation("UserCouncil")
   mandateTargets MandateCouncil[]
-  audits       Audit[]
+  auditEngagements AuditEngagement[]
 
   @@index([zoneId])
   @@index([type])
@@ -208,7 +208,7 @@ model MandateCouncil {
   council                    Council                @relation(fields: [councilId], references: [id], onDelete: Restrict)
   acceptedBy                 User?                  @relation("MandateAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
   rejectedBy                 User?                  @relation("MandateRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
-  audit                      Audit?
+  auditEngagement            AuditEngagement?
 
   @@unique([mandateId, councilId])
   @@index([councilId])
@@ -218,32 +218,49 @@ model MandateCouncil {
 }
 
 model Audit {
-  id                 String      @id @default(cuid())
-  mandateId          String
-  mandateCouncilId   String      @unique
+  id           String            @id @default(cuid())
+  mandateId    String            @unique
+  title        String
+  year         Int
+  auditTypes   AuditType[]        @default([])
+  status       AuditStatus        @default(PENDING)
+  progress     Int                @default(0)
+  startDate    DateTime?
+  endDate      DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  mandate      Mandate            @relation(fields: [mandateId], references: [id], onDelete: Cascade)
+  engagements  AuditEngagement[]
+
+  @@index([status])
+  @@index([year])
+}
+
+model AuditEngagement {
+  id                 String          @id @default(cuid())
+  auditId            String
+  mandateCouncilId   String          @unique
   councilId          String
   zoneId             String
-  title              String
-  year               Int
-  auditTypes         AuditType[]  @default([])
-  status             AuditStatus  @default(PENDING)
-  progress           Int          @default(0)
-  startDate          DateTime?
-  endDate            DateTime?
+  status             AuditStatus     @default(PENDING)
+  progress           Int             @default(0)
   leadId             String?
   startedAt          DateTime?
   completedAt        DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
-  mandate            Mandate      @relation(fields: [mandateId], references: [id], onDelete: Cascade)
-  mandateCouncil     MandateCouncil @relation(fields: [mandateCouncilId], references: [id], onDelete: Cascade)
-  council            Council      @relation(fields: [councilId], references: [id], onDelete: Restrict)
-  zone               Zone         @relation(fields: [zoneId], references: [id], onDelete: Restrict)
-  lead               User?        @relation("AuditLead", fields: [leadId], references: [id], onDelete: SetNull)
+  audit              Audit           @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  mandateCouncil     MandateCouncil  @relation(fields: [mandateCouncilId], references: [id], onDelete: Cascade)
+  council            Council         @relation(fields: [councilId], references: [id], onDelete: Restrict)
+  zone               Zone            @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  lead               User?           @relation("AuditEngagementLead", fields: [leadId], references: [id], onDelete: SetNull)
   documents          AuditDocument[]
 
-  @@index([mandateId])
+  @@index([auditId])
   @@index([councilId])
   @@index([zoneId])
   @@index([status])
@@ -269,7 +286,7 @@ model DocumentRequirement {
 
 model AuditDocument {
   id                    String              @id @default(cuid())
-  auditId               String
+  auditEngagementId     String
   documentRequirementId String?
   name                  String
   description           String?
@@ -289,13 +306,13 @@ model AuditDocument {
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
 
-  audit                 Audit                @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  auditEngagement       AuditEngagement      @relation(fields: [auditEngagementId], references: [id], onDelete: Cascade)
   documentRequirement   DocumentRequirement? @relation(fields: [documentRequirementId], references: [id], onDelete: SetNull)
   uploadedBy            User?                @relation("AuditDocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
   reviewedBy            User?                @relation("AuditDocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
 
-  @@unique([auditId, documentRequirementId])
-  @@index([auditId])
+  @@unique([auditEngagementId, documentRequirementId])
+  @@index([auditEngagementId])
   @@index([documentRequirementId])
   @@index([status])
   @@index([uploadedById])

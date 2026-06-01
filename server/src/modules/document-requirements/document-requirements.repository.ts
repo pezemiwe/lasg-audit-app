@@ -63,7 +63,7 @@ export function listActiveDocumentRequirements() {
 
 export function createAuditDocumentsFromRequirements(
   tx: Prisma.TransactionClient,
-  auditId: string,
+  auditEngagementId: string,
   requirements: Array<{
     id: string;
     name: string;
@@ -79,7 +79,7 @@ export function createAuditDocumentsFromRequirements(
 
   return tx.auditDocument.createMany({
     data: requirements.map((requirement) => ({
-      auditId,
+      auditEngagementId,
       documentRequirementId: requirement.id,
       name: requirement.name,
       description: requirement.description,

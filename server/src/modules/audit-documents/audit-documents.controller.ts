@@ -10,13 +10,13 @@ import {
 } from "./audit-documents.service";
 
 export async function listAuditDocumentsController(req: Request, res: Response) {
-  const documents = await listAuditDocuments(req.params.auditId as string, req.user!);
+  const documents = await listAuditDocuments(req.params.engagementId as string, req.user!);
   sendSuccess(res, documents);
 }
 
 export async function uploadAuditDocumentController(req: Request, res: Response) {
   const document = await uploadAuditDocument(
-    req.params.auditId as string,
+    req.params.engagementId as string,
     req.params.documentId as string,
     req.file,
     req.user!,
@@ -27,7 +27,7 @@ export async function uploadAuditDocumentController(req: Request, res: Response)
     action: "AUDIT_DOCUMENT_UPLOADED",
     entityType: "AuditDocument",
     entityId: document.id,
-    details: { auditId: document.auditId, name: document.name },
+    details: { auditEngagementId: document.auditEngagementId, name: document.name },
   });
 
   sendSuccess(res, document);

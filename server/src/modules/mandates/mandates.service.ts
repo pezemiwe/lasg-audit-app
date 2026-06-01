@@ -1,4 +1,4 @@
-import type { Role } from "../../generated/prisma/client";
+import type { Prisma, Role } from "../../generated/prisma/client";
 import {
   AuditType,
   MandateCouncilStatus,
@@ -25,6 +25,8 @@ type ListMandatesFilters = {
 type ListMandateAcceptanceFilters = {
   status?: MandateCouncilStatus;
 };
+
+type UserScope = Awaited<ReturnType<typeof mandatesRepository.getUserScope>>;
 
 type MandateInput = {
   title: string;
@@ -89,7 +91,7 @@ export function normalizeMandateCouncilStatus(value?: string) {
   return aliases[normalized];
 }
 
-function getVisibilityWhere(scope: Awaited<ReturnType<typeof mandatesRepository.getUserScope>>) {
+function getVisibilityWhere(scope: UserScope): Prisma.MandateWhereInput {
   if (scope.role === "STATE_AUDITOR_GENERAL" || scope.role === "SYSTEM_ADMIN") {
     return {};
   }
@@ -115,9 +117,54 @@ function getVisibilityWhere(scope: Awaited<ReturnType<typeof mandatesRepository.
   return { id: "__no_visible_mandates__" };
 }
 
-function getCouncilVisibilityWhere(
-  scope: Awaited<ReturnType<typeof mandatesRepository.getUserScope>>,
+function getListVisibilityWhere(
+  scope: UserScope,
+  filters: ListMandatesFilters,
+): Prisma.MandateWhereInput {
+  if (filters.status === "DRAFT") {
+    return { status: "DRAFT", createdById: scope.id };
+  }
+
+  const visiblePublishedMandates: Prisma.MandateWhereInput = {
+    ...getVisibilityWhere(scope),
+    status: filters.status ?? { not: "DRAFT" },
+  };
+
+  if (filters.status) {
+    return visiblePublishedMandates;
+  }
+
+  return {
+    OR: [
+      { status: "DRAFT", createdById: scope.id },
+      visiblePublishedMandates,
+    ],
+  };
+}
+
+function getReadVisibilityWhere(scope: UserScope): Prisma.MandateWhereInput {
+  return {
+    OR: [
+      { status: "DRAFT", createdById: scope.id },
+      {
+        ...getVisibilityWhere(scope),
+        status: { not: "DRAFT" },
+      },
+    ],
+  };
+}
+
+function ensureDraftOwner(
+  mandate: { createdById: string; status: MandateStatus },
+  user: AuthUser,
+  action: string,
 ) {
+  if (mandate.status === "DRAFT" && mandate.createdById !== user.id) {
+    throw new HttpError(403, `Only the mandate creator can ${action} this draft`);
+  }
+}
+
+function getCouncilVisibilityWhere(scope: UserScope) {
   if (scope.role === "STATE_AUDITOR_GENERAL" || scope.role === "SYSTEM_ADMIN") {
     return {};
   }
@@ -199,16 +246,13 @@ function normalizeMandateInput(data: MandateInput) {
 
 export async function listMandates(user: AuthUser) {
   const scope = await mandatesRepository.getUserScope(user.id);
-  const mandates = await mandatesRepository.listMandates(getVisibilityWhere(scope));
+  const mandates = await mandatesRepository.listMandates(getListVisibilityWhere(scope, {}));
   return mandates.map(serializeMandate);
 }
 
 export async function listMandatesWithFilters(user: AuthUser, filters: ListMandatesFilters) {
   const scope = await mandatesRepository.getUserScope(user.id);
-  const mandates = await mandatesRepository.listMandates({
-    ...getVisibilityWhere(scope),
-    status: filters.status,
-  });
+  const mandates = await mandatesRepository.listMandates(getListVisibilityWhere(scope, filters));
   return mandates.map(serializeMandate);
 }
 
@@ -227,7 +271,7 @@ export async function createMandate(data: MandateInput, user: AuthUser) {
 
 export async function getMandate(id: string, user: AuthUser) {
   const scope = await mandatesRepository.getUserScope(user.id);
-  const mandate = await mandatesRepository.getMandateById(id, getVisibilityWhere(scope));
+  const mandate = await mandatesRepository.getMandateById(id, getReadVisibilityWhere(scope));
   return serializeMandate(mandate);
 }
 
@@ -237,6 +281,8 @@ export async function updateMandate(id: string, data: Partial<MandateInput>, use
   if (existing.status !== "DRAFT") {
     throw new HttpError(409, "Only draft mandates can be updated");
   }
+
+  ensureDraftOwner(existing, user, "update");
 
   const normalized = normalizeMandateInput({
     title: data.title ?? existing.title,
@@ -261,22 +307,26 @@ export async function updateMandate(id: string, data: Partial<MandateInput>, use
   return serializeMandate(mandate);
 }
 
-export async function deleteMandate(id: string) {
+export async function deleteMandate(id: string, user: AuthUser) {
   const existing = await mandatesRepository.getMandateById(id);
 
   if (existing.status !== "DRAFT") {
     throw new HttpError(409, "Only draft mandates can be deleted");
   }
 
+  ensureDraftOwner(existing, user, "delete");
+
   await mandatesRepository.deleteMandate(id);
 }
 
-export async function publishMandate(id: string) {
+export async function publishMandate(id: string, user: AuthUser) {
   const existing = await mandatesRepository.getMandateById(id);
 
   if (existing.status !== "DRAFT") {
     throw new HttpError(409, "Only draft mandates can be published");
   }
+
+  ensureDraftOwner(existing, user, "publish");
 
   const mandate = await mandatesRepository.publishMandate(id);
   return serializeMandate(mandate);
@@ -324,6 +374,7 @@ export async function acceptMandate(id: string, user: AuthUser) {
     documentPortalUnlockedAt: accepted.documentPortalUnlockedAt,
     questionnaireUnlockedAt: accepted.questionnaireUnlockedAt,
     audit: accepted.audit,
+    auditEngagement: accepted.auditEngagement,
   };
 }
 

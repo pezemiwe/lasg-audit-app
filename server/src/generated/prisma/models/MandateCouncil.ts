@@ -250,7 +250,7 @@ export type MandateCouncilWhereInput = {
   council?: Prisma.XOR<Prisma.CouncilScalarRelationFilter, Prisma.CouncilWhereInput>
   acceptedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   rejectedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-  audit?: Prisma.XOR<Prisma.AuditNullableScalarRelationFilter, Prisma.AuditWhereInput> | null
+  auditEngagement?: Prisma.XOR<Prisma.AuditEngagementNullableScalarRelationFilter, Prisma.AuditEngagementWhereInput> | null
 }
 
 export type MandateCouncilOrderByWithRelationInput = {
@@ -271,7 +271,7 @@ export type MandateCouncilOrderByWithRelationInput = {
   council?: Prisma.CouncilOrderByWithRelationInput
   acceptedBy?: Prisma.UserOrderByWithRelationInput
   rejectedBy?: Prisma.UserOrderByWithRelationInput
-  audit?: Prisma.AuditOrderByWithRelationInput
+  auditEngagement?: Prisma.AuditEngagementOrderByWithRelationInput
 }
 
 export type MandateCouncilWhereUniqueInput = Prisma.AtLeast<{
@@ -296,7 +296,7 @@ export type MandateCouncilWhereUniqueInput = Prisma.AtLeast<{
   council?: Prisma.XOR<Prisma.CouncilScalarRelationFilter, Prisma.CouncilWhereInput>
   acceptedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   rejectedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-  audit?: Prisma.XOR<Prisma.AuditNullableScalarRelationFilter, Prisma.AuditWhereInput> | null
+  auditEngagement?: Prisma.XOR<Prisma.AuditEngagementNullableScalarRelationFilter, Prisma.AuditEngagementWhereInput> | null
 }, "id" | "mandateId_councilId">
 
 export type MandateCouncilOrderByWithAggregationInput = {
@@ -351,7 +351,7 @@ export type MandateCouncilCreateInput = {
   council: Prisma.CouncilCreateNestedOneWithoutMandateTargetsInput
   acceptedBy?: Prisma.UserCreateNestedOneWithoutAcceptedMandatesInput
   rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedMandatesInput
-  audit?: Prisma.AuditCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilUncheckedCreateInput = {
@@ -368,7 +368,7 @@ export type MandateCouncilUncheckedCreateInput = {
   questionnaireUnlockedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  audit?: Prisma.AuditUncheckedCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilUpdateInput = {
@@ -385,7 +385,7 @@ export type MandateCouncilUpdateInput = {
   council?: Prisma.CouncilUpdateOneRequiredWithoutMandateTargetsNestedInput
   acceptedBy?: Prisma.UserUpdateOneWithoutAcceptedMandatesNestedInput
   rejectedBy?: Prisma.UserUpdateOneWithoutRejectedMandatesNestedInput
-  audit?: Prisma.AuditUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateInput = {
@@ -402,7 +402,7 @@ export type MandateCouncilUncheckedUpdateInput = {
   questionnaireUnlockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  audit?: Prisma.AuditUncheckedUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilCreateManyInput = {
@@ -689,18 +689,18 @@ export type EnumMandateCouncilStatusFieldUpdateOperationsInput = {
   set?: $Enums.MandateCouncilStatus
 }
 
-export type MandateCouncilCreateNestedOneWithoutAuditInput = {
-  create?: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditInput>
-  connectOrCreate?: Prisma.MandateCouncilCreateOrConnectWithoutAuditInput
+export type MandateCouncilCreateNestedOneWithoutAuditEngagementInput = {
+  create?: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditEngagementInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditEngagementInput>
+  connectOrCreate?: Prisma.MandateCouncilCreateOrConnectWithoutAuditEngagementInput
   connect?: Prisma.MandateCouncilWhereUniqueInput
 }
 
-export type MandateCouncilUpdateOneRequiredWithoutAuditNestedInput = {
-  create?: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditInput>
-  connectOrCreate?: Prisma.MandateCouncilCreateOrConnectWithoutAuditInput
-  upsert?: Prisma.MandateCouncilUpsertWithoutAuditInput
+export type MandateCouncilUpdateOneRequiredWithoutAuditEngagementNestedInput = {
+  create?: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditEngagementInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditEngagementInput>
+  connectOrCreate?: Prisma.MandateCouncilCreateOrConnectWithoutAuditEngagementInput
+  upsert?: Prisma.MandateCouncilUpsertWithoutAuditEngagementInput
   connect?: Prisma.MandateCouncilWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.MandateCouncilUpdateToOneWithWhereWithoutAuditInput, Prisma.MandateCouncilUpdateWithoutAuditInput>, Prisma.MandateCouncilUncheckedUpdateWithoutAuditInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MandateCouncilUpdateToOneWithWhereWithoutAuditEngagementInput, Prisma.MandateCouncilUpdateWithoutAuditEngagementInput>, Prisma.MandateCouncilUncheckedUpdateWithoutAuditEngagementInput>
 }
 
 export type MandateCouncilCreateWithoutAcceptedByInput = {
@@ -716,7 +716,7 @@ export type MandateCouncilCreateWithoutAcceptedByInput = {
   mandate: Prisma.MandateCreateNestedOneWithoutCouncilsInput
   council: Prisma.CouncilCreateNestedOneWithoutMandateTargetsInput
   rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedMandatesInput
-  audit?: Prisma.AuditCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilUncheckedCreateWithoutAcceptedByInput = {
@@ -732,7 +732,7 @@ export type MandateCouncilUncheckedCreateWithoutAcceptedByInput = {
   questionnaireUnlockedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  audit?: Prisma.AuditUncheckedCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilCreateOrConnectWithoutAcceptedByInput = {
@@ -758,7 +758,7 @@ export type MandateCouncilCreateWithoutRejectedByInput = {
   mandate: Prisma.MandateCreateNestedOneWithoutCouncilsInput
   council: Prisma.CouncilCreateNestedOneWithoutMandateTargetsInput
   acceptedBy?: Prisma.UserCreateNestedOneWithoutAcceptedMandatesInput
-  audit?: Prisma.AuditCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilUncheckedCreateWithoutRejectedByInput = {
@@ -774,7 +774,7 @@ export type MandateCouncilUncheckedCreateWithoutRejectedByInput = {
   questionnaireUnlockedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  audit?: Prisma.AuditUncheckedCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilCreateOrConnectWithoutRejectedByInput = {
@@ -851,7 +851,7 @@ export type MandateCouncilCreateWithoutCouncilInput = {
   mandate: Prisma.MandateCreateNestedOneWithoutCouncilsInput
   acceptedBy?: Prisma.UserCreateNestedOneWithoutAcceptedMandatesInput
   rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedMandatesInput
-  audit?: Prisma.AuditCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilUncheckedCreateWithoutCouncilInput = {
@@ -867,7 +867,7 @@ export type MandateCouncilUncheckedCreateWithoutCouncilInput = {
   questionnaireUnlockedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  audit?: Prisma.AuditUncheckedCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilCreateOrConnectWithoutCouncilInput = {
@@ -909,7 +909,7 @@ export type MandateCouncilCreateWithoutMandateInput = {
   council: Prisma.CouncilCreateNestedOneWithoutMandateTargetsInput
   acceptedBy?: Prisma.UserCreateNestedOneWithoutAcceptedMandatesInput
   rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedMandatesInput
-  audit?: Prisma.AuditCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilUncheckedCreateWithoutMandateInput = {
@@ -925,7 +925,7 @@ export type MandateCouncilUncheckedCreateWithoutMandateInput = {
   questionnaireUnlockedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  audit?: Prisma.AuditUncheckedCreateNestedOneWithoutMandateCouncilInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedCreateNestedOneWithoutMandateCouncilInput
 }
 
 export type MandateCouncilCreateOrConnectWithoutMandateInput = {
@@ -954,7 +954,7 @@ export type MandateCouncilUpdateManyWithWhereWithoutMandateInput = {
   data: Prisma.XOR<Prisma.MandateCouncilUpdateManyMutationInput, Prisma.MandateCouncilUncheckedUpdateManyWithoutMandateInput>
 }
 
-export type MandateCouncilCreateWithoutAuditInput = {
+export type MandateCouncilCreateWithoutAuditEngagementInput = {
   id?: string
   status?: $Enums.MandateCouncilStatus
   acceptedAt?: Date | string | null
@@ -970,7 +970,7 @@ export type MandateCouncilCreateWithoutAuditInput = {
   rejectedBy?: Prisma.UserCreateNestedOneWithoutRejectedMandatesInput
 }
 
-export type MandateCouncilUncheckedCreateWithoutAuditInput = {
+export type MandateCouncilUncheckedCreateWithoutAuditEngagementInput = {
   id?: string
   mandateId: string
   councilId: string
@@ -986,23 +986,23 @@ export type MandateCouncilUncheckedCreateWithoutAuditInput = {
   updatedAt?: Date | string
 }
 
-export type MandateCouncilCreateOrConnectWithoutAuditInput = {
+export type MandateCouncilCreateOrConnectWithoutAuditEngagementInput = {
   where: Prisma.MandateCouncilWhereUniqueInput
-  create: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditInput>
+  create: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditEngagementInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditEngagementInput>
 }
 
-export type MandateCouncilUpsertWithoutAuditInput = {
-  update: Prisma.XOR<Prisma.MandateCouncilUpdateWithoutAuditInput, Prisma.MandateCouncilUncheckedUpdateWithoutAuditInput>
-  create: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditInput>
+export type MandateCouncilUpsertWithoutAuditEngagementInput = {
+  update: Prisma.XOR<Prisma.MandateCouncilUpdateWithoutAuditEngagementInput, Prisma.MandateCouncilUncheckedUpdateWithoutAuditEngagementInput>
+  create: Prisma.XOR<Prisma.MandateCouncilCreateWithoutAuditEngagementInput, Prisma.MandateCouncilUncheckedCreateWithoutAuditEngagementInput>
   where?: Prisma.MandateCouncilWhereInput
 }
 
-export type MandateCouncilUpdateToOneWithWhereWithoutAuditInput = {
+export type MandateCouncilUpdateToOneWithWhereWithoutAuditEngagementInput = {
   where?: Prisma.MandateCouncilWhereInput
-  data: Prisma.XOR<Prisma.MandateCouncilUpdateWithoutAuditInput, Prisma.MandateCouncilUncheckedUpdateWithoutAuditInput>
+  data: Prisma.XOR<Prisma.MandateCouncilUpdateWithoutAuditEngagementInput, Prisma.MandateCouncilUncheckedUpdateWithoutAuditEngagementInput>
 }
 
-export type MandateCouncilUpdateWithoutAuditInput = {
+export type MandateCouncilUpdateWithoutAuditEngagementInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumMandateCouncilStatusFieldUpdateOperationsInput | $Enums.MandateCouncilStatus
   acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1018,7 +1018,7 @@ export type MandateCouncilUpdateWithoutAuditInput = {
   rejectedBy?: Prisma.UserUpdateOneWithoutRejectedMandatesNestedInput
 }
 
-export type MandateCouncilUncheckedUpdateWithoutAuditInput = {
+export type MandateCouncilUncheckedUpdateWithoutAuditEngagementInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   mandateId?: Prisma.StringFieldUpdateOperationsInput | string
   councilId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1077,7 +1077,7 @@ export type MandateCouncilUpdateWithoutAcceptedByInput = {
   mandate?: Prisma.MandateUpdateOneRequiredWithoutCouncilsNestedInput
   council?: Prisma.CouncilUpdateOneRequiredWithoutMandateTargetsNestedInput
   rejectedBy?: Prisma.UserUpdateOneWithoutRejectedMandatesNestedInput
-  audit?: Prisma.AuditUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateWithoutAcceptedByInput = {
@@ -1093,7 +1093,7 @@ export type MandateCouncilUncheckedUpdateWithoutAcceptedByInput = {
   questionnaireUnlockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  audit?: Prisma.AuditUncheckedUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateManyWithoutAcceptedByInput = {
@@ -1124,7 +1124,7 @@ export type MandateCouncilUpdateWithoutRejectedByInput = {
   mandate?: Prisma.MandateUpdateOneRequiredWithoutCouncilsNestedInput
   council?: Prisma.CouncilUpdateOneRequiredWithoutMandateTargetsNestedInput
   acceptedBy?: Prisma.UserUpdateOneWithoutAcceptedMandatesNestedInput
-  audit?: Prisma.AuditUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateWithoutRejectedByInput = {
@@ -1140,7 +1140,7 @@ export type MandateCouncilUncheckedUpdateWithoutRejectedByInput = {
   questionnaireUnlockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  audit?: Prisma.AuditUncheckedUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateManyWithoutRejectedByInput = {
@@ -1186,7 +1186,7 @@ export type MandateCouncilUpdateWithoutCouncilInput = {
   mandate?: Prisma.MandateUpdateOneRequiredWithoutCouncilsNestedInput
   acceptedBy?: Prisma.UserUpdateOneWithoutAcceptedMandatesNestedInput
   rejectedBy?: Prisma.UserUpdateOneWithoutRejectedMandatesNestedInput
-  audit?: Prisma.AuditUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateWithoutCouncilInput = {
@@ -1202,7 +1202,7 @@ export type MandateCouncilUncheckedUpdateWithoutCouncilInput = {
   questionnaireUnlockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  audit?: Prisma.AuditUncheckedUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateManyWithoutCouncilInput = {
@@ -1248,7 +1248,7 @@ export type MandateCouncilUpdateWithoutMandateInput = {
   council?: Prisma.CouncilUpdateOneRequiredWithoutMandateTargetsNestedInput
   acceptedBy?: Prisma.UserUpdateOneWithoutAcceptedMandatesNestedInput
   rejectedBy?: Prisma.UserUpdateOneWithoutRejectedMandatesNestedInput
-  audit?: Prisma.AuditUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateWithoutMandateInput = {
@@ -1264,7 +1264,7 @@ export type MandateCouncilUncheckedUpdateWithoutMandateInput = {
   questionnaireUnlockedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  audit?: Prisma.AuditUncheckedUpdateOneWithoutMandateCouncilNestedInput
+  auditEngagement?: Prisma.AuditEngagementUncheckedUpdateOneWithoutMandateCouncilNestedInput
 }
 
 export type MandateCouncilUncheckedUpdateManyWithoutMandateInput = {
@@ -1302,7 +1302,7 @@ export type MandateCouncilSelect<ExtArgs extends runtime.Types.Extensions.Intern
   council?: boolean | Prisma.CouncilDefaultArgs<ExtArgs>
   acceptedBy?: boolean | Prisma.MandateCouncil$acceptedByArgs<ExtArgs>
   rejectedBy?: boolean | Prisma.MandateCouncil$rejectedByArgs<ExtArgs>
-  audit?: boolean | Prisma.MandateCouncil$auditArgs<ExtArgs>
+  auditEngagement?: boolean | Prisma.MandateCouncil$auditEngagementArgs<ExtArgs>
 }, ExtArgs["result"]["mandateCouncil"]>
 
 export type MandateCouncilSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1367,7 +1367,7 @@ export type MandateCouncilInclude<ExtArgs extends runtime.Types.Extensions.Inter
   council?: boolean | Prisma.CouncilDefaultArgs<ExtArgs>
   acceptedBy?: boolean | Prisma.MandateCouncil$acceptedByArgs<ExtArgs>
   rejectedBy?: boolean | Prisma.MandateCouncil$rejectedByArgs<ExtArgs>
-  audit?: boolean | Prisma.MandateCouncil$auditArgs<ExtArgs>
+  auditEngagement?: boolean | Prisma.MandateCouncil$auditEngagementArgs<ExtArgs>
 }
 export type MandateCouncilIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   mandate?: boolean | Prisma.MandateDefaultArgs<ExtArgs>
@@ -1389,7 +1389,7 @@ export type $MandateCouncilPayload<ExtArgs extends runtime.Types.Extensions.Inte
     council: Prisma.$CouncilPayload<ExtArgs>
     acceptedBy: Prisma.$UserPayload<ExtArgs> | null
     rejectedBy: Prisma.$UserPayload<ExtArgs> | null
-    audit: Prisma.$AuditPayload<ExtArgs> | null
+    auditEngagement: Prisma.$AuditEngagementPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1803,7 +1803,7 @@ export interface Prisma__MandateCouncilClient<T, Null = never, ExtArgs extends r
   council<T extends Prisma.CouncilDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CouncilDefaultArgs<ExtArgs>>): Prisma.Prisma__CouncilClient<runtime.Types.Result.GetResult<Prisma.$CouncilPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   acceptedBy<T extends Prisma.MandateCouncil$acceptedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MandateCouncil$acceptedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   rejectedBy<T extends Prisma.MandateCouncil$rejectedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MandateCouncil$rejectedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  audit<T extends Prisma.MandateCouncil$auditArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MandateCouncil$auditArgs<ExtArgs>>): Prisma.Prisma__AuditClient<runtime.Types.Result.GetResult<Prisma.$AuditPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  auditEngagement<T extends Prisma.MandateCouncil$auditEngagementArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MandateCouncil$auditEngagementArgs<ExtArgs>>): Prisma.Prisma__AuditEngagementClient<runtime.Types.Result.GetResult<Prisma.$AuditEngagementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2285,22 +2285,22 @@ export type MandateCouncil$rejectedByArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
- * MandateCouncil.audit
+ * MandateCouncil.auditEngagement
  */
-export type MandateCouncil$auditArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type MandateCouncil$auditEngagementArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Audit
+   * Select specific fields to fetch from the AuditEngagement
    */
-  select?: Prisma.AuditSelect<ExtArgs> | null
+  select?: Prisma.AuditEngagementSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Audit
+   * Omit specific fields from the AuditEngagement
    */
-  omit?: Prisma.AuditOmit<ExtArgs> | null
+  omit?: Prisma.AuditEngagementOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.AuditInclude<ExtArgs> | null
-  where?: Prisma.AuditWhereInput
+  include?: Prisma.AuditEngagementInclude<ExtArgs> | null
+  where?: Prisma.AuditEngagementWhereInput
 }
 
 /**

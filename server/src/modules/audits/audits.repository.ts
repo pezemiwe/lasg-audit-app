@@ -1,10 +1,7 @@
 import type { AuditStatus, Prisma } from "../../generated/prisma/client";
 import { prisma } from "../../config/prisma";
 
-const auditInclude = {
-  mandate: {
-    select: { id: true, title: true, year: true, status: true },
-  },
+export const auditEngagementInclude = {
   mandateCouncil: {
     select: { id: true, status: true, acceptedAt: true, rejectedAt: true },
   },
@@ -12,6 +9,22 @@ const auditInclude = {
   zone: true,
   lead: {
     select: { id: true, name: true, email: true, role: true },
+  },
+  _count: {
+    select: { documents: true },
+  },
+} satisfies Prisma.AuditEngagementInclude;
+
+const auditInclude = {
+  mandate: {
+    select: { id: true, title: true, year: true, status: true },
+  },
+  engagements: {
+    include: auditEngagementInclude,
+    orderBy: { createdAt: "asc" },
+  },
+  _count: {
+    select: { engagements: true },
   },
 } satisfies Prisma.AuditInclude;
 
@@ -27,6 +40,19 @@ export function getAuditById(id: string, where?: Prisma.AuditWhereInput) {
   return prisma.audit.findFirstOrThrow({
     where: { id, ...where },
     include: auditInclude,
+  });
+}
+
+export function listAuditEngagements(auditId: string, where: Prisma.AuditEngagementWhereInput) {
+  return prisma.auditEngagement.findMany({
+    where: { auditId, ...where },
+    include: {
+      ...auditEngagementInclude,
+      audit: {
+        select: { id: true, mandateId: true, title: true, year: true, status: true },
+      },
+    },
+    orderBy: { createdAt: "asc" },
   });
 }
 

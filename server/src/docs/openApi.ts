@@ -107,7 +107,7 @@ export const openApiDocument = {
         type: "object",
         properties: {
           id: { type: "string" },
-          auditId: { type: "string" },
+          auditEngagementId: { type: "string" },
           documentRequirementId: { type: "string", nullable: true },
           name: { type: "string" },
           description: { type: "string", nullable: true },
@@ -133,9 +133,6 @@ export const openApiDocument = {
         properties: {
           id: { type: "string" },
           mandateId: { type: "string" },
-          mandateCouncilId: { type: "string" },
-          councilId: { type: "string" },
-          zoneId: { type: "string" },
           title: { type: "string" },
           year: { type: "integer" },
           auditTypes: {
@@ -146,9 +143,29 @@ export const openApiDocument = {
           progress: { type: "integer", minimum: 0, maximum: 100 },
           startDate: { type: "string", format: "date-time", nullable: true },
           endDate: { type: "string", format: "date-time", nullable: true },
+          startedAt: { type: "string", format: "date-time", nullable: true },
+          completedAt: { type: "string", format: "date-time", nullable: true },
+          engagementsCount: { type: "integer" },
+          acceptedCouncilsCount: { type: "integer" },
+          rejectedCouncilsCount: { type: "integer" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      AuditEngagement: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          auditId: { type: "string" },
+          mandateCouncilId: { type: "string" },
+          councilId: { type: "string" },
+          zoneId: { type: "string" },
+          status: { $ref: "#/components/schemas/AuditStatus" },
+          progress: { type: "integer", minimum: 0, maximum: 100 },
           leadId: { type: "string", nullable: true },
           startedAt: { type: "string", format: "date-time", nullable: true },
           completedAt: { type: "string", format: "date-time", nullable: true },
+          documentsCount: { type: "integer" },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
         },
@@ -668,6 +685,36 @@ export const openApiDocument = {
         },
       },
     },
+    "/councils/{id}/holg": {
+      patch: {
+        tags: ["Councils"],
+        summary: "Assign HoLG to council",
+        description:
+          "System Admin only. The user must already have HEAD_OF_LOCAL_GOVERNMENT role and ACTIVE status.",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["userId"],
+                properties: {
+                  userId: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Council with assigned HoLG" },
+          "400": { $ref: "#/components/responses/ValidationError" },
+          "403": { $ref: "#/components/responses/Forbidden" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
     "/mandates": {
       get: {
         tags: ["Mandates"],
@@ -930,17 +977,79 @@ export const openApiDocument = {
         },
       },
     },
-    "/audits/{auditId}/documents": {
+    "/audits/{id}/engagements": {
       get: {
         tags: ["Audits"],
-        summary: "List documents required for an audit",
+        summary: "List council audit engagements under an audit",
         security: [{ bearerAuth: [] }],
         parameters: [
-          { name: "auditId", in: "path", required: true, schema: { type: "string" } },
+          { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
           "200": {
-            description: "Audit documents",
+            description: "Audit engagements",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/AuditEngagement" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/my-audit-engagements": {
+      get: {
+        tags: ["Audit Engagements"],
+        summary: "List audit engagements visible to the authenticated user",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "status", in: "query", schema: { $ref: "#/components/schemas/AuditStatus" } },
+          { name: "auditId", in: "query", schema: { type: "string" } },
+          { name: "councilId", in: "query", schema: { type: "string" } },
+          { name: "zoneId", in: "query", schema: { type: "string" } },
+          { name: "leadId", in: "query", schema: { type: "string" } },
+        ],
+        responses: {
+          "200": {
+            description: "Audit engagements",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/AuditEngagement" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/audit-engagements/{id}": {
+      get: {
+        tags: ["Audit Engagements"],
+        summary: "Get audit engagement by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Audit engagement" },
+          "404": { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/audit-engagements/{engagementId}/documents": {
+      get: {
+        tags: ["Audit Engagements"],
+        summary: "List documents required for an audit engagement",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: "engagementId", in: "path", required: true, schema: { type: "string" } },
+        ],
+        responses: {
+          "200": {
+            description: "Audit engagement documents",
             content: {
               "application/json": {
                 schema: {
@@ -953,13 +1062,13 @@ export const openApiDocument = {
         },
       },
     },
-    "/audits/{auditId}/documents/{documentId}/upload": {
+    "/audit-engagements/{engagementId}/documents/{documentId}/upload": {
       post: {
-        tags: ["Audits"],
-        summary: "Upload a document for an audit checklist item",
+        tags: ["Audit Engagements"],
+        summary: "Upload a document for an audit engagement checklist item",
         security: [{ bearerAuth: [] }],
         parameters: [
-          { name: "auditId", in: "path", required: true, schema: { type: "string" } },
+          { name: "engagementId", in: "path", required: true, schema: { type: "string" } },
           { name: "documentId", in: "path", required: true, schema: { type: "string" } },
         ],
         requestBody: {

@@ -391,6 +391,7 @@ export const ModelName = {
   Mandate: 'Mandate',
   MandateCouncil: 'MandateCouncil',
   Audit: 'Audit',
+  AuditEngagement: 'AuditEngagement',
   DocumentRequirement: 'DocumentRequirement',
   AuditDocument: 'AuditDocument',
   ActivityLog: 'ActivityLog'
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "audit" | "documentRequirement" | "auditDocument" | "activityLog"
+    modelProps: "user" | "passwordResetToken" | "zone" | "council" | "mandate" | "mandateCouncil" | "audit" | "auditEngagement" | "documentRequirement" | "auditDocument" | "activityLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -931,6 +932,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AuditEngagement: {
+      payload: Prisma.$AuditEngagementPayload<ExtArgs>
+      fields: Prisma.AuditEngagementFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AuditEngagementFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AuditEngagementFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>
+        }
+        findFirst: {
+          args: Prisma.AuditEngagementFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AuditEngagementFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>
+        }
+        findMany: {
+          args: Prisma.AuditEngagementFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>[]
+        }
+        create: {
+          args: Prisma.AuditEngagementCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>
+        }
+        createMany: {
+          args: Prisma.AuditEngagementCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AuditEngagementCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>[]
+        }
+        delete: {
+          args: Prisma.AuditEngagementDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>
+        }
+        update: {
+          args: Prisma.AuditEngagementUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>
+        }
+        deleteMany: {
+          args: Prisma.AuditEngagementDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AuditEngagementUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AuditEngagementUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>[]
+        }
+        upsert: {
+          args: Prisma.AuditEngagementUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AuditEngagementPayload>
+        }
+        aggregate: {
+          args: Prisma.AuditEngagementAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAuditEngagement>
+        }
+        groupBy: {
+          args: Prisma.AuditEngagementGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditEngagementGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AuditEngagementCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AuditEngagementCountAggregateOutputType> | number
+        }
+      }
+    }
     DocumentRequirement: {
       payload: Prisma.$DocumentRequirementPayload<ExtArgs>
       fields: Prisma.DocumentRequirementFieldRefs
@@ -1294,9 +1369,6 @@ export type MandateCouncilScalarFieldEnum = (typeof MandateCouncilScalarFieldEnu
 export const AuditScalarFieldEnum = {
   id: 'id',
   mandateId: 'mandateId',
-  mandateCouncilId: 'mandateCouncilId',
-  councilId: 'councilId',
-  zoneId: 'zoneId',
   title: 'title',
   year: 'year',
   auditTypes: 'auditTypes',
@@ -1304,7 +1376,6 @@ export const AuditScalarFieldEnum = {
   progress: 'progress',
   startDate: 'startDate',
   endDate: 'endDate',
-  leadId: 'leadId',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
@@ -1312,6 +1383,24 @@ export const AuditScalarFieldEnum = {
 } as const
 
 export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+
+
+export const AuditEngagementScalarFieldEnum = {
+  id: 'id',
+  auditId: 'auditId',
+  mandateCouncilId: 'mandateCouncilId',
+  councilId: 'councilId',
+  zoneId: 'zoneId',
+  status: 'status',
+  progress: 'progress',
+  leadId: 'leadId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditEngagementScalarFieldEnum = (typeof AuditEngagementScalarFieldEnum)[keyof typeof AuditEngagementScalarFieldEnum]
 
 
 export const DocumentRequirementScalarFieldEnum = {
@@ -1331,7 +1420,7 @@ export type DocumentRequirementScalarFieldEnum = (typeof DocumentRequirementScal
 
 export const AuditDocumentScalarFieldEnum = {
   id: 'id',
-  auditId: 'auditId',
+  auditEngagementId: 'auditEngagementId',
   documentRequirementId: 'documentRequirementId',
   name: 'name',
   description: 'description',
@@ -1743,6 +1832,7 @@ export type GlobalOmitConfig = {
   mandate?: Prisma.MandateOmit
   mandateCouncil?: Prisma.MandateCouncilOmit
   audit?: Prisma.AuditOmit
+  auditEngagement?: Prisma.AuditEngagementOmit
   documentRequirement?: Prisma.DocumentRequirementOmit
   auditDocument?: Prisma.AuditDocumentOmit
   activityLog?: Prisma.ActivityLogOmit

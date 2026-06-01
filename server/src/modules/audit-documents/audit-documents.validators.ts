@@ -1,13 +1,13 @@
 import { body, param } from "express-validator";
 import { validateRequest } from "../../common/middleware/validateRequest";
 
-export const auditDocumentsByAuditValidator = [
-  param("auditId").isString().notEmpty().withMessage("audit id is required"),
+export const auditDocumentsByEngagementValidator = [
+  param("engagementId").isString().notEmpty().withMessage("audit engagement id is required"),
   validateRequest,
 ];
 
 export const uploadAuditDocumentValidator = [
-  param("auditId").isString().notEmpty().withMessage("audit id is required"),
+  param("engagementId").isString().notEmpty().withMessage("audit engagement id is required"),
   param("documentId").isString().notEmpty().withMessage("document id is required"),
   validateRequest,
 ];

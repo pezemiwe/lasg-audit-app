@@ -58,6 +58,7 @@ export const ModelName = {
   Mandate: 'Mandate',
   MandateCouncil: 'MandateCouncil',
   Audit: 'Audit',
+  AuditEngagement: 'AuditEngagement',
   DocumentRequirement: 'DocumentRequirement',
   AuditDocument: 'AuditDocument',
   ActivityLog: 'ActivityLog'
@@ -181,9 +182,6 @@ export type MandateCouncilScalarFieldEnum = (typeof MandateCouncilScalarFieldEnu
 export const AuditScalarFieldEnum = {
   id: 'id',
   mandateId: 'mandateId',
-  mandateCouncilId: 'mandateCouncilId',
-  councilId: 'councilId',
-  zoneId: 'zoneId',
   title: 'title',
   year: 'year',
   auditTypes: 'auditTypes',
@@ -191,7 +189,6 @@ export const AuditScalarFieldEnum = {
   progress: 'progress',
   startDate: 'startDate',
   endDate: 'endDate',
-  leadId: 'leadId',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
@@ -199,6 +196,24 @@ export const AuditScalarFieldEnum = {
 } as const
 
 export type AuditScalarFieldEnum = (typeof AuditScalarFieldEnum)[keyof typeof AuditScalarFieldEnum]
+
+
+export const AuditEngagementScalarFieldEnum = {
+  id: 'id',
+  auditId: 'auditId',
+  mandateCouncilId: 'mandateCouncilId',
+  councilId: 'councilId',
+  zoneId: 'zoneId',
+  status: 'status',
+  progress: 'progress',
+  leadId: 'leadId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AuditEngagementScalarFieldEnum = (typeof AuditEngagementScalarFieldEnum)[keyof typeof AuditEngagementScalarFieldEnum]
 
 
 export const DocumentRequirementScalarFieldEnum = {
@@ -218,7 +233,7 @@ export type DocumentRequirementScalarFieldEnum = (typeof DocumentRequirementScal
 
 export const AuditDocumentScalarFieldEnum = {
   id: 'id',
-  auditId: 'auditId',
+  auditEngagementId: 'auditEngagementId',
   documentRequirementId: 'documentRequirementId',
   name: 'name',
   description: 'description',

@@ -116,7 +116,10 @@ describe("mandates.controller", () => {
     const response = await request(app).patch("/api/v1/mandates/mandate-1/publish");
 
     expect(response.status).toBe(200);
-    expect(mockedPublishMandate).toHaveBeenCalledWith("mandate-1");
+    expect(mockedPublishMandate).toHaveBeenCalledWith(
+      "mandate-1",
+      expect.objectContaining({ id: "sag-1" }),
+    );
     expect(mockedWriteActivityLog).toHaveBeenCalledWith(
       expect.objectContaining({ action: "MANDATE_PUBLISHED", entityId: "mandate-1" }),
     );

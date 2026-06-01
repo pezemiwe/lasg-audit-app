@@ -16,6 +16,10 @@ import activityRoutes from "./modules/activity/activity.routes";
 import roleRoutes from "./modules/roles/roles.routes";
 import mandateRoutes from "./modules/mandates/mandates.routes";
 import auditRoutes from "./modules/audits/audits.routes";
+import {
+  auditEngagementsRouter,
+  myAuditEngagementsRouter,
+} from "./modules/audit-engagements/audit-engagements.routes";
 import documentRequirementRoutes from "./modules/document-requirements/document-requirements.routes";
 import auditDocumentRoutes from "./modules/audit-documents/audit-documents.routes";
 
@@ -45,6 +49,8 @@ app.use("/api/v1/councils", councilRoutes);
 app.use("/api/v1/activity", activityRoutes);
 app.use("/api/v1/mandates", mandateRoutes);
 app.use("/api/v1/audits", auditRoutes);
+app.use("/api/v1/my-audit-engagements", myAuditEngagementsRouter);
+app.use("/api/v1/audit-engagements", auditEngagementsRouter);
 app.use("/api/v1/document-requirements", documentRequirementRoutes);
 app.use("/api/v1/audit-documents", auditDocumentRoutes);
 

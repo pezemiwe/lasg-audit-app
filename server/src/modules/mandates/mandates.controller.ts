@@ -78,7 +78,7 @@ export async function updateMandateController(req: Request, res: Response) {
 
 export async function deleteMandateController(req: Request, res: Response) {
   const mandateId = req.params.id as string;
-  await deleteMandate(mandateId);
+  await deleteMandate(mandateId, req.user!);
 
   await writeActivityLog({
     req,
@@ -91,7 +91,7 @@ export async function deleteMandateController(req: Request, res: Response) {
 }
 
 export async function publishMandateController(req: Request, res: Response) {
-  const mandate = await publishMandate(req.params.id as string);
+  const mandate = await publishMandate(req.params.id as string, req.user!);
 
   await writeActivityLog({
     req,
